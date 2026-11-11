@@ -7,10 +7,10 @@ conftest.py); the four tests below only read that measurement.
 import pytest
 from conftest import PAGES, SCHEMES, WIDTHS, page_id
 
-# Tests with the same xdist_group run on the same worker (make test-ui uses --dist loadgroup),
-# so each page is loaded once per width and scheme and reused by all four checks.
+# Run in parallel, all the tests of one width and color scheme go to the same worker (see
+# pytest_xdist_make_scheduler in conftest.py), so each page is loaded once and all checks reuse it.
 LAYOUT_CASES = [
-    pytest.param(path, width, scheme, id=f"{page_id(path)}-{width}-{scheme}", marks=pytest.mark.xdist_group(f"layout-{width}-{scheme}"))
+    pytest.param(path, width, scheme, id=f"{page_id(path)}-{width}-{scheme}")
     for scheme in SCHEMES
     for width in WIDTHS
     for path in PAGES
@@ -56,7 +56,7 @@ def test_u4_no_console_errors_or_failed_requests(tabs, path, width, scheme):
 
 
 @pytest.mark.parametrize(
-    "scheme", [pytest.param(s, marks=pytest.mark.xdist_group(f"layout-320-{s}")) for s in SCHEMES], ids=SCHEMES
+    "scheme", [pytest.param(s) for s in SCHEMES], ids=SCHEMES
 )
 def test_u3_a_long_code_line_really_scrolls_in_its_own_block(tabs, scheme):
     """U3 (positive check): in the Conventions page, scrolling the deliberately long line moves only that block."""

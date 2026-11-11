@@ -53,7 +53,6 @@ def test_every_built_page_is_in_the_nav():
     )
 
 
-@pytest.mark.xdist_group("nav-order")
 @pytest.mark.parametrize("position", range(len(NAV)), ids=[page_id(path) for _, path in NAV])
 def test_u8_footer_links_follow_the_nav_order(tabs, base_url, position):
     """U8: the Previous and Next links at the bottom of a page lead to its neighbors in the nav."""
@@ -112,7 +111,6 @@ LESSON_0_5 = "ch00-getting-started/05-compiler-linker-and-libraries/"
 SEARCH_FIELD_SHOWN_FROM = 960  # px; below this Material hides the field behind the search icon
 
 
-@pytest.mark.xdist_group("search")
 @pytest.mark.parametrize("width", [375, 1280])
 def test_u9_searching_for_linker_lists_lesson_0_5(browser, base_url, width):
     """U9: typing 'linker' into the search box lists lesson 0.5 among the results."""
@@ -157,7 +155,6 @@ DIAGRAM_JS = """() => {
 }"""
 
 
-@pytest.mark.xdist_group("layout-320-light")
 @pytest.mark.parametrize("scheme", SCHEMES)
 def test_u10_lesson_0_5_diagram_renders_and_fits_at_320(tabs, scheme):
     """U10: the Mermaid diagram draws an <svg> in both color schemes, fits at 320px and keeps its text readable."""

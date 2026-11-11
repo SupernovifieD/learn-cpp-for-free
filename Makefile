@@ -47,7 +47,7 @@ build: ## Build the site into site/, failing on any warning
 	$(PY) -m mkdocs build --strict
 
 test-ui: build ## Build, then run the browser tests (layout, accessibility, behavior)
-	$(PY) -m pytest tests/ui -q --durations=5 -n $(UI_WORKERS) --dist loadgroup
+	$(PY) -m pytest tests/ui -q --durations=5 -n $(UI_WORKERS) --dist loadscope
 
 screenshots: build ## Build, then save screenshots of every page to artifacts/screenshots/
 	$(PY) tests/ui/screenshots.py

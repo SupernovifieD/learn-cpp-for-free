@@ -311,6 +311,46 @@ class Tab:
         return self.surveys[path]
 
 
+# ------------------------------------------------------- parallel scheduling --
+
+_VIEWPORT_ID = re.compile(r"[-\[](\d{3,4})-(light|dark)\]$")
+_SCHEME_ONLY_ID = re.compile(r"\[(light|dark)\]$")
+
+
+def _scope_of(nodeid: str) -> str:
+    """The group of tests that should run on one worker, so they can share loaded pages.
+
+    A test id ends in the page, the width and the color scheme (for example
+    "[index-375-light]"). Everything measured at one width and scheme shares one browser tab
+    that remembers each page it has loaded, so all of those tests go to the same worker: a page
+    is then loaded once, not once per check. Checks that are not tied to a viewport form one
+    group per check.
+    """
+    viewport = _VIEWPORT_ID.search(nodeid)
+    if viewport:
+        return f"{viewport.group(1)}-{viewport.group(2)}"
+    scheme_only = _SCHEME_ONLY_ID.search(nodeid)
+    if scheme_only:  # the checks that are made at 320px and named only by color scheme
+        return f"320-{scheme_only.group(1)}"
+    return nodeid.split("::")[-1].split("[")[0]
+
+
+@pytest.hookimpl(optionalhook=True)
+def pytest_xdist_make_scheduler(config, log):
+    """Group tests by viewport when they run in parallel with pytest-xdist.
+
+    xdist's own `--dist loadgroup` is not used: with pytest 9.2 and pytest-xdist 3.8 it silently
+    ignores the xdist_group marks, which put every test on a worker of its own.
+    """
+    from xdist.scheduler import LoadScopeScheduling
+
+    class ByViewport(LoadScopeScheduling):
+        def _split_scope(self, nodeid: str) -> str:
+            return _scope_of(nodeid)
+
+    return ByViewport(config, log)
+
+
 # ------------------------------------------------------------ time report --
 
 # Seconds spent per check (setup, call and teardown together) and how many tests ran. It helps
