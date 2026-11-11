@@ -11,19 +11,13 @@ This page shows every component you will meet while reading the book. Skim it on
 A complete program has a title bar that shows a file name. Type the program into a file with that name, then build and run it as the lessons describe.
 
 ```cpp title="hello-world.cpp"
-#include <iostream>
-
-int main()
-{
-    std::cout << "Hello, world!\n";
-    return 0;
-}
+--8<-- "examples/ch00/07-hello-world.cpp"
 ```
 
 The block under a program shows exactly what it prints. Output blocks have a rule down the left edge, so you can tell them apart from code at a glance.
 
 ```text title="Output"
-Hello, world!
+--8<-- "examples/ch00/07-hello-world.out"
 ```
 
 Code blocks never wrap, and they are never cut off. When a line is wider than the page, the block scrolls sideways on its own, as in the next example. On a trackpad you swipe, with a mouse you hold ++shift++ while turning the wheel, and on a touch screen you drag.

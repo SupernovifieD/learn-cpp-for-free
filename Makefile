@@ -11,12 +11,26 @@ PY ?= $(VENV)/bin/python
 # Interpreter used only to create the virtual environment.
 BOOTSTRAP_PY ?= python3
 
+# The pinned clang-format that `make format` and `make format-check` run. Point
+# it at your own if you do not use the virtual environment.
+CLANG_FORMAT ?= $(VENV)/bin/clang-format
+
+# Extra options for scripts/check_examples.py. CI passes --require-all so that
+# a missing compiler fails the build instead of only printing a warning.
+EXAMPLES_ARGS ?=
+
+# Extra options for scripts/lint_content.py (for example --final).
+LINT_ARGS ?=
+
+# Every C++ example in the book.
+CPP_FILES = $(shell find examples -name '*.cpp' | sort)
+
 # Browser test workers. Each one runs its own Chromium (hundreds of MB), so the
 # default is small enough for a laptop with 8 GB; raise it on a bigger machine,
 # e.g. `make test-ui UI_WORKERS=4`.
 UI_WORKERS ?= 2
 
-.PHONY: help install serve build test-ui screenshots
+.PHONY: help install serve build test-ui screenshots lint examples format format-check check
 
 help: ## Show this list of targets
 	@grep -E '^[a-z-]+:.*## ' $(MAKEFILE_LIST) | sed -e 's/:.*## /\t/'
@@ -37,3 +51,17 @@ test-ui: build ## Build, then run the browser tests (layout, accessibility, beha
 
 screenshots: build ## Build, then save screenshots of every page to artifacts/screenshots/
 	$(PY) tests/ui/screenshots.py
+
+lint: ## Check the structure and writing rules of docs/ (see scripts/lint_content.py)
+	$(PY) scripts/lint_content.py $(LINT_ARGS)
+
+examples: ## Compile, run and format-check every C++ example with GCC and Clang
+	$(PY) scripts/check_examples.py $(EXAMPLES_ARGS)
+
+format: ## Reformat every C++ example in place
+	$(CLANG_FORMAT) -i $(CPP_FILES)
+
+format-check: ## Fail if any C++ example is not formatted (changes nothing)
+	$(CLANG_FORMAT) --dry-run --Werror $(CPP_FILES)
+
+check: lint examples format-check build test-ui ## Everything CI checks: lint, examples, format, build, browser tests

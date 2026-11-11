@@ -1,0 +1,35 @@
+# Formatting rules for every C++ example in the book (see CONTRIBUTING.md).
+# The pinned clang-format in requirements-dev.txt applies them, so every
+# contributor formats identically: `make format` fixes files, `make format-check`
+# only reports. The same rules are checked in CI.
+BasedOnStyle: LLVM
+Language: Cpp
+Standard: c++20
+
+# Four spaces, never tabs, and lines of at most 80 columns so code fits the page.
+IndentWidth: 4
+TabWidth: 4
+UseTab: Never
+ColumnLimit: 80
+
+# Braces on their own line, and one statement per line.
+BreakBeforeBraces: Allman
+AllowShortBlocksOnASingleLine: Never
+AllowShortCaseLabelsOnASingleLine: false
+AllowShortFunctionsOnASingleLine: None
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortLambdasOnASingleLine: None
+AllowShortLoopsOnASingleLine: false
+
+# Brace initialization reads like `int x{5};`, with no space before the brace.
+Cpp11BracedListStyle: true
+SpaceBeforeCpp11BracedList: false
+
+# Layout details, written out so a change of clang-format defaults cannot change the book.
+PointerAlignment: Left
+IndentCaseLabels: true
+NamespaceIndentation: None
+FixNamespaceComments: true
+MaxEmptyLinesToKeep: 1
+KeepEmptyLinesAtTheStartOfBlocks: false
+InsertNewlineAtEOF: true
