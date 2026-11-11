@@ -11,7 +11,7 @@ PY ?= $(VENV)/bin/python
 # Interpreter used only to create the virtual environment.
 BOOTSTRAP_PY ?= python3
 
-.PHONY: help install serve build
+.PHONY: help install serve build test-ui screenshots
 
 help: ## Show this list of targets
 	@grep -E '^[a-z-]+:.*## ' $(MAKEFILE_LIST) | sed -e 's/:.*## /\t/'
@@ -26,3 +26,9 @@ serve: ## Preview the book at http://127.0.0.1:8000 with live reload
 
 build: ## Build the site into site/, failing on any warning
 	$(PY) -m mkdocs build --strict
+
+test-ui: build ## Build, then run the browser tests (layout, accessibility, behavior)
+	$(PY) -m pytest tests/ui -q --durations=5
+
+screenshots: build ## Build, then save screenshots of every page to artifacts/screenshots/
+	$(PY) tests/ui/screenshots.py

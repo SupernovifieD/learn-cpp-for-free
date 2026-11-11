@@ -52,8 +52,7 @@ theme:
   # previous/next links in the footer, copy buttons on code, and an edit link.
   features:
     - navigation.instant          # SPA-style page loads
-    - navigation.instant.progress # thin progress bar on slow loads
-    - navigation.tracking         # URL follows the section being read
+    - navigation.tracking        # URL follows the section being read
     - navigation.sections         # chapters render as sidebar sections
     - navigation.indexes          # chapter index page attached to its section
     - navigation.top              # back-to-top button

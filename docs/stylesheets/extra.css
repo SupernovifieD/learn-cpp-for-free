@@ -37,6 +37,43 @@
   --md-accent-fg-color--transparent: #9ccdf71a;
 }
 
+/* Syntax colors. Material's defaults sit between 4.4:1 and 4.7:1 against the
+   code background (the minimum is 4.5:1) and two fail in dark mode, so these
+   values keep at least 5.2:1 in both schemes. */
+[data-md-color-scheme="default"] {
+  --md-code-hl-number-color: #c42727;
+  --md-code-hl-special-color: #c81250;
+  --md-code-hl-function-color: #9940a8;
+  --md-code-hl-constant-color: #654fd7;
+  --md-code-hl-keyword-color: #3764ba;
+  --md-code-hl-string-color: #1a7548;
+  --md-code-hl-operator-color: #666;
+  --md-code-hl-punctuation-color: #666;
+  --md-code-hl-comment-color: #666;
+  --md-code-hl-generic-color: #666;
+  --md-code-hl-variable-color: #666;
+}
+
+[data-md-color-scheme="slate"] {
+  --md-code-hl-number-color: #ea7f73;
+  --md-code-hl-special-color: #f2739d;
+  --md-code-hl-function-color: #ce7fdc;
+  --md-code-hl-constant-color: #a091e5;
+  --md-code-hl-keyword-color: #789de3;
+  --md-code-hl-string-color: #2fb170;
+  --md-code-hl-operator-color: #9b9ca4;
+  --md-code-hl-punctuation-color: #9b9ca4;
+  --md-code-hl-comment-color: #9b9ca4;
+  --md-code-hl-generic-color: #9b9ca4;
+  --md-code-hl-variable-color: #9b9ca4;
+}
+
+/* Material's footer copyright text is just under the 4.5:1 contrast minimum
+   (4.47:1) on the footer background; this makes it a little brighter. */
+[data-md-color-scheme] {
+  --md-footer-fg-color--lighter: hsla(0, 0%, 100%, 0.6);
+}
+
 /* 2. Typography -----------------------------------------------------------
    Fonts are chosen in mkdocs.yml (theme.font). Here: slightly larger body
    text (about 17px), looser lines, and calmer headings. */
@@ -140,6 +177,13 @@
   padding-right: 0;
 }
 
+/* Links in running text are underlined: blue against dark text is only a
+   2.2:1 difference, so color alone does not make a link recognizable. */
+.md-typeset :is(p, li, td, dd) a:not(.md-button, .headerlink) {
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+}
+
 /* Anchor the copy button to the whole block instead of the <pre>. In titled
    blocks it then sits inside the title bar, so it never covers code. */
 .md-typeset .highlight {
@@ -163,10 +207,12 @@
   }
 }
 
-/* The repository numbers in the header are 11px in Material, below the 12px
-   minimum this book allows for any text. */
+/* The repository numbers in the header are 11px at 75% opacity in Material:
+   below the 12px minimum this book allows for any text, and only 4.2:1 against
+   the header color. */
 .md-source__facts {
   font-size: 0.6rem;
+  opacity: 1;
 }
 
 /* Program output (```text blocks) gets a rule down its left edge, so it reads
