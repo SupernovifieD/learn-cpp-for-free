@@ -22,8 +22,8 @@ The block under a program shows exactly what it prints. Output blocks have a rul
 
 Code blocks never wrap, and they are never cut off. When a line is wider than the page, the block scrolls sideways on its own, as in the next example. On a trackpad you swipe, with a mouse you hold ++shift++ while turning the wheel, and on a touch screen you drag.
 
-```text title="long-line.txt"
-This single line is deliberately much wider than a phone screen, so that you can see a code block scroll sideways instead of stretching the page.
+```cpp title="long-line.cpp"
+std::cout << "This single line is deliberately much wider than a phone screen, so that you can see a code block scroll sideways instead of stretching the page.\n";
 ```
 
 Short pieces of code inside a sentence look like `std::cout`. Identifiers, file names and commands always use this style.
