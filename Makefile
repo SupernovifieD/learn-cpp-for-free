@@ -19,8 +19,10 @@ CLANG_FORMAT ?= $(VENV)/bin/clang-format
 # a missing compiler fails the build instead of only printing a warning.
 EXAMPLES_ARGS ?=
 
-# Extra options for scripts/lint_content.py (for example --final).
-LINT_ARGS ?=
+# Options for scripts/lint_content.py. --final also rejects leftover <!-- STUB --> markers and
+# requires lesson 0.11 to show the flags file, so no unfinished page can be published. CI uses
+# this too. To draft a page with a stub marker locally, run `make lint LINT_ARGS=`.
+LINT_ARGS ?= --final
 
 # Every C++ example in the book.
 CPP_FILES = $(shell find examples -name '*.cpp' | sort)

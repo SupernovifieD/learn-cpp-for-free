@@ -227,6 +227,15 @@
   text-underline-offset: 0.15em;
 }
 
+/* On the narrowest phones the third label of "Visual Studio | VS Code | Command
+   line" would hide behind a scroll arrow. 12px is the smallest text this book
+   allows, and it is just small enough for all three labels to fit at 320px. */
+@media screen and (max-width: 22.5em) {
+  .md-typeset .tabbed-labels > label {
+    font-size: 0.6rem;
+  }
+}
+
 /* Anchor the copy button to the whole block instead of the <pre>. In titled
    blocks it then sits inside the title bar, so it never covers code. */
 .md-typeset .highlight {
