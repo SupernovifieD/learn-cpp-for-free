@@ -1,0 +1,132 @@
+# Site identity ---------------------------------------------------------------
+site_name: The C++ Book
+site_url: https://supernovified.github.io/learn-cpp-for-free/   # needed for the sitemap, 404 page and instant navigation
+site_description: A free, open-source book for learning modern C++.
+repo_url: https://github.com/SupernovifieD/learn-cpp-for-free
+repo_name: SupernovifieD/learn-cpp-for-free
+edit_uri: edit/main/docs/   # powers the "Edit this page" button on every page
+copyright: Released under the MIT License. &copy; 2026 Yasin Ghasemi and The C++ Book contributors
+
+# Fail the build on any warning, including broken links and anchors ----------
+# A book with a dead link should never reach readers, so warnings are errors.
+strict: true
+validation:
+  omitted_files: warn
+  absolute_links: warn
+  unrecognized_links: warn
+  anchors: warn
+
+# Theme -----------------------------------------------------------------------
+# Material for MkDocs, configured only through built-in options (see
+# requirements.txt for why the site avoids custom theme code).
+theme:
+  name: material
+  language: en
+  logo: assets/logo.svg
+  favicon: assets/favicon.svg
+  font:
+    text: Inter            # readable body text (change here only)
+    code: JetBrains Mono   # clear code glyphs (change here only)
+  # Three-state toggle: follow the system, then light, then dark. The colors
+  # themselves ("custom") are defined in docs/stylesheets/extra.css.
+  palette:
+    - media: "(prefers-color-scheme)"
+      toggle:
+        icon: material/brightness-auto
+        name: Switch to light mode
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/brightness-4
+        name: Switch to system preference
+  # Features give the site its book feel: numbered sections in the sidebar,
+  # previous/next links in the footer, copy buttons on code, and an edit link.
+  features:
+    - navigation.instant          # SPA-style page loads
+    - navigation.tracking        # URL follows the section being read
+    - navigation.sections         # chapters render as sidebar sections
+    - navigation.indexes          # chapter index page attached to its section
+    - navigation.top              # back-to-top button
+    - navigation.footer           # previous / next links (book feel)
+    - toc.follow                  # right-hand outline follows the scroll
+    - search.suggest              # completion hints while typing
+    - search.highlight            # highlight the query on the target page
+    - content.code.copy           # copy button on code blocks
+    - content.tabs.link           # a reader's tab choice persists site-wide
+    - content.action.edit         # "Edit this page" -> GitHub
+    - content.tooltips            # tooltips for abbreviations
+
+# Built-in search only: third-party plugins would block a later migration.
+plugins:
+  - search
+
+# Writing features: every extension here is built into Python-Markdown or
+# PyMdown Extensions, so no plugin is required.
+markdown_extensions:
+  - abbr
+  - admonition
+  - attr_list
+  - def_list
+  - footnotes
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.details
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.keys                 # ++ctrl+f5++ style key rendering
+  - pymdownx.snippets:            # include files from examples/
+      base_path: ["."]
+      check_paths: true           # missing include = build failure
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+
+# The ONLY custom stylesheet (colors, typography, custom callouts).
+extra_css:
+  - stylesheets/extra.css
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/SupernovifieD/learn-cpp-for-free
+
+# Navigation is written out by hand so chapter order never depends on file names.
+nav:
+  - Home: index.md
+  - "Conventions used in this book": conventions.md
+  - "0. Introduction / Getting Started":
+      - ch00-getting-started/index.md
+      - "0.1 Introduction to these tutorials": ch00-getting-started/01-introduction-to-these-tutorials.md
+      - "0.2 Introduction to programs and programming languages": ch00-getting-started/02-programs-and-programming-languages.md
+      - "0.3 Introduction to C/C++": ch00-getting-started/03-introduction-to-c-and-cpp.md
+      - "0.4 Introduction to C++ development": ch00-getting-started/04-introduction-to-cpp-development.md
+      - "0.5 Introduction to the compiler, linker, and libraries": ch00-getting-started/05-compiler-linker-and-libraries.md
+      - "0.6 Installing an Integrated Development Environment (IDE)": ch00-getting-started/06-installing-an-ide.md
+      - "0.7 Compiling your first program": ch00-getting-started/07-compiling-your-first-program.md
+      - "0.8 A few common C++ problems": ch00-getting-started/08-common-cpp-problems.md
+      - "0.9 Configuring your compiler: Build configurations": ch00-getting-started/09-build-configurations.md
+      - "0.10 Configuring your compiler: Compiler extensions": ch00-getting-started/10-compiler-extensions.md
+      - "0.11 Configuring your compiler: Warning and error levels": ch00-getting-started/11-warning-and-error-levels.md
+      - "0.12 Configuring your compiler: Choosing a language standard": ch00-getting-started/12-choosing-a-language-standard.md
+      - "0.13 What language standard is my compiler using?": ch00-getting-started/13-what-language-standard-is-my-compiler-using.md

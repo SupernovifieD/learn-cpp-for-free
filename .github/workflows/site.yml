@@ -1,0 +1,130 @@
+# Builds, checks and publishes the book.
+#
+#   every push and pull request : run every check (job "check")
+#   push to main only           : also publish the site to GitHub Pages (job "deploy")
+#
+# The checks are the same commands contributors run locally (`make check`), so a
+# green CI run means the same thing as a green local run.
+name: Site
+
+on:
+  # Check every branch, so contributors see problems before opening a pull request.
+  push:
+  # Check pull requests aimed at the default branch.
+  pull_request:
+    branches: [main]
+  # Lets a maintainer start a run by hand from the Actions tab.
+  workflow_dispatch:
+
+# Jobs get read-only access by default; the deploy job asks for more below.
+permissions:
+  contents: read
+
+# One run at a time per branch. A newer push cancels the older run, except on
+# main: a deployment that is already running must always finish.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+env:
+  PIP_DISABLE_PIP_VERSION_CHECK: "1"
+
+jobs:
+  check:
+    name: Check
+    runs-on: ubuntu-latest
+    # A stuck browser must not hold a runner for hours.
+    timeout-minutes: 30
+    steps:
+      # Get the repository's files.
+      - name: Check out the repository
+        uses: actions/checkout@v7
+
+      # Python 3.12, with pip's download cache keyed on the requirements files.
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements*.txt
+
+      # MkDocs, Material, the test tools and the pinned clang-format.
+      - name: Install Python dependencies
+        run: python -m pip install -r requirements-dev.txt
+
+      # The examples must build with BOTH compilers. GitHub's runner image usually has
+      # them; install whichever is missing, and print the versions for the log.
+      - name: Make sure g++ and clang++ are installed
+        run: |
+          missing=()
+          command -v g++ > /dev/null || missing+=(g++)
+          command -v clang++ > /dev/null || missing+=(clang)
+          if [ "${#missing[@]}" -gt 0 ]; then
+            sudo apt-get update
+            sudo apt-get install --yes "${missing[@]}"
+          fi
+          g++ --version | head -n 1
+          clang++ --version | head -n 1
+
+      # Headless Chromium for the browser tests, plus the system libraries it needs.
+      - name: Install the browser for the UI tests
+        run: python -m playwright install --with-deps chromium
+
+      # Structure and writing rules for docs/ (headings, links, forbidden words, ...).
+      - name: Lint the content
+        run: make PY=python lint
+
+      # Build and run every C++ example with GCC and Clang. --require-all makes a
+      # missing compiler a failure instead of a warning.
+      - name: Compile and run the examples
+        run: make PY=python EXAMPLES_ARGS=--require-all examples
+
+      # The examples must be formatted exactly as clang-format would write them.
+      - name: Check example formatting
+        run: make PY=python CLANG_FORMAT=clang-format format-check
+
+      # Build the site. Any warning, including a broken link, fails the build.
+      - name: Build the site
+        run: make PY=python build
+
+      # Layout, accessibility and behavior tests in headless Chromium. A standard
+      # runner has 4 CPUs, so use 4 parallel workers.
+      - name: Run the UI tests
+        run: make PY=python UI_WORKERS=4 test-ui
+
+      # When a UI test fails, the harness saves a screenshot of the failing page here.
+      - name: Upload screenshots of failing pages
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: failure-screenshots
+          path: artifacts/screenshots
+          retention-days: 7
+          if-no-files-found: ignore
+
+      # Hand the built site to the deploy job. Only the default branch is published.
+      - name: Upload the site for GitHub Pages
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: site
+
+  deploy:
+    name: Deploy to GitHub Pages
+    # Never deploy unless every check passed, and only from the default branch.
+    needs: check
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    # The deploy action needs these two extra permissions, and nothing else does.
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      # Publish the site uploaded by the check job.
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5

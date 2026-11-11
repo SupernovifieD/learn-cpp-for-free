@@ -1,0 +1,286 @@
+/* ==========================================================================
+   The C++ Book: the ONLY custom stylesheet.
+   Material is adjusted through its own CSS custom properties wherever one
+   exists. Order: 1 color tokens, 2 typography, 3 custom callouts,
+   4 small layout polish.
+   ========================================================================== */
+
+/* 1. Color tokens ---------------------------------------------------------
+   Brand color: a deep C++-style blue. "custom" is the palette name chosen in
+   mkdocs.yml, so these blocks only apply to this site. */
+
+/* Light scheme (white text on #00599c has a contrast ratio of about 7.6:1). */
+[data-md-color-primary="custom"] {
+  --md-primary-fg-color: #00599c;
+  --md-primary-fg-color--light: #3d88c0;
+  --md-primary-fg-color--dark: #003f70;
+  --md-primary-bg-color: #fff;
+  --md-primary-bg-color--light: #ffffffb3;
+  --md-typeset-a-color: #00599c;
+}
+
+[data-md-color-accent="custom"] {
+  --md-accent-fg-color: #0a72c4;
+  --md-accent-fg-color--transparent: #0a72c41a;
+  --md-accent-bg-color: #fff;
+  --md-accent-bg-color--light: #ffffffb3;
+}
+
+/* Dark scheme: a navy header keeps the page calm, and lighter tints of the
+   brand blue keep links readable on the dark background. */
+[data-md-color-scheme="slate"] {
+  --md-primary-fg-color: #0f3d66;
+  --md-primary-fg-color--light: #2f6ea3;
+  --md-primary-fg-color--dark: #0a2b49;
+  --md-typeset-a-color: #7cc0f5;
+  --md-accent-fg-color: #9ccdf7;
+  --md-accent-fg-color--transparent: #9ccdf71a;
+}
+
+/* Syntax colors. Material's defaults sit between 4.4:1 and 4.7:1 against the
+   code background (the minimum is 4.5:1) and two fail in dark mode, so these
+   values keep at least 5.2:1 in both schemes. */
+[data-md-color-scheme="default"] {
+  --md-code-hl-number-color: #c42727;
+  --md-code-hl-special-color: #c81250;
+  --md-code-hl-function-color: #9940a8;
+  --md-code-hl-constant-color: #654fd7;
+  --md-code-hl-keyword-color: #3764ba;
+  --md-code-hl-string-color: #1a7548;
+  --md-code-hl-operator-color: #666;
+  --md-code-hl-punctuation-color: #666;
+  --md-code-hl-comment-color: #666;
+  --md-code-hl-generic-color: #666;
+  --md-code-hl-variable-color: #666;
+}
+
+[data-md-color-scheme="slate"] {
+  --md-code-hl-number-color: #ea7f73;
+  --md-code-hl-special-color: #f2739d;
+  --md-code-hl-function-color: #ce7fdc;
+  --md-code-hl-constant-color: #a091e5;
+  --md-code-hl-keyword-color: #789de3;
+  --md-code-hl-string-color: #2fb170;
+  --md-code-hl-operator-color: #9b9ca4;
+  --md-code-hl-punctuation-color: #9b9ca4;
+  --md-code-hl-comment-color: #9b9ca4;
+  --md-code-hl-generic-color: #9b9ca4;
+  --md-code-hl-variable-color: #9b9ca4;
+}
+
+/* Material's footer copyright text is just under the 4.5:1 contrast minimum
+   (4.47:1) on the footer background; this makes it a little brighter. */
+[data-md-color-scheme] {
+  --md-footer-fg-color--lighter: hsla(0, 0%, 100%, 0.6);
+}
+
+/* 2. Typography -----------------------------------------------------------
+   Fonts are chosen in mkdocs.yml (theme.font). Here: slightly larger body
+   text (about 17px), looser lines, and calmer headings. */
+.md-typeset {
+  font-size: 0.85rem;
+  line-height: 1.7;
+}
+
+.md-typeset h1 {
+  color: var(--md-default-fg-color);
+  font-weight: 700;
+}
+
+.md-typeset h2,
+.md-typeset h3 {
+  font-weight: 600;
+}
+
+/* Keep lines near 80 characters (the text column was about 83 on wide
+   screens). A rem cap leaves narrower screens untouched. */
+.md-content__inner {
+  max-width: 33rem;
+}
+
+/* Material sets callouts and tables at 12.8px, which looks tiny next to the
+   larger body text, so they are raised to stay close to it. */
+.md-typeset .admonition,
+.md-typeset details {
+  font-size: 0.8rem;
+}
+
+.md-typeset table:not([class]) {
+  font-size: 0.75rem;
+}
+
+/* 3. Custom callouts ------------------------------------------------------
+   Material's documented custom-admonition pattern: an icon variable (inlined
+   SVG from the Material Design Icons set bundled with Material), a border
+   color, a title background and a masked ::before icon. The three types
+   share one set of rules; only --callout (an r, g, b triple) and
+   --callout-icon differ, so they match the built-in callouts exactly. */
+:root {
+  /* check-decagram */
+  --md-admonition-icon--best-practice: url('data:image/svg+xml;charset=utf-8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m23 12-2.44-2.78.34-3.68-3.61-.82-1.89-3.18L12 3 8.6 1.54 6.71 4.72l-3.61.81.34 3.68L1 12l2.44 2.78-.34 3.69 3.61.82 1.89 3.18L12 21l3.4 1.46 1.89-3.18 3.61-.82-.34-3.68zm-13 5-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9z"/></svg>');
+  /* lightbulb-on-outline */
+  --md-admonition-icon--key-insight: url('data:image/svg+xml;charset=utf-8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11h3v2h-3zM1 11h3v2H1zM13 1v3h-2V1zM4.92 3.5l2.13 2.14-1.42 1.41L3.5 4.93zm12.03 2.13 2.12-2.13 1.43 1.43-2.13 2.12zM12 6a6 6 0 0 1 6 6c0 2.22-1.21 4.16-3 5.2V19a1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1v-1.8c-1.79-1.04-3-2.98-3-5.2a6 6 0 0 1 6-6m2 15v1a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1v-1zm-3-3h2v-2.13c1.73-.44 3-2.01 3-3.87a4 4 0 0 0-4-4 4 4 0 0 0-4 4c0 1.86 1.27 3.43 3 3.87z"/></svg>');
+  /* school */
+  --md-admonition-icon--advanced: url('data:image/svg+xml;charset=utf-8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 3 1 9l11 6 9-4.91V17h2V9M5 13.18v4L12 21l7-3.82v-4L12 17z"/></svg>');
+}
+
+.md-typeset .best-practice {
+  --callout: 46, 160, 100;
+  --callout-icon: var(--md-admonition-icon--best-practice);
+}
+
+.md-typeset .key-insight {
+  --callout: 124, 77, 255;
+  --callout-icon: var(--md-admonition-icon--key-insight);
+}
+
+.md-typeset .advanced {
+  --callout: 96, 125, 139;
+  --callout-icon: var(--md-admonition-icon--advanced);
+}
+
+.md-typeset :is(.best-practice, .key-insight, .advanced) {
+  border-color: rgb(var(--callout));
+}
+
+.md-typeset :is(.best-practice, .key-insight, .advanced) > :is(.admonition-title, summary) {
+  background-color: rgba(var(--callout), 0.1);
+}
+
+.md-typeset :is(.best-practice, .key-insight, .advanced) > :is(.admonition-title, summary)::before {
+  background-color: rgb(var(--callout));
+  -webkit-mask-image: var(--callout-icon);
+  mask-image: var(--callout-icon);
+}
+
+/* 4. Small layout polish --------------------------------------------------
+   Each rule below exists because a screenshot review showed a problem. */
+
+/* Keep code blocks and tables inside the text column. Material lets code
+   bleed to the screen edge on phones, and puts the table frame 0.8rem
+   outside the column at every width; both make the edges ragged. */
+@media screen and (max-width: 44.984375em) {
+  .md-content__inner > pre,
+  .md-content__inner > .highlight {
+    margin-left: 0;
+    margin-right: 0;
+  }
+}
+
+.md-typeset__scrollwrap {
+  margin-left: 0;
+  margin-right: 0;
+}
+
+.md-typeset__table {
+  padding-left: 0;
+  padding-right: 0;
+}
+
+/* Inline code in a table cell (a command-line option, an identifier) stays in
+   one piece. Material lets it break anywhere, which on a phone cuts "-Wconversion"
+   into "-Wconversi" and "on". A cell that is too wide scrolls with the table. */
+.md-typeset td > code {
+  white-space: nowrap;
+}
+
+/* Material pads every table cell by 1.25em on each side, so a table with three
+   columns is about 350px wide at its narrowest and scrolls on most phones.
+   Tighter padding on phones lets it fit. */
+@media screen and (max-width: 44.984375em) {
+  .md-typeset table:not([class]) th,
+  .md-typeset table:not([class]) td {
+    padding-left: 0.6em;
+    padding-right: 0.6em;
+  }
+}
+
+/* Lesson titles start with a number ("0.6 Installing..."), so a wrapped title
+   hangs: continuation lines are indented past the number, which keeps the
+   numbers in a clean column for scanning. */
+.md-nav--primary .md-nav__link > .md-ellipsis {
+  padding-left: 1.9em;
+  text-indent: -1.9em;
+}
+
+/* On phones the drawer cuts a long chapter title off with "..." and the
+   footer does the same to the next lesson's title. Let both wrap instead,
+   so a reader can always see the whole name. */
+@media screen and (max-width: 76.234375em) {
+  .md-nav--primary .md-nav__title {
+    height: auto;
+    min-height: 5.6rem;
+    padding-bottom: 0.6rem;
+    line-height: 1.4;
+    white-space: normal;
+  }
+}
+
+.md-footer__title {
+  white-space: normal;
+}
+
+/* Links in running text are underlined: blue against dark text is only a
+   2.2:1 difference, so color alone does not make a link recognizable. */
+.md-typeset :is(p, li, td, dd) a:not(.md-button, .headerlink) {
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+}
+
+/* On the narrowest phones the third label of "Visual Studio | VS Code | Command
+   line" would hide behind a scroll arrow. 12px is the smallest text this book
+   allows, and it is just small enough for all three labels to fit at 320px. */
+@media screen and (max-width: 22.5em) {
+  .md-typeset .tabbed-labels > label {
+    font-size: 0.6rem;
+  }
+}
+
+/* Anchor the copy button to the whole block instead of the <pre>. In titled
+   blocks it then sits inside the title bar, so it never covers code. */
+.md-typeset .highlight {
+  position: relative;
+}
+
+.md-typeset .highlight pre {
+  position: static;
+}
+
+.md-typeset .md-code__nav {
+  top: 0.3rem;
+}
+
+/* A block without a title has no title bar, so its copy button sits on the
+   code and hides the end of long lines (commands on a phone). Keep a gutter
+   for the button beside the scrolling code instead. */
+.md-typeset .highlight:not(:has(.filename)) pre {
+  background-color: var(--md-code-bg-color);
+  border-radius: 0.1rem;
+}
+
+.md-typeset .highlight:not(:has(.filename)) pre > code {
+  margin-right: 2.2rem;
+}
+
+/* The permalink sign after a heading is invisible until hover, but it still
+   takes room: on a phone it can wrap onto a blank second line. There is no
+   hover on touch screens, so it is hidden there. */
+@media screen and (max-width: 44.984375em) {
+  .md-typeset .headerlink {
+    display: none;
+  }
+}
+
+/* The repository numbers in the header are 11px at 75% opacity in Material:
+   below the 12px minimum this book allows for any text, and only 4.2:1 against
+   the header color. */
+.md-source__facts {
+  font-size: 0.6rem;
+  opacity: 1;
+}
+
+/* Program output (```text blocks) gets a rule down its left edge, so it reads
+   differently from code. */
+.md-typeset .highlight.language-text {
+  border-left: 0.15rem solid var(--md-accent-fg-color);
+}

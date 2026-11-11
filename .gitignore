@@ -1,0 +1,20 @@
+# Python virtual environments: every contributor creates their own (make install)
+.venv/
+venv/
+
+# Build output of `mkdocs build`; GitHub Actions rebuilds it on every deploy
+site/
+
+# Python and test caches
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Screenshots and other test artifacts are for local review, never committed
+artifacts/
+
+# Scratch build directory for tooling
+build/
+
+# macOS Finder metadata
+.DS_Store

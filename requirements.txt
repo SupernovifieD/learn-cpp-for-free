@@ -1,0 +1,18 @@
+# Dependencies needed to BUILD the site (this is all GitHub Pages installs).
+#
+# Every version is pinned exactly so a build today and a build next year are
+# identical. Dependabot proposes upgrades weekly (.github/dependabot.yml).
+#
+# mkdocs stays on 1.x: it is pinned exactly, and mkdocs-material 9.8.1 itself
+# declares "mkdocs>=1.6,<2" in its requirements. Do not move to MkDocs 2.x.
+#
+# Material for MkDocs is in maintenance: critical maintenance continues only
+# until its end of life on May 5, 2027. Its team now builds Zensical, which
+# reads mkdocs.yml directly, so this site is kept portable on purpose
+# (built-in features only, no custom theme code, no third-party plugins).
+#   End-of-life notice : https://zensical.org/upcoming-changes/
+#   Migration guide    : https://zensical.org/docs/compatibility/mkdocs/migration/
+#   9.8.1 release notes: https://github.com/squidfunk/mkdocs-material/releases/tag/9.8.1
+mkdocs==1.6.1
+mkdocs-material==9.8.1
+pymdown-extensions==13.0
