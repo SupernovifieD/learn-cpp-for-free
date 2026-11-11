@@ -223,6 +223,18 @@
   top: 0.3rem;
 }
 
+/* A block without a title has no title bar, so its copy button sits on the
+   code and hides the end of long lines (commands on a phone). Keep a gutter
+   for the button beside the scrolling code instead. */
+.md-typeset .highlight:not(:has(.filename)) pre {
+  background-color: var(--md-code-bg-color);
+  border-radius: 0.1rem;
+}
+
+.md-typeset .highlight:not(:has(.filename)) pre > code {
+  margin-right: 2.2rem;
+}
+
 /* The permalink sign after a heading is invisible until hover, but it still
    takes room: on a phone it can wrap onto a blank second line. There is no
    hover on touch screens, so it is hidden there. */
