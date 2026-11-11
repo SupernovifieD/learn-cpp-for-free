@@ -19,6 +19,7 @@ from __future__ import annotations
 import functools
 import http.server
 import os
+import re
 import threading
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -29,6 +30,7 @@ from playwright.sync_api import Browser, BrowserContext, Page, sync_playwright
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 SITE_DIR = REPO_ROOT / "site"
+FAILURE_SHOTS = REPO_ROOT / "artifacts" / "screenshots" / "failures"
 
 # Viewport widths from the UI quality bar (height is always 800).
 WIDTHS = [320, 360, 375, 414, 768, 1024, 1280, 1440, 1920]
@@ -296,6 +298,36 @@ class Tab:
                 problems=list(self.events),
             )
         return self.surveys[path]
+
+
+# ------------------------------------------------------ failure evidence --
+
+
+@pytest.hookimpl(hookwrapper=True)
+def pytest_runtest_makereport(item, call):
+    """When a browser test fails, save a screenshot of the page it was checking.
+
+    The picture goes to artifacts/screenshots/failures/ (CI uploads that folder when a run
+    fails). It is taken at the failing test's own width and color scheme. Taking it must never
+    hide the real failure, so any error while doing so is ignored.
+    """
+    outcome = yield
+    report = outcome.get_result()
+    if report.when != "call" or not report.failed:
+        return
+    tabs = item.funcargs.get("tabs")
+    params = getattr(getattr(item, "callspec", None), "params", {})
+    if tabs is None or "width" not in params or "scheme" not in params:
+        return
+    try:
+        tab = tabs(params["width"], params["scheme"])
+        if "path" in params:
+            tab.visit(params["path"])
+        FAILURE_SHOTS.mkdir(parents=True, exist_ok=True)
+        name = re.sub(r"[^A-Za-z0-9_.-]+", "_", item.name)
+        tab.page.screenshot(path=str(FAILURE_SHOTS / f"{name}.png"), full_page=True)
+    except Exception:
+        pass
 
 
 # ---------------------------------------------------------------- fixtures --
