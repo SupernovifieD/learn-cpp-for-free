@@ -1,0 +1,19 @@
+# Everything a contributor needs: the site build plus test and lint tools.
+-r requirements.txt
+
+# Test runner for the browser (layout, accessibility, behaviour) tests.
+pytest==9.2.0
+
+# Headless Chromium driver. 1.64.1 is pinned (not 1.65.x) on purpose: it uses
+# Chromium revision 1248, so machines that already have that browser cached do
+# not need a large download. Move to a newer release together with the cache.
+playwright==1.64.1
+
+# Runs the axe-core accessibility rules inside Playwright pages.
+axe-playwright-python==0.1.8
+
+# Pinned formatter so every contributor formats C++ examples identically.
+clang-format==23.1.5
+
+# Parses mkdocs.yml in scripts/lint_content.py.
+PyYAML==6.0.3

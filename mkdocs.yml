@@ -1,0 +1,21 @@
+# Site identity ---------------------------------------------------------------
+site_name: The C++ Book
+site_url: https://supernovified.github.io/learn-cpp-for-free/   # needed for the sitemap, 404 page and instant navigation
+site_description: A free, open-source book for learning modern C++.
+repo_url: https://github.com/SupernovifieD/learn-cpp-for-free
+repo_name: SupernovifieD/learn-cpp-for-free
+
+# Fail the build on any warning, including broken links and anchors ----------
+# A book with a dead link should never reach readers, so warnings are errors.
+strict: true
+validation:
+  omitted_files: warn
+  absolute_links: warn
+  unrecognized_links: warn
+  anchors: warn
+
+# Theme -----------------------------------------------------------------------
+# Material for MkDocs, configured only through built-in options (see
+# requirements.txt for why the site avoids custom theme code).
+theme:
+  name: material
