@@ -26,6 +26,7 @@ from pathlib import Path
 from urllib.parse import urlparse
 
 import pytest
+from axe_playwright_python.sync_playwright import Axe
 from playwright.sync_api import Browser, BrowserContext, Page, sync_playwright
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -35,6 +36,10 @@ FAILURE_SHOTS = REPO_ROOT / "artifacts" / "screenshots" / "failures"
 # Viewport widths from the UI quality bar (height is always 800).
 WIDTHS = [320, 360, 375, 414, 768, 1024, 1280, 1440, 1920]
 SCHEMES = ["light", "dark"]
+
+# Widths at which axe-core also checks every page (U5). It runs on the same page load that the
+# layout checks use, so the page is not loaded a second time.
+AXE_WIDTHS = [375, 1280]
 
 # Sub-folders of site/ that hold assets, not book pages.
 NON_PAGE_DIRS = {"assets", "search"}
@@ -111,28 +116,29 @@ def _stub_github_api(route) -> None:
     route.fulfill(status=200, content_type="application/json", body=body)
 
 
-# Font files already downloaded in this test run, keyed by URL. Every browser context starts
-# with an empty cache and the pages are measured hundreds of times, so without this each
-# visit would download the same fonts again.
-_FONT_CACHE: dict[str, tuple[dict[str, str], bytes]] = {}
+# Files already downloaded in this test run, keyed by URL: the web fonts and Material's Mermaid
+# script. Every browser context starts with an empty cache and the pages are measured hundreds
+# of times, so without this each visit would download the same files again.
+_DOWNLOAD_CACHE: dict[str, tuple[dict[str, str], bytes]] = {}
 
 
-def _serve_fonts_from_memory(route) -> None:
-    """Download each font once, then answer every later request from memory.
+def _serve_from_memory(route) -> None:
+    """Download each file once, then answer every later request from memory.
 
-    The pages are measured with the real fonts (text width decides where lines wrap), so the
-    fonts are not blocked, only remembered. The bytes are exactly what Google sent.
+    The pages are measured with the real fonts and the real Mermaid script (text width decides
+    where lines wrap, and the diagram must really draw), so nothing is blocked or replaced, only
+    remembered. The bytes are exactly what the server sent.
     """
     url = route.request.url
-    if url not in _FONT_CACHE:
+    if url not in _DOWNLOAD_CACHE:
         response = route.fetch()
         if response.status != 200:
             route.fulfill(response=response)
             return
         skipped = {"content-encoding", "content-length", "transfer-encoding"}
         headers = {k: v for k, v in response.headers.items() if k.lower() not in skipped}
-        _FONT_CACHE[url] = (headers, response.body())
-    headers, body = _FONT_CACHE[url]
+        _DOWNLOAD_CACHE[url] = (headers, response.body())
+    headers, body = _DOWNLOAD_CACHE[url]
     route.fulfill(status=200, headers=headers, body=body)
 
 
@@ -145,8 +151,10 @@ def new_context(browser: Browser, width: int, scheme: str) -> BrowserContext:
     )
     context.add_init_script(OPEN_SHADOW_ROOTS_JS)
     context.route("https://api.github.com/**", _stub_github_api)
-    context.route("https://fonts.googleapis.com/**", _serve_fonts_from_memory)
-    context.route("https://fonts.gstatic.com/**", _serve_fonts_from_memory)
+    context.route("https://fonts.googleapis.com/**", _serve_from_memory)
+    context.route("https://fonts.gstatic.com/**", _serve_from_memory)
+    # Registered before the MERMAID_JS override below, which must win when it is set.
+    context.route("https://unpkg.com/**/mermaid.min.js", _serve_from_memory)
     mermaid_js = os.environ.get("MERMAID_JS")
     if mermaid_js:
         context.route(
@@ -234,6 +242,7 @@ class Survey:
     clipped: list[dict]
     code_blocks_that_do_not_scroll: list[dict]
     problems: list[str]  # console errors, uncaught errors, failed or >=400 same-origin requests
+    axe_violations: list[dict] | None  # axe-core violations, or None at widths where axe is not run
 
 
 @dataclass
@@ -242,6 +251,7 @@ class Tab:
 
     page: Page
     base_url: str
+    width: int = 0
     events: list[str] = field(default_factory=list)
     surveys: dict[str, Survey] = field(default_factory=dict)
 
@@ -296,6 +306,7 @@ class Tab:
                 clipped=raw["clipped"],
                 code_blocks_that_do_not_scroll=raw["codeBlocksThatDoNotScroll"],
                 problems=list(self.events),
+                axe_violations=Axe().run(self.page).response["violations"] if self.width in AXE_WIDTHS else None,
             )
         return self.surveys[path]
 
@@ -357,7 +368,7 @@ def tabs(browser, base_url):
     def get(width: int, scheme: str) -> Tab:
         if (width, scheme) not in cache:
             context = new_context(browser, width, scheme)
-            cache[(width, scheme)] = Tab(context.new_page(), base_url)
+            cache[(width, scheme)] = Tab(context.new_page(), base_url, width)
         return cache[(width, scheme)]
 
     yield get

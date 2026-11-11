@@ -12,15 +12,15 @@ import json
 from pathlib import Path
 
 import pytest
-from axe_playwright_python.sync_playwright import Axe
-from conftest import PAGES, SCHEMES, page_id
+from conftest import AXE_WIDTHS, PAGES, SCHEMES, page_id
 
-A11Y_WIDTHS = [375, 1280]
+A11Y_WIDTHS = AXE_WIDTHS
 BLOCKING_IMPACTS = {"serious", "critical"}
 ALLOWLIST = json.loads((Path(__file__).parent / "axe_allowlist.json").read_text())
 
+# Same group as the layout checks of that width and scheme, so one page load serves both.
 A11Y_CASES = [
-    pytest.param(path, width, scheme, id=f"{page_id(path)}-{width}-{scheme}", marks=pytest.mark.xdist_group(f"axe-{width}-{scheme}"))
+    pytest.param(path, width, scheme, id=f"{page_id(path)}-{width}-{scheme}", marks=pytest.mark.xdist_group(f"layout-{width}-{scheme}"))
     for scheme in SCHEMES
     for width in A11Y_WIDTHS
     for path in PAGES
@@ -34,9 +34,8 @@ def _allowed(rule: str, target: str) -> bool:
 @pytest.mark.parametrize("path, width, scheme", A11Y_CASES)
 def test_u5_no_serious_or_critical_axe_violations(tabs, path, width, scheme):
     """U5: axe-core finds no serious or critical problems (color contrast included)."""
-    tab = tabs(width, scheme)
-    tab.visit(path)
-    violations = Axe().run(tab.page).response["violations"]
+    violations = tabs(width, scheme).survey(path).axe_violations
+    assert violations is not None, f"axe-core did not run at {width}px, but U5 requires it."
     lines = []
     for violation in violations:
         if violation["impact"] not in BLOCKING_IMPACTS:

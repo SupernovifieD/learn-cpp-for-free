@@ -177,6 +177,24 @@
   padding-right: 0;
 }
 
+/* Inline code in a table cell (a command-line option, an identifier) stays in
+   one piece. Material lets it break anywhere, which on a phone cuts "-Wconversion"
+   into "-Wconversi" and "on". A cell that is too wide scrolls with the table. */
+.md-typeset td > code {
+  white-space: nowrap;
+}
+
+/* Material pads every table cell by 1.25em on each side, so a table with three
+   columns is about 350px wide at its narrowest and scrolls on most phones.
+   Tighter padding on phones lets it fit. */
+@media screen and (max-width: 44.984375em) {
+  .md-typeset table:not([class]) th,
+  .md-typeset table:not([class]) td {
+    padding-left: 0.6em;
+    padding-right: 0.6em;
+  }
+}
+
 /* Lesson titles start with a number ("0.6 Installing..."), so a wrapped title
    hangs: continuation lines are indented past the number, which keeps the
    numbers in a clean column for scanning. */
