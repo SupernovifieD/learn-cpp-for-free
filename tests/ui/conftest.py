@@ -311,6 +311,31 @@ class Tab:
         return self.surveys[path]
 
 
+# ------------------------------------------------------------ time report --
+
+# Seconds spent per check (setup, call and teardown together) and how many tests ran. It helps
+# to see where the time goes, locally and in CI, before deciding what to speed up.
+_TIME_BY_CHECK: dict[str, list[float]] = {}
+
+
+def pytest_runtest_logreport(report) -> None:
+    check = report.nodeid.split("::")[-1].split("[")[0]
+    entry = _TIME_BY_CHECK.setdefault(check, [0.0, 0.0])
+    entry[0] += report.duration
+    if report.when == "call":
+        entry[1] += 1
+
+
+def pytest_terminal_summary(terminalreporter) -> None:
+    if not _TIME_BY_CHECK:
+        return
+    total = sum(seconds for seconds, _ in _TIME_BY_CHECK.values())
+    terminalreporter.section("time spent per check (all workers added together)")
+    for check, (seconds, count) in sorted(_TIME_BY_CHECK.items(), key=lambda item: -item[1][0]):
+        terminalreporter.write_line(f"{seconds:8.1f} s  {int(count):5d} tests  {check}")
+    terminalreporter.write_line(f"{total:8.1f} s  in total")
+
+
 # ------------------------------------------------------ failure evidence --
 
 
