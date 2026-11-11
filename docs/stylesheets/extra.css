@@ -177,6 +177,31 @@
   padding-right: 0;
 }
 
+/* Lesson titles start with a number ("0.6 Installing..."), so a wrapped title
+   hangs: continuation lines are indented past the number, which keeps the
+   numbers in a clean column for scanning. */
+.md-nav--primary .md-nav__link > .md-ellipsis {
+  padding-left: 1.9em;
+  text-indent: -1.9em;
+}
+
+/* On phones the drawer cuts a long chapter title off with "..." and the
+   footer does the same to the next lesson's title. Let both wrap instead,
+   so a reader can always see the whole name. */
+@media screen and (max-width: 76.234375em) {
+  .md-nav--primary .md-nav__title {
+    height: auto;
+    min-height: 5.6rem;
+    padding-bottom: 0.6rem;
+    line-height: 1.4;
+    white-space: normal;
+  }
+}
+
+.md-footer__title {
+  white-space: normal;
+}
+
 /* Links in running text are underlined: blue against dark text is only a
    2.2:1 difference, so color alone does not make a link recognizable. */
 .md-typeset :is(p, li, td, dd) a:not(.md-button, .headerlink) {

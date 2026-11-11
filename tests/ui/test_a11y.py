@@ -20,7 +20,7 @@ BLOCKING_IMPACTS = {"serious", "critical"}
 ALLOWLIST = json.loads((Path(__file__).parent / "axe_allowlist.json").read_text())
 
 A11Y_CASES = [
-    pytest.param(path, width, scheme, id=f"{page_id(path)}-{width}-{scheme}")
+    pytest.param(path, width, scheme, id=f"{page_id(path)}-{width}-{scheme}", marks=pytest.mark.xdist_group(f"axe-{width}-{scheme}"))
     for scheme in SCHEMES
     for width in A11Y_WIDTHS
     for path in PAGES
@@ -49,6 +49,7 @@ def test_u5_no_serious_or_critical_axe_violations(tabs, path, width, scheme):
     assert not lines, "axe-core found problems:\n" + "\n".join(lines)
 
 
+@pytest.mark.xdist_group("headings")
 @pytest.mark.parametrize("path", PAGES, ids=[page_id(p) for p in PAGES])
 def test_u6_one_h1_and_no_skipped_heading_levels(tabs, path):
     """U6: exactly one h1 per page, and headings never jump down by more than one level."""
@@ -84,6 +85,7 @@ DESCRIBE_FOCUS_JS = """() => {
 @pytest.mark.parametrize("scheme", SCHEMES)
 @pytest.mark.parametrize("width", A11Y_WIDTHS)
 @pytest.mark.parametrize("path", FOCUS_PAGES, ids=[page_id(p) for p in FOCUS_PAGES])
+@pytest.mark.xdist_group("focus")
 def test_u11_first_tab_stop_is_the_visible_skip_link(tabs, path, width, scheme):
     """U11: on a fresh page the first Tab press lands on 'Skip to content', and it shows a focus outline."""
     tab = tabs(width, scheme)
@@ -112,6 +114,7 @@ SEARCH_FIELD_SHOWN_FROM = 960  # px; Material's 60em breakpoint
 
 @pytest.mark.parametrize("scheme", SCHEMES)
 @pytest.mark.parametrize("width", A11Y_WIDTHS)
+@pytest.mark.xdist_group("focus")
 def test_u11_focus_outlines_are_visible_on_the_controls_readers_use(tabs, width, scheme):
     """U11: keyboard focus is drawn on links, buttons, the palette toggle and the search box."""
     tab = tabs(width, scheme)

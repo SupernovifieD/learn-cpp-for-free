@@ -11,6 +11,11 @@ PY ?= $(VENV)/bin/python
 # Interpreter used only to create the virtual environment.
 BOOTSTRAP_PY ?= python3
 
+# Browser test workers. Each one runs its own Chromium (hundreds of MB), so the
+# default is small enough for a laptop with 8 GB; raise it on a bigger machine,
+# e.g. `make test-ui UI_WORKERS=4`.
+UI_WORKERS ?= 2
+
 .PHONY: help install serve build test-ui screenshots
 
 help: ## Show this list of targets
@@ -28,7 +33,7 @@ build: ## Build the site into site/, failing on any warning
 	$(PY) -m mkdocs build --strict
 
 test-ui: build ## Build, then run the browser tests (layout, accessibility, behavior)
-	$(PY) -m pytest tests/ui -q --durations=5
+	$(PY) -m pytest tests/ui -q --durations=5 -n $(UI_WORKERS) --dist loadgroup
 
 screenshots: build ## Build, then save screenshots of every page to artifacts/screenshots/
 	$(PY) tests/ui/screenshots.py

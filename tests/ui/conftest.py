@@ -109,6 +109,31 @@ def _stub_github_api(route) -> None:
     route.fulfill(status=200, content_type="application/json", body=body)
 
 
+# Font files already downloaded in this test run, keyed by URL. Every browser context starts
+# with an empty cache and the pages are measured hundreds of times, so without this each
+# visit would download the same fonts again.
+_FONT_CACHE: dict[str, tuple[dict[str, str], bytes]] = {}
+
+
+def _serve_fonts_from_memory(route) -> None:
+    """Download each font once, then answer every later request from memory.
+
+    The pages are measured with the real fonts (text width decides where lines wrap), so the
+    fonts are not blocked, only remembered. The bytes are exactly what Google sent.
+    """
+    url = route.request.url
+    if url not in _FONT_CACHE:
+        response = route.fetch()
+        if response.status != 200:
+            route.fulfill(response=response)
+            return
+        skipped = {"content-encoding", "content-length", "transfer-encoding"}
+        headers = {k: v for k, v in response.headers.items() if k.lower() not in skipped}
+        _FONT_CACHE[url] = (headers, response.body())
+    headers, body = _FONT_CACHE[url]
+    route.fulfill(status=200, headers=headers, body=body)
+
+
 def new_context(browser: Browser, width: int, scheme: str) -> BrowserContext:
     """A fresh browser context for one viewport width and color scheme."""
     context = browser.new_context(
@@ -118,6 +143,8 @@ def new_context(browser: Browser, width: int, scheme: str) -> BrowserContext:
     )
     context.add_init_script(OPEN_SHADOW_ROOTS_JS)
     context.route("https://api.github.com/**", _stub_github_api)
+    context.route("https://fonts.googleapis.com/**", _serve_fonts_from_memory)
+    context.route("https://fonts.gstatic.com/**", _serve_fonts_from_memory)
     mermaid_js = os.environ.get("MERMAID_JS")
     if mermaid_js:
         context.route(
