@@ -12,6 +12,7 @@ Rules, each reported as  docs/page.md:LINE: message
   * a ```cpp fence is either one `--8<--` include line or at most 5 lines of code
   * images have alt text; links to other sites use https
   * none of: TODO, TBD, FIXME, lorem, "coming soon"
+  * no text left over from templates/lesson.md or templates/chapter-index.md (their instructions and placeholders)
   * callouts use only the documented types, and tab labels only the documented sets
   * every file in examples/ is used by at least one page (.in files belong to the program next to them)
   * every page in docs/ is in the nav
@@ -40,6 +41,18 @@ FLAGS_LESSON = "ch00-getting-started/11-warning-and-error-levels.md"
 
 CALLOUT_TYPES = {"note", "tip", "warning", "danger", "question", "success", "best-practice", "key-insight", "advanced"}
 TAB_SETS = [{"Windows", "macOS", "Linux"}, {"Visual Studio", "VS Code", "Command line"}]
+# Text that only exists in templates/lesson.md and templates/chapter-index.md. Finding it in a page
+# means the template was not filled in (HTML comments are published in the page source, too).
+TEMPLATE_LEFTOVERS = [
+    "HOW TO USE THIS TEMPLATE",
+    "Title of the lesson",
+    "Title of a primary source",
+    "Say in two to four sentences",
+    "First main point.",
+    "One sentence, at most 160 characters",
+    "# 1. Chapter title",
+    "Explain the first big idea of the chapter",
+]
 FORBIDDEN_WORDS = re.compile(r"\b(TODO|TBD|FIXME|lorem|coming soon)\b", re.IGNORECASE)
 
 FENCE = re.compile(r"^(\s*)(`{3,}|~{3,})\s*(.*)$")
@@ -125,6 +138,11 @@ def lint_page(path: Path, label: str | None, site_name: str, final: bool) -> tup
         add(1, "front matter must contain a non-empty `description:` (one sentence, at most 160 characters).")
     elif len(front["description"]) > MAX_DESCRIPTION:
         add(1, f"`description` is {len(front['description'])} characters; the limit is {MAX_DESCRIPTION}.")
+
+    for leftover in TEMPLATE_LEFTOVERS:
+        position = text.find(leftover)
+        if position != -1:
+            add(text.count("\n", 0, position) + 1, f"text from the lesson or chapter template is still here ('{leftover}'): replace the placeholders and delete the template's comments.")
 
     headings: list[tuple[int, int, str]] = []  # (line, level, text)
     included: set[str] = set()
