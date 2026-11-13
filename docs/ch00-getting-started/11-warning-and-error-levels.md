@@ -1,7 +1,3 @@
----
-description: How compilers report errors and warnings, why to treat warnings as errors, and the exact compiler options this book uses and tests.
----
-
 # 0.11 Configuring your compiler: Warning and error levels
 
 A compiler can tell you about far more than the mistakes that stop a build. With the right options, it also points out code that is legal but suspicious, and it can refuse to continue until you fix that code too. This lesson explains how, and it shows the exact options that this book uses for every example.
@@ -19,7 +15,7 @@ Compilers can **treat warnings as errors**, which stops the build until you fix 
 Every complete program in this book is built with these options, using both GCC and Clang. They are stored in a single file in the book's repository, and the book's automated checks read that same file, so what you see here is exactly what is tested.
 
 ```bash title="flags-gcc-clang.txt"
---8<-- "examples/flags-gcc-clang.txt"
+{{#include ../../examples/flags-gcc-clang.txt}}
 ```
 
 The options work like this:
@@ -53,39 +49,45 @@ Its warnings are not identical to the ones from GCC and Clang, so a program can 
 This program contains a variable that nothing uses:
 
 ```cpp title="unused-variable.cpp"
---8<-- "examples/ch00/11-unused-variable.fail.cpp"
+{{#include ../../examples/ch00/11-unused-variable.fail.cpp}}
 ```
 
 The first line says that the program must fail with the book's options, and the second line says that it must build when `-Werror` is removed. That second line proves the point of the lesson: the program is legal C++, and the build fails only because warnings are treated as errors.
 
 With `-Wall` on, the compiler warns about the unused variable. With `-Werror` also on, that warning stops the build, and you have to remove the variable or use it.
 
-!!! key-insight "Key insight"
-    A warning that you fix today is a bug that you do not have to find tomorrow, and warnings as errors make sure that you cannot forget.
+> [!KEY-INSIGHT]
+> A warning that you fix today is a bug that you do not have to find tomorrow, and warnings as errors make sure that you cannot forget.
 
 ## Setting the options
 
-=== "Visual Studio"
+{{#tabs}}
+{{#tab Visual Studio}}
 
-    **Switch:** Open the project's property pages, choose **Configuration Properties**, then **C/C++**, then **General**. Set **Warning Level** to **Level4 (/W4)** and **Treat Warnings As Errors** to **Yes (/WX)**.
+**Switch:** Open the project's property pages, choose **Configuration Properties**, then **C/C++**, then **General**. Set **Warning Level** to **Level4 (/W4)** and **Treat Warnings As Errors** to **Yes (/WX)**.
 
-    **Note:** Choose **All Configurations** first, as lesson 0.9 explained, so the settings apply to both Debug and Release.
+**Note:** Choose **All Configurations** first, as lesson 0.9 explained, so the settings apply to both Debug and Release.
 
-=== "VS Code"
+{{#endtab}}
+{{#tab VS Code}}
 
-    **Switch:** Add the options to the list of compiler arguments in your build task, in the same way as in lesson 0.10.
+**Switch:** Add the options to the list of compiler arguments in your build task, in the same way as in lesson 0.10.
 
-    **Note:** Copy the options from the file above, one option per argument.
+**Note:** Copy the options from the file above, one option per argument.
 
-=== "Command line"
+{{#endtab}}
+{{#tab Command line}}
 
-    **Switch:** Add the options after the compiler name. This command builds the program from lesson 0.7 with all of them.
+**Switch:** Add the options after the compiler name. This command builds the program from lesson 0.7 with all of them.
 
-    ```bash
-    g++ -std=c++20 -Wall -Wextra -Wpedantic -Wconversion -Wsign-conversion -Wshadow -pedantic-errors -Werror -o hello-world hello-world.cpp
-    ```
+```bash
+g++ -std=c++20 -Wall -Wextra -Wpedantic -Wconversion -Wsign-conversion -Wshadow -pedantic-errors -Werror -o hello-world hello-world.cpp
+```
 
-    **Note:** Replace `g++` with `clang++` to use Clang. Build tools, which lesson 0.5 introduced, let you write the options once instead of typing them each time.
+**Note:** Replace `g++` with `clang++` to use Clang. Build tools, which lesson 0.5 introduced, let you write the options once instead of typing them each time.
+
+{{#endtab}}
+{{#endtabs}}
 
 ## Summary
 

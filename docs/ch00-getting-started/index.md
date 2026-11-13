@@ -1,7 +1,3 @@
----
-description: An overview of Chapter 0, which takes you from nothing to a C++ program that builds and runs on your own computer.
----
-
 # 0. Introduction / Getting Started
 
 Before you write real programs, you need to know what a program is and how your computer turns text you type into something it can run. This chapter explains those ideas, helps you install the tools, and walks you through building your first program. It also sets up your compiler so that it helps you learn instead of letting mistakes slip by.

@@ -1,7 +1,3 @@
----
-description: The steps of developing a C++ program, why a little design helps, what source files are, and how code editors differ from IDEs.
----
-
 # 0.4 Introduction to C++ development
 
 Writing code is only one step in making a program. This lesson walks through the whole process, from the problem you want to solve to a program you can trust, and it introduces the files and tools you will work with along the way.
@@ -19,8 +15,8 @@ Programmers repeat the same steps over and over. Here they are in order:
 7. **Debug.** When it does not, find the cause and fix the code.
 8. **Repeat.** Go back to whichever step the problem points to.
 
-!!! key-insight "Key insight"
-    This is a loop, not a straight line. Experienced programmers go around it many times, often within minutes, so mistakes are cheap to find when you check your work often.
+> [!KEY-INSIGHT]
+> This is a loop, not a straight line. Experienced programmers go around it many times, often within minutes, so mistakes are cheap to find when you check your work often.
 
 You will meet compiling and linking in the next lesson. For now, remember that they are separate steps, even though tools often run them together when you press a build button.
 
@@ -44,8 +40,8 @@ A program usually grows to span several source files, and you will see how they 
 
 Source files are plain text. They have no fonts, colors or hidden formatting, only the characters you typed.
 
-!!! warning
-    Never write code in a word processor. It saves extra formatting information that the compiler cannot read, and it may replace plain quotation marks with curly ones, which the compiler rejects.
+> [!WARNING]
+> Never write code in a word processor. It saves extra formatting information that the compiler cannot read, and it may replace plain quotation marks with curly ones, which the compiler rejects.
 
 ## Editors and IDEs
 

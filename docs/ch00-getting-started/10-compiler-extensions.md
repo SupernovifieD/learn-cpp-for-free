@@ -1,7 +1,3 @@
----
-description: What compiler extensions are, why to turn them off while you learn, and how to do it with GCC, Clang, Visual Studio and Visual Studio Code.
----
-
 # 0.10 Configuring your compiler: Compiler extensions
 
 Compilers do not only implement C++. Many of them also add features of their own, and by default they let you use those features without any complaint. This lesson explains why that can cause trouble while you are learning, and how to switch the extra features off.
@@ -21,7 +17,7 @@ GCC and Clang accept a feature called a variable-length array. An **array** is a
 Standard C++ does not allow this, because the size of an array has to be known when the program is compiled. Here is a program that uses it:
 
 ```cpp title="vla.cpp"
---8<-- "examples/ch00/10-vla.fail.cpp"
+{{#include ../../examples/ch00/10-vla.fail.cpp}}
 ```
 
 The first two lines are comments that the book's automated checks read. The first line says that the program must fail to build with the book's strict options. The second line lists the options that the checks remove to prove that the failure comes from them, so the same program has to build once `-pedantic-errors` and `-Werror` are gone.
@@ -30,33 +26,39 @@ When the strict options are on, the compiler reports the array as a problem. Cla
 
 ## Turning extensions off
 
-=== "Visual Studio"
+{{#tabs}}
+{{#tab Visual Studio}}
 
-    **Switch:** Open the project's property pages, choose **Configuration Properties**, then **C/C++**, then **Language**. Set **Conformance mode** to **Yes (/permissive-)**.
+**Switch:** Open the project's property pages, choose **Configuration Properties**, then **C/C++**, then **Language**. Set **Conformance mode** to **Yes (/permissive-)**.
 
-    **Note:** In recent versions of Visual Studio, choosing the C++20 standard turns this option on for you, but it does no harm to set it yourself. Apply the setting to all configurations, as lesson 0.9 advised.
+**Note:** In recent versions of Visual Studio, choosing the C++20 standard turns this option on for you, but it does no harm to set it yourself. Apply the setting to all configurations, as lesson 0.9 advised.
 
-=== "VS Code"
+{{#endtab}}
+{{#tab VS Code}}
 
-    **Switch:** Open the build task that your setup uses, which is stored in a file called `tasks.json`, and add the options from the **Command line** tab to the compiler's list of arguments.
+**Switch:** Open the build task that your setup uses, which is stored in a file called `tasks.json`, and add the options from the **Command line** tab to the compiler's list of arguments.
 
-    **Note:** Visual Studio Code only runs the compiler that you configured, so the options you pass are the options that apply.
+**Note:** Visual Studio Code only runs the compiler that you configured, so the options you pass are the options that apply.
 
-=== "Command line"
+{{#endtab}}
+{{#tab Command line}}
 
-    **Switch:** With GCC or Clang, add `-pedantic-errors`, which makes the compiler report code that does not follow the standard as an error. Run on the program above, this command fails.
+**Switch:** With GCC or Clang, add `-pedantic-errors`, which makes the compiler report code that does not follow the standard as an error. Run on the program above, this command fails.
 
-    ```bash
-    g++ -std=c++20 -pedantic-errors -o vla vla.cpp
-    ```
+```bash
+g++ -std=c++20 -pedantic-errors -o vla vla.cpp
+```
 
-    With Microsoft's compiler, add `/permissive-`, which asks it to follow the standard strictly.
+With Microsoft's compiler, add `/permissive-`, which asks it to follow the standard strictly.
 
-    ```powershell
-    cl /std:c++20 /EHsc /permissive- /Fe:vla.exe vla.cpp
-    ```
+```powershell
+cl /std:c++20 /EHsc /permissive- /Fe:vla.exe vla.cpp
+```
 
-    **Note:** The book's own flags in lesson 0.11 include `-pedantic-errors`, so you will not need to remember it separately.
+**Note:** The book's own flags in lesson 0.11 include `-pedantic-errors`, so you will not need to remember it separately.
+
+{{#endtab}}
+{{#endtabs}}
 
 ## Standard modes and GNU modes
 
@@ -64,8 +66,8 @@ GCC and Clang choose the language standard with the `-std` option, and each stan
 
 The default is not a standard-only mode. At the time of writing, GCC's documentation describes `gnu++20` as its default C++ dialect, and Clang's documentation lists `gnu++17`. Defaults differ between compilers and between versions of the same compiler, which is another reason to name the standard yourself. Lesson 0.12 explains how.
 
-!!! best-practice "Best practice"
-    Turn compiler extensions off and name the language standard explicitly, so that your compiler checks that your code is standard C++.
+> [!BEST-PRACTICE]
+> Turn compiler extensions off and name the language standard explicitly, so that your compiler checks that your code is standard C++.
 
 ## Summary
 

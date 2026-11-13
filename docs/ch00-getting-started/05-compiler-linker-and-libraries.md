@@ -1,7 +1,3 @@
----
-description: How the compiler, the linker and libraries turn your source files into a program, and how to tell a compile error from a link error.
----
-
 # 0.5 Introduction to the compiler, linker, and libraries
 
 Your source files are text, and a computer cannot run text. Two tools turn your files into a program, a compiler and a linker, and a third ingredient, libraries, supplies code you did not have to write. This lesson explains what each one does and how to tell their error messages apart.
@@ -20,8 +16,8 @@ g++ -std=c++20 -c main.cpp
 
 This command writes the object file `main.o`. With Microsoft's compiler, `cl`, the same option is `/c`, and it writes `main.obj`.
 
-!!! key-insight "Key insight"
-    Because each source file is compiled on its own, a change to one file only requires recompiling that file. Build tools use this to keep large projects quick to rebuild.
+> [!KEY-INSIGHT]
+> Because each source file is compiled on its own, a change to one file only requires recompiling that file. Build tools use this to keep large projects quick to rebuild.
 
 ## Linking
 
@@ -71,7 +67,7 @@ A **link error** means that every file compiled, but the pieces do not fit toget
 A **declaration** tells the compiler that a function exists, and a **definition** supplies the code that the function runs. A declaration is enough for the compiler to accept a call, but the linker needs a definition to connect the call to. This program shows the problem:
 
 ```cpp title="missing-definition.cpp"
---8<-- "examples/ch00/05-missing-definition.fail.cpp"
+{{#include ../../examples/ch00/05-missing-definition.fail.cpp}}
 ```
 
 The first line is a comment that records why the program fails, and the book's automated checks read it. The program declares `greet` and calls it from `main`, but no file defines it.

@@ -1,7 +1,3 @@
----
-description: Install a C++ compiler and a code editor or IDE on Windows, macOS or Linux, and check that your setup works before you write any code.
----
-
 # 0.6 Installing an Integrated Development Environment (IDE)
 
 To build programs, you need two things on your computer: a compiler and a place to write code. This lesson helps you install both on Windows, macOS or Linux, and then checks that they work. Setting up tools is rarely the fun part of programming, so take it one step at a time.
@@ -16,72 +12,78 @@ You need only one setup, so choose the tab for your operating system. The tabs f
 
 ## Installing your tools
 
-=== "Windows"
+{{#tabs}}
+{{#tab Windows}}
 
-    **Install:** The most direct choice is [Visual Studio Community](https://visualstudio.microsoft.com/vs/community/), which is free for individual developers and for some other uses that its license terms list. Run its installer and, when it asks which workloads to install, select **Desktop development with C++**. This workload includes the Microsoft C++ compiler.
+**Install:** The most direct choice is [Visual Studio Community](https://visualstudio.microsoft.com/vs/community/), which is free for individual developers and for some other uses that its license terms list. Run its installer and, when it asks which workloads to install, select **Desktop development with C++**. This workload includes the Microsoft C++ compiler.
 
-    Microsoft's guide to [installing C and C++ support in Visual Studio](https://learn.microsoft.com/en-us/cpp/build/vscpp-step-0-installation) walks through the same steps.
+Microsoft's guide to [installing C and C++ support in Visual Studio](https://learn.microsoft.com/en-us/cpp/build/vscpp-step-0-installation) walks through the same steps.
 
-    **Check:** Open **Developer Command Prompt for Visual Studio** from the Start menu, then enter this command:
+**Check:** Open **Developer Command Prompt for Visual Studio** from the Start menu, then enter this command:
 
-    ```powershell
-    cl
-    ```
+```powershell
+cl
+```
 
-    The compiler prints its name, its version and a short list of usage hints.
+The compiler prints its name, its version and a short list of usage hints.
 
-    **Editor:** Visual Studio is both the editor and the IDE. If you prefer Visual Studio Code, install it together with its C/C++ extension, and install a compiler separately: either the Microsoft compiler from Visual Studio or its Build Tools, or GCC through [MSYS2](https://www.msys2.org/). The official guides for [Microsoft C++](https://code.visualstudio.com/docs/cpp/config-msvc) and [MinGW-w64 with MSYS2](https://code.visualstudio.com/docs/cpp/config-mingw) list each step.
+**Editor:** Visual Studio is both the editor and the IDE. If you prefer Visual Studio Code, install it together with its C/C++ extension, and install a compiler separately: either the Microsoft compiler from Visual Studio or its Build Tools, or GCC through [MSYS2](https://www.msys2.org/). The official guides for [Microsoft C++](https://code.visualstudio.com/docs/cpp/config-msvc) and [MinGW-w64 with MSYS2](https://code.visualstudio.com/docs/cpp/config-mingw) list each step.
 
-=== "macOS"
+{{#endtab}}
+{{#tab macOS}}
 
-    **Install:** Apple's compiler, Clang, comes with the Xcode Command Line Tools. Open the **Terminal** app and enter:
+**Install:** Apple's compiler, Clang, comes with the Xcode Command Line Tools. Open the **Terminal** app and enter:
 
-    ```bash
-    xcode-select --install
-    ```
+```bash
+xcode-select --install
+```
 
-    A window asks you to confirm, and the download starts. You do not need the full Xcode application to follow this book.
+A window asks you to confirm, and the download starts. You do not need the full Xcode application to follow this book.
 
-    **Check:** Enter this command in the Terminal:
+**Check:** Enter this command in the Terminal:
 
-    ```bash
-    clang++ --version
-    ```
+```bash
+clang++ --version
+```
 
-    It prints the compiler's name and version. The `g++` command on macOS is usually Apple's Clang under another name, so `g++ --version` shows the same compiler.
+It prints the compiler's name and version. The `g++` command on macOS is usually Apple's Clang under another name, so `g++ --version` shows the same compiler.
 
-    **Editor:** Any code editor works. Popular choices are Visual Studio Code with its C/C++ extension, Xcode and CLion. JetBrains announced in 2025 that CLion is free for non-commercial use, so check its license page for the current terms before you rely on that. The official guide to [Clang on macOS with Visual Studio Code](https://code.visualstudio.com/docs/cpp/config-clang-mac) lists each step.
+**Editor:** Any code editor works. Popular choices are Visual Studio Code with its C/C++ extension, Xcode and CLion. JetBrains announced in 2025 that CLion is free for non-commercial use, so check its license page for the current terms before you rely on that. The official guide to [Clang on macOS with Visual Studio Code](https://code.visualstudio.com/docs/cpp/config-clang-mac) lists each step.
 
-=== "Linux"
+{{#endtab}}
+{{#tab Linux}}
 
-    **Install:** Install the GNU C++ compiler, `g++`, with your distribution's package manager. If you also want Clang, install it the same way.
+**Install:** Install the GNU C++ compiler, `g++`, with your distribution's package manager. If you also want Clang, install it the same way.
 
-    ```bash
-    # Debian and Ubuntu
-    sudo apt install build-essential
-    sudo apt install clang
+```bash
+# Debian and Ubuntu
+sudo apt install build-essential
+sudo apt install clang
 
-    # Fedora
-    sudo dnf install gcc-c++
-    sudo dnf install clang
+# Fedora
+sudo dnf install gcc-c++
+sudo dnf install clang
 
-    # Arch Linux
-    sudo pacman -S gcc
-    sudo pacman -S clang
-    ```
+# Arch Linux
+sudo pacman -S gcc
+sudo pacman -S clang
+```
 
-    Package names can change, so check your distribution's documentation if a command fails. On Debian and Ubuntu, `build-essential` also installs `make` and other basic build tools.
+Package names can change, so check your distribution's documentation if a command fails. On Debian and Ubuntu, `build-essential` also installs `make` and other basic build tools.
 
-    **Check:** Enter these commands in a terminal:
+**Check:** Enter these commands in a terminal:
 
-    ```bash
-    g++ --version
-    clang++ --version
-    ```
+```bash
+g++ --version
+clang++ --version
+```
 
-    Each command prints the compiler's name and version. You only need the second command if you installed Clang.
+Each command prints the compiler's name and version. You only need the second command if you installed Clang.
 
-    **Editor:** Any editor works, from a simple text editor to a full IDE. Visual Studio Code with its C/C++ extension is a common choice, and its [guide for Linux](https://code.visualstudio.com/docs/cpp/config-linux) lists each step.
+**Editor:** Any editor works, from a simple text editor to a full IDE. Visual Studio Code with its C/C++ extension is a common choice, and its [guide for Linux](https://code.visualstudio.com/docs/cpp/config-linux) lists each step.
+
+{{#endtab}}
+{{#endtabs}}
 
 ## Is my compiler recent enough?
 
@@ -89,8 +91,8 @@ This book uses C++20, and the compiler you installed is probably recent enough. 
 
 There is no single version number that means "complete C++20". The [C++20 compiler support table on cppreference](https://en.cppreference.com/w/cpp/compiler_support/20) lists each feature with the first version of GCC, Clang, MSVC and Apple Clang that supports it. The page is maintained on a best-effort basis, so treat it as a guide.
 
-!!! tip
-    Run the check command from your tab again after you install updates. The version number it prints is the quickest way to see what you have.
+> [!TIP]
+> Run the check command from your tab again after you install updates. The version number it prints is the quickest way to see what you have.
 
 ## Online compilers
 

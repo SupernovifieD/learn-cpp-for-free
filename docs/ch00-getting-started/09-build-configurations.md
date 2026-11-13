@@ -1,7 +1,3 @@
----
-description: What a build configuration is, how debug and release builds differ, how to switch between them in each toolchain, and which one to use while you learn.
----
-
 # 0.9 Configuring your compiler: Build configurations
 
 The same source code can be compiled in different ways, and the way you choose changes how the program behaves while you work on it. This lesson explains build configurations, compares the two you will meet most often, and recommends one for learning. The next three lessons then show how to configure your compiler for the best learning experience.
@@ -29,45 +25,51 @@ An **assertion** is a check that stops the program with a message when something
 
 ## Switching configurations
 
-=== "Visual Studio"
+{{#tabs}}
+{{#tab Visual Studio}}
 
-    **Switch:** In the toolbar, open the **Solution Configurations** list and choose **Debug** or **Release**. You can also open the **Build** menu, choose **Configuration Manager** and pick a configuration there.
+**Switch:** In the toolbar, open the **Solution Configurations** list and choose **Debug** or **Release**. You can also open the **Build** menu, choose **Configuration Manager** and pick a configuration there.
 
-    **Effect:** The Debug configuration keeps the optimizer off and produces debug information. The Release configuration is fully optimized, so it is not meant for stepping through your code line by line.
+**Effect:** The Debug configuration keeps the optimizer off and produces debug information. The Release configuration is fully optimized, so it is not meant for stepping through your code line by line.
 
-=== "VS Code"
+{{#endtab}}
+{{#tab VS Code}}
 
-    **Switch:** Visual Studio Code has no Debug and Release switch of its own. Your build task decides, so you choose a configuration by changing the options that the task passes to the compiler. The official guides linked in lesson 0.6 show where those options live.
+**Switch:** Visual Studio Code has no Debug and Release switch of its own. Your build task decides, so you choose a configuration by changing the options that the task passes to the compiler. The official guides linked in lesson 0.6 show where those options live.
 
-    **Effect:** Use the options from the **Command line** tab: the debug options for everyday work, and the release options when you want a fast build.
+**Effect:** Use the options from the **Command line** tab: the debug options for everyday work, and the release options when you want a fast build.
 
-=== "Command line"
+{{#endtab}}
+{{#tab Command line}}
 
-    **Switch:** With GCC or Clang, `-O0` turns optimization off, `-g` adds debug information, `-O2` turns on a high level of optimization and `-DNDEBUG` defines the `NDEBUG` macro.
+**Switch:** With GCC or Clang, `-O0` turns optimization off, `-g` adds debug information, `-O2` turns on a high level of optimization and `-DNDEBUG` defines the `NDEBUG` macro.
 
-    ```bash
-    # Debug build
-    g++ -std=c++20 -O0 -g -o hello-world hello-world.cpp
+```bash
+# Debug build
+g++ -std=c++20 -O0 -g -o hello-world hello-world.cpp
 
-    # Release build
-    g++ -std=c++20 -O2 -DNDEBUG -o hello-world hello-world.cpp
-    ```
+# Release build
+g++ -std=c++20 -O2 -DNDEBUG -o hello-world hello-world.cpp
+```
 
-    With Microsoft's compiler, `/Od` turns optimization off, `/Zi` produces debug information, `/O2` optimizes for speed and `/DNDEBUG` defines the macro.
+With Microsoft's compiler, `/Od` turns optimization off, `/Zi` produces debug information, `/O2` optimizes for speed and `/DNDEBUG` defines the macro.
 
-    ```powershell
-    cl /std:c++20 /EHsc /Od /Zi /Fe:hello-world.exe hello-world.cpp
-    cl /std:c++20 /EHsc /O2 /DNDEBUG /Fe:hello-world.exe hello-world.cpp
-    ```
+```powershell
+cl /std:c++20 /EHsc /Od /Zi /Fe:hello-world.exe hello-world.cpp
+cl /std:c++20 /EHsc /O2 /DNDEBUG /Fe:hello-world.exe hello-world.cpp
+```
 
-    **Effect:** The first command in each block builds a debug version and the second builds a release version.
+**Effect:** The first command in each block builds a debug version and the second builds a release version.
+
+{{#endtab}}
+{{#endtabs}}
 
 ## Which one to use
 
 While you are learning, use the debug configuration. Programs in debug builds behave the way your code reads, debuggers can show you what is happening, and the compiler builds quickly. Use a release configuration when you are ready to hand a program to someone else, and when you want to measure how fast it really runs, because speed in a debug build does not tell you anything useful.
 
-!!! best-practice "Best practice"
-    Develop and test in a debug configuration, and measure performance only in a release configuration.
+> [!BEST-PRACTICE]
+> Develop and test in a debug configuration, and measure performance only in a release configuration.
 
 The settings in the next lessons, such as warning levels and language standards, should apply to every configuration. In Visual Studio, open the project's property pages and choose **All Configurations** in the **Configuration** list before you change a setting, so that Debug and Release stay in step.
 

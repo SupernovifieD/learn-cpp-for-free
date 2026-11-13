@@ -1,7 +1,3 @@
----
-description: How to find out which C++ standard your compiler is using, with the __cplusplus macro, Microsoft's _MSVC_LANG and a short program that prints the result.
----
-
 # 0.13 What language standard is my compiler using?
 
 You have chosen a standard, but did your compiler really apply it? This lesson shows how to ask the compiler which standard it is using, and it ends with a small program that prints the answer. You will not need to understand every line of that program yet.
@@ -40,7 +36,7 @@ It also defines a second macro, `_MSVC_LANG`, which always reports the standard 
 This program prints the value of the macro and the name of the matching standard. It uses `_MSVC_LANG` when it exists, and `__cplusplus` otherwise.
 
 ```cpp title="print-standard.cpp"
---8<-- "examples/ch00/13-print-standard.cpp"
+{{#include ../../examples/ch00/13-print-standard.cpp}}
 ```
 
 Lines that begin with `#`, such as `#if` and `#else`, are instructions for the compiler about which code to keep. The program keeps one of the two definitions of `standard`, depending on the compiler. The chain of `if` and `else if` statements then picks the first name that fits, starting from the newest. You will learn how they work in later chapters.
@@ -54,8 +50,8 @@ C++20
 
 This output is only an example, because it depends on your compiler and the options you pass. Build with `-std=c++17`, and the program prints `201703` and `C++17`. If you build without naming a standard, you see the default of your compiler, which is a good way to find out what that default is.
 
-!!! tip
-    Run the program once for every standard your compiler supports, and compare the numbers with the table above.
+> [!TIP]
+> Run the program once for every standard your compiler supports, and compare the numbers with the table above.
 
 ## You are ready for Chapter 1
 
