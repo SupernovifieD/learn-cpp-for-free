@@ -7,7 +7,7 @@
 - [ ] `make check` passes on my computer (lint, examples, format, build and browser tests)
 - [ ] I looked at screenshots of the pages I changed (375 and 1280 px wide in light and dark mode, plus 320 px for pages with tabs, tables or diagrams) and walked the visual checklist in `CONTRIBUTING.md`
 - [ ] My commits follow Conventional Commits, such as `docs(ch00): add lesson 0.14`
-- [ ] I did not commit `.venv/`, `site/`, screenshots, caches or secrets
+- [ ] I did not commit `.venv/`, `.tools/`, `book/`, screenshots, caches or secrets
 
 ## Content checklist
 

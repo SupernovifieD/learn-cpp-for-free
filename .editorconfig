@@ -9,7 +9,7 @@ trim_trailing_whitespace = true
 indent_style = space
 indent_size = 4
 
-# Two spaces is the YAML convention (mkdocs.yml, workflows)
+# Two spaces is the YAML convention (workflows)
 [*.{yml,yaml}]
 indent_size = 2
 
