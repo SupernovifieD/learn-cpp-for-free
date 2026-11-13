@@ -1,5 +1,5 @@
-# Everything a contributor needs: the site build plus test and lint tools.
--r requirements.txt
+# Python packages for the browser tests and the C++ formatter. The book itself is
+# built by mdBook, which scripts/install_tools.py downloads (see `make install`).
 
 # Test runner for the browser (layout, accessibility, behaviour) tests.
 pytest==9.2.0
@@ -18,6 +18,3 @@ axe-playwright-python==0.1.8
 
 # Pinned formatter so every contributor formats C++ examples identically.
 clang-format==23.1.5
-
-# Parses mkdocs.yml in scripts/lint_content.py.
-PyYAML==6.0.3
