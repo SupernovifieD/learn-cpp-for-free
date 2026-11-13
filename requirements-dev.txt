@@ -11,7 +11,7 @@ pytest-xdist==3.8.0
 # Headless Chromium driver. 1.64.1 is pinned (not 1.65.x) on purpose: it uses
 # Chromium revision 1248, so machines that already have that browser cached do
 # not need a large download. Move to a newer release together with the cache.
-playwright==1.64.1
+playwright==1.65.0
 
 # Runs the axe-core accessibility rules inside Playwright pages.
 axe-playwright-python==0.1.8
