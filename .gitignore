@@ -2,8 +2,11 @@
 .venv/
 venv/
 
-# Build output of `mkdocs build`; GitHub Actions rebuilds it on every deploy
-site/
+# Build output of `mdbook build`; GitHub Actions rebuilds it on every deploy
+book/
+
+# mdBook and mdbook-mermaid, downloaded by `make install`
+.tools/
 
 # Python and test caches
 __pycache__/
