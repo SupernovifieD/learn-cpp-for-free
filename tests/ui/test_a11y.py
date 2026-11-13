@@ -130,6 +130,10 @@ def test_u11_focus_outlines_are_visible_on_the_controls_readers_use(tabs, width,
             continue  # the closed sidebar is off screen, and its links are not Tab stops
         if name == "copy button":
             page.locator(f"{CONTENT} pre").first.hover()  # mdBook shows the button while the pointer is on the block
+            try:
+                page.locator(selector).first.wait_for(state="visible", timeout=5_000)  # it fades in, so wait for it
+            except Exception:
+                pass  # reported below as a control that was not found
         control = page.locator(selector).locator("visible=true").first
         if control.count() == 0:
             continue
