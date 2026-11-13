@@ -61,7 +61,7 @@ def test_u4_no_console_errors_or_failed_requests(tabs, path, width, scheme):
 def test_u3_a_long_code_line_really_scrolls_in_its_own_block(tabs, scheme):
     """U3 (positive check): in the Conventions page, scrolling the deliberately long line moves only that block."""
     tab = tabs(320, scheme)
-    tab.visit("conventions/")
+    tab.visit("conventions.html")
     result = tab.page.evaluate(
         """() => {
           const code = [...document.querySelectorAll('pre > code')].find(c => c.textContent.includes('deliberately much wider'));

@@ -1,14 +1,14 @@
 """Shared helpers and fixtures for the browser tests (layout, accessibility, behavior).
 
-The tests drive headless Chromium against the built site in site/ (run
-`make build` first, or use `make test-ui`, which builds for you).
+The tests drive headless Chromium against the built book in book/ (run
+`make build` first, or use `make test-ui`, which builds for you). The book is
+served under the same path as on GitHub Pages (see `site-url` in book.toml), so
+a link or an asset that only works at the root of a domain fails here.
 
-Environment variables (all optional):
-  BASE_URL    Test an already published site, e.g. the live GitHub Pages URL,
-              instead of serving the local site/ directory. Pages are still
-              discovered from the local site/ build.
-  MERMAID_JS  Path to a local copy of Material's Mermaid bundle. Material loads
-              Mermaid from a CDN; set this to run without reaching the CDN.
+Environment variable (optional):
+  BASE_URL    Test an already published book, e.g. the live GitHub Pages URL,
+              instead of serving the local book/ directory. The list of pages
+              still comes from the local docs/SUMMARY.md.
 
 This module also holds the small browser helpers that tests/ui/screenshots.py
 reuses, so both always open pages the same way.
@@ -16,11 +16,12 @@ reuses, so both always open pages the same way.
 
 from __future__ import annotations
 
-import functools
 import http.server
 import os
+import posixpath
 import re
 import threading
+import tomllib
 from dataclasses import dataclass, field
 from pathlib import Path
 from urllib.parse import urlparse
@@ -30,146 +31,129 @@ from axe_playwright_python.sync_playwright import Axe
 from playwright.sync_api import Browser, BrowserContext, Page, sync_playwright
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
-SITE_DIR = REPO_ROOT / "site"
+BOOK_DIR = REPO_ROOT / "book"
+CONFIG = tomllib.loads((REPO_ROOT / "book.toml").read_text())
+SITE_PATH = "/" + CONFIG["output"]["html"]["site-url"].strip("/") + "/"  # "/learn-cpp-for-free/"
 FAILURE_SHOTS = REPO_ROOT / "artifacts" / "screenshots" / "failures"
 
 # Viewport widths from the UI quality bar (height is always 800).
 WIDTHS = [320, 360, 375, 414, 768, 1024, 1280, 1440, 1920]
 SCHEMES = ["light", "dark"]
 
+# The mdBook theme that each color scheme selects (see default-theme and preferred-dark-theme in book.toml).
+THEME_OF_SCHEME = {"light": "light", "dark": "navy"}
+
 # Widths at which axe-core also checks every page (U5). It runs on the same page load that the
 # layout checks use, so the page is not loaded a second time.
 AXE_WIDTHS = [375, 1280]
 
-# Sub-folders of site/ that hold assets, not book pages.
-NON_PAGE_DIRS = {"assets", "search"}
+# mdBook shows the sidebar by default from this width up.
+SIDEBAR_SHOWN_FROM = 1080
 
-# Material draws Mermaid diagrams inside a *closed* shadow root, which no test
-# can look into. Forcing shadow roots open is the only way to check that an
-# <svg> was really drawn. This changes nothing about how pages look.
-OPEN_SHADOW_ROOTS_JS = """
-const attach = Element.prototype.attachShadow;
-Element.prototype.attachShadow = function (init) {
-  return attach.call(this, { ...init, mode: 'open' });
-};
-"""
+# The element that holds a page's own content (everything else is mdBook's frame).
+CONTENT = "#mdbook-content main"
 
 # Selector of everything that must stay inside the text column (U2).
-CONTAINED_SELECTOR = (
-    "pre, .highlight, .tabbed-set, .admonition, details, "
-    ".md-typeset__scrollwrap, img, .md-button, blockquote"
-)
+CONTAINED_SELECTOR = "pre, figure, .tabs, .tab-list, blockquote, details, .table-wrapper, img, pre.mermaid svg"
+
+_SUMMARY_ENTRY = re.compile(r"^\s*(?:[-*]\s+)?\[(?P<label>[^\]]+)\]\((?P<path>[^)]+)\)\s*$")
+
+
+def read_summary() -> list[tuple[str, str]]:
+    """The pages of the book in reading order, as (label, URL path), from docs/SUMMARY.md."""
+    pages = []
+    for line in (REPO_ROOT / "docs" / "SUMMARY.md").read_text().split("\n"):
+        entry = _SUMMARY_ENTRY.match(line)
+        if entry:
+            pages.append((entry["label"], posixpath.splitext(entry["path"])[0] + ".html"))
+    return pages
 
 
 def discover_pages() -> list[str]:
-    """Return the URL path of every book page found in site/ ('' is the home page)."""
-    if not SITE_DIR.is_dir():
-        raise RuntimeError(f"{SITE_DIR} does not exist. Run `make build` first (or use `make test-ui`).")
-    paths = []
-    for index in sorted(SITE_DIR.rglob("index.html")):
-        folder = index.parent.relative_to(SITE_DIR)
-        if folder.parts and folder.parts[0] in NON_PAGE_DIRS:
-            continue
-        paths.append("" if not folder.parts else folder.as_posix() + "/")
+    """Return the URL path of every page of the book ('index.html' is the home page).
+
+    The list comes from docs/SUMMARY.md, and every page in it must have been built: a missing
+    page is an error here, never a silently skipped test.
+    """
+    if not BOOK_DIR.is_dir():
+        raise RuntimeError(f"{BOOK_DIR} does not exist. Run `make build` first (or use `make test-ui`).")
+    paths = [path for _, path in read_summary()]
     if not paths:
-        raise RuntimeError(f"No pages found in {SITE_DIR}. Run `make build` first.")
+        raise RuntimeError("docs/SUMMARY.md lists no pages.")
+    missing = [path for path in paths if not (BOOK_DIR / path).is_file()]
+    if missing:
+        raise RuntimeError(f"Listed in docs/SUMMARY.md but not built in {BOOK_DIR}: {missing}. Run `make build`.")
     return paths
 
 
+def built_pages() -> set[str]:
+    """Every chapter page that mdBook wrote to book/ (not its helper pages, and not redirects)."""
+    helpers = {"404.html", "print.html", "toc.html"}
+    pages = set()
+    for file in BOOK_DIR.rglob("*.html"):
+        path = file.relative_to(BOOK_DIR).as_posix()
+        if path not in helpers and "<title>Redirecting...</title>" not in file.read_text():
+            pages.add(path)
+    return pages
+
+
 def page_id(path: str) -> str:
-    """A readable, file-system-safe name for a page ('' becomes 'index')."""
-    return path.strip("/").replace("/", "__") or "index"
+    """A readable, file-system-safe name for a page ('ch00/01-x.html' becomes 'ch00__01-x')."""
+    return path.removesuffix(".html").strip("/").replace("/", "__") or "index"
 
 
-class _QuietHandler(http.server.SimpleHTTPRequestHandler):
+class _BookHandler(http.server.SimpleHTTPRequestHandler):
+    """Serves book/ under SITE_PATH, and 404.html for anything else, as GitHub Pages does."""
+
+    def translate_path(self, path: str) -> str:
+        path = urlparse(path).path
+        if not path.startswith(SITE_PATH):
+            return str(BOOK_DIR / "does-not-exist")
+        return super().translate_path("/" + path[len(SITE_PATH) :])
+
+    def send_error(self, code, message=None, explain=None):
+        if code != 404:
+            return super().send_error(code, message, explain)
+        body = (BOOK_DIR / "404.html").read_bytes()
+        self.send_response(404)
+        self.send_header("Content-Type", "text/html; charset=utf-8")
+        self.send_header("Content-Length", str(len(body)))
+        self.end_headers()
+        self.wfile.write(body)
+
     def log_message(self, *args):  # keep the test output readable
         pass
 
 
 def start_server() -> tuple[str, http.server.ThreadingHTTPServer | None]:
-    """Serve site/ on a free local port, or use BASE_URL when it is set.
+    """Serve book/ on a free local port, or use BASE_URL when it is set.
 
     Returns (base_url_with_trailing_slash, server_or_None).
     """
     base_url = os.environ.get("BASE_URL")
     if base_url:
         return base_url.rstrip("/") + "/", None
-    handler = functools.partial(_QuietHandler, directory=str(SITE_DIR))
-    server = http.server.ThreadingHTTPServer(("127.0.0.1", 0), handler)
+    server = http.server.ThreadingHTTPServer(("127.0.0.1", 0), lambda *args: _BookHandler(*args, directory=str(BOOK_DIR)))
     threading.Thread(target=server.serve_forever, daemon=True).start()
-    return f"http://127.0.0.1:{server.server_address[1]}/", server
+    return f"http://127.0.0.1:{server.server_address[1]}{SITE_PATH}", server
 
 
-def _stub_github_api(route) -> None:
-    """Answer Material's repository lookups without touching api.github.com.
-
-    The header asks GitHub for the repository's stars, forks and latest
-    release. Live answers would make the tests depend on the network and on
-    GitHub's rate limits (and, while the repository has no release, GitHub
-    answers 404, which the browser logs as a console error). The stub returns
-    all three facts, which is the widest the header can ever be.
-    """
-    if route.request.url.endswith("/releases/latest"):
-        body = '{"tag_name": "v0.1.0"}'
-    else:
-        body = '{"stargazers_count": 12, "forks_count": 3}'
-    route.fulfill(status=200, content_type="application/json", body=body)
-
-
-# Files already downloaded in this test run, keyed by URL: the web fonts and Material's Mermaid
-# script. Every browser context starts with an empty cache and the pages are measured hundreds
-# of times, so without this each visit would download the same files again.
-_DOWNLOAD_CACHE: dict[str, tuple[dict[str, str], bytes]] = {}
-
-
-def _serve_from_memory(route) -> None:
-    """Download each file once, then answer every later request from memory.
-
-    The pages are measured with the real fonts and the real Mermaid script (text width decides
-    where lines wrap, and the diagram must really draw), so nothing is blocked or replaced, only
-    remembered. The bytes are exactly what the server sent.
-    """
-    url = route.request.url
-    if url not in _DOWNLOAD_CACHE:
-        response = route.fetch()
-        if response.status != 200:
-            route.fulfill(response=response)
-            return
-        skipped = {"content-encoding", "content-length", "transfer-encoding"}
-        headers = {k: v for k, v in response.headers.items() if k.lower() not in skipped}
-        _DOWNLOAD_CACHE[url] = (headers, response.body())
-    headers, body = _DOWNLOAD_CACHE[url]
-    route.fulfill(status=200, headers=headers, body=body)
-
-
-def new_context(browser: Browser, width: int, scheme: str) -> BrowserContext:
+def new_context(browser: Browser, width: int, scheme: str, **options) -> BrowserContext:
     """A fresh browser context for one viewport width and color scheme."""
-    context = browser.new_context(
+    return browser.new_context(
         viewport={"width": width, "height": 800},
         color_scheme=scheme,
         reduced_motion="reduce",
+        **options,
     )
-    context.add_init_script(OPEN_SHADOW_ROOTS_JS)
-    context.route("https://api.github.com/**", _stub_github_api)
-    context.route("https://fonts.googleapis.com/**", _serve_from_memory)
-    context.route("https://fonts.gstatic.com/**", _serve_from_memory)
-    # Registered before the MERMAID_JS override below, which must win when it is set.
-    context.route("https://unpkg.com/**/mermaid.min.js", _serve_from_memory)
-    mermaid_js = os.environ.get("MERMAID_JS")
-    if mermaid_js:
-        context.route(
-            "**/mermaid.min.js",
-            lambda route: route.fulfill(path=mermaid_js, content_type="application/javascript"),
-        )
-    return context
 
 
 # One JavaScript function that measures a loaded page (U1, U2, U3).
 SURVEY_JS = (
     """
-(selector) => {
+([content, selector]) => {
   const doc = document.documentElement;
-  const inner = document.querySelector('.md-content__inner');
+  const inner = document.querySelector(content);
   const box = inner.getBoundingClientRect();
   const style = getComputedStyle(inner);
   const left = box.left + parseFloat(style.paddingLeft) + parseFloat(style.borderLeftWidth);
@@ -190,10 +174,6 @@ SURVEY_JS = (
   };
 
   const targets = [...inner.querySelectorAll(selector)];
-  for (const host of inner.querySelectorAll('.mermaid')) {
-    const svg = host.shadowRoot && host.shadowRoot.querySelector('svg');
-    if (svg) targets.push(svg);
-  }
   const outside = [];
   for (const el of targets) {
     const judge = judgedBy(el);
@@ -273,32 +253,27 @@ class Tab:
         self.events.clear()
         self.page.goto(self.base_url + path, wait_until="load")
         self.page.evaluate("document.fonts.ready.then(() => true)")
-        # Material asks GitHub for repository facts after load; wait for them so a late error is caught.
-        self.page.wait_for_selector(".md-source__fact--stars", state="attached", timeout=10_000)
-        # Let fade-in animations finish, so measurements (and axe's color checks) never see a half-faded state.
+        # mdBook fills the sidebar with a script; wait for it so the page is measured as readers see it.
+        self.page.wait_for_selector("#mdbook-sidebar .chapter a", state="attached", timeout=10_000)
+        # Let animations finish, so measurements (and axe's color checks) never see a half-faded state.
         self.page.wait_for_function(
             "document.getAnimations().every(a => a.playState !== 'running' || a.effect.getComputedTiming().iterations === Infinity)",
             timeout=5_000,
         )
-        has_diagram = self.page.evaluate("!!document.querySelector('.mermaid')")
-        if has_diagram:
+        if self.page.evaluate("!!document.querySelector('.mermaid')"):
             try:
                 self.page.wait_for_function(
-                    "!document.querySelector('pre.mermaid') && [...document.querySelectorAll('.mermaid')]"
-                    ".every(h => h.shadowRoot && h.shadowRoot.querySelector('svg'))",
+                    "[...document.querySelectorAll('pre.mermaid')].every(diagram => diagram.querySelector('svg'))",
                     timeout=20_000,
                 )
             except Exception as error:
-                raise AssertionError(
-                    f"The diagram on '{path or 'index'}' did not render. Material loads Mermaid from a CDN: "
-                    "check your network, or point MERMAID_JS at a local copy of the bundle."
-                ) from error
+                raise AssertionError(f"The diagram on '{path}' did not render.") from error
 
     def survey(self, path: str) -> Survey:
         """Load a page once and measure it; later calls reuse the result."""
         if path not in self.surveys:
             self.visit(path)
-            raw = self.page.evaluate(SURVEY_JS, CONTAINED_SELECTOR)
+            raw = self.page.evaluate(SURVEY_JS, [CONTENT, CONTAINED_SELECTOR])
             self.surveys[path] = Survey(
                 scroll_width=raw["scrollWidth"],
                 client_width=raw["clientWidth"],
@@ -441,5 +416,5 @@ def tabs(browser, base_url):
         tab.page.context.close()
 
 
-# Every book page. Discovery fails loudly (rather than testing nothing) if site/ is missing.
+# Every book page. Discovery fails loudly (rather than testing nothing) if book/ is missing or incomplete.
 PAGES = discover_pages()
