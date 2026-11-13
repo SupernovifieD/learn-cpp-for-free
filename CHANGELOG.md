@@ -7,6 +7,8 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-11-13
+
 ### Changed
 
 - Moved the book from MkDocs to [mdBook](https://rust-lang.github.io/mdBook/),
@@ -14,6 +16,10 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
   table of contents is now `docs/SUMMARY.md`, includes use `{{#include}}`,
   callouts are block quotes such as `> [!NOTE]`, keys use `<kbd>`, and questions
   use `<details>`. The lessons' wording and the C++ examples are unchanged.
+- Pages are now published as `.html` files, such as `conventions.html`. The old
+  directory-style addresses, such as `/conventions/`, are not redirected and now
+  show the book's 404 page. The home page and `ch00-getting-started/` keep their
+  addresses.
 - Pages no longer have front matter, so every page uses the book's description.
 - The book has two themes, light and Navy, instead of the old blue palette.
 - Rewrote the content linter, the browser tests, the Makefile, the CI workflow,
@@ -25,14 +31,17 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 - A small preprocessor (`scripts/mdbook_cppbook.py`) for file-name labels on
   code blocks, the danger, best-practice, key-insight and advanced callouts, and
   platform tabs with keyboard support that remember the reader's choice.
-- Redirects from the old directory-style addresses, such as `conventions/`, to
-  the new pages, with tests for every one of them.
 - A check after each deployment that the published book is the mdBook build.
 
 ### Removed
 
 - MkDocs, Material for MkDocs, pymdown-extensions, PyYAML, the old stylesheet
   and the old logo.
+
+### Fixed
+
+- A browser test of keyboard focus looked for the copy button before mdBook had
+  made it visible, which made it fail on slow machines.
 
 ## [0.1.0] - 2026-11-12
 
@@ -67,5 +76,6 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
   loaded once per group, restoring the intended page reuse and cutting
   unnecessary repeated work.
 
-[Unreleased]: https://github.com/SupernovifieD/learn-cpp-for-free/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/SupernovifieD/learn-cpp-for-free/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/SupernovifieD/learn-cpp-for-free/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/SupernovifieD/learn-cpp-for-free/releases/tag/v0.1.0
