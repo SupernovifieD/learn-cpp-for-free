@@ -87,12 +87,12 @@ def discover_pages() -> list[str]:
 
 
 def built_pages() -> set[str]:
-    """Every chapter page that mdBook wrote to book/ (not its helper pages, and not redirects)."""
+    """Every chapter page that mdBook wrote to book/ (not its helper pages)."""
     helpers = {"404.html", "print.html", "toc.html"}
     pages = set()
     for file in BOOK_DIR.rglob("*.html"):
         path = file.relative_to(BOOK_DIR).as_posix()
-        if path not in helpers and "<title>Redirecting...</title>" not in file.read_text():
+        if path not in helpers:
             pages.add(path)
     return pages
 

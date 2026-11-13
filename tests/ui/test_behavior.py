@@ -10,7 +10,6 @@ CONVENTIONS = "conventions.html"
 LESSON_0_5 = "ch00-getting-started/05-compiler-linker-and-libraries.html"
 LESSON_0_6 = "ch00-getting-started/06-installing-an-ide.html"
 LESSON_0_7 = "ch00-getting-started/07-compiling-your-first-program.html"
-REDIRECTS = CONFIG["output"]["html"]["redirect"]
 
 
 @pytest.fixture
@@ -429,21 +428,11 @@ def test_u16_links_between_pages_lead_to_pages_and_headings_that_exist(tabs, bas
             assert f'id="{fragment}"' in file.read_text(), f"'{path}' links to {link}, but that page has no element with the id '{fragment}'."
 
 
-@pytest.mark.parametrize("old", sorted(REDIRECTS), ids=[page_id(old.strip("/").removesuffix("/index.html")) for old in sorted(REDIRECTS)])
-def test_u17_an_address_from_before_mdbook_leads_to_the_page(tabs, base_url, old):
-    """U17: the directory-style address a page had on the old site sends the reader to the page's new address."""
-    old_address = old.lstrip("/").removesuffix("index.html")  # as readers bookmarked it: 'conventions/'
-    expected = posixpath.normpath(posixpath.join(posixpath.dirname(old.lstrip("/")), REDIRECTS[old]))
-    assert expected in PAGES, f"The redirect '{old}' leads to '{expected}', which is not a page of the book."
-    tab = tabs(1280, "light")
-    tab.page.goto(base_url + old_address, wait_until="load")
-    tab.page.wait_for_url(base_url + expected, timeout=10_000)
-    label = next(label for label, path in SUMMARY if path == expected)
-    assert tab.page.locator(f"{CONTENT} h1").inner_text() == label
-
-
 def test_u17_an_unknown_address_shows_a_styled_404_page(private_tab, base_url):
-    """U17: the 'not found' page loads its styles and scripts from the book's address, even from a deeper path."""
+    """U17: the 'not found' page loads its styles and scripts from the book's address, even from a deeper path.
+
+    This is also what a reader sees at an address from before the move to mdBook, such as /conventions/.
+    """
     tab = private_tab(1280)
     page = tab.page
     tab.events.clear()

@@ -97,7 +97,7 @@ jobs:
         run: make PY=python build
 
       # Layout, accessibility and behavior tests in headless Chromium: every page, its links,
-      # its assets and the redirects from old addresses, served under the GitHub Pages path.
+      # its assets and the 404 page, served under the GitHub Pages path.
       # A standard runner has 4 CPUs, so use 4 parallel workers. (The target builds first.)
       - name: Run the UI tests
         run: make PY=python UI_WORKERS=4 test-ui
@@ -139,7 +139,7 @@ jobs:
         id: deployment
         uses: actions/deploy-pages@v5
 
-      # Ask the published address for the home page, a lesson and an old address, and make sure
+      # Ask the published address for the home page and a lesson, and make sure
       # the answers are mdBook's pages. Pages can take a moment to serve a new deployment.
       - name: Verify the published book
         env:
@@ -148,5 +148,4 @@ jobs:
           fetch() { curl --fail --silent --show-error --location --retry 6 --retry-delay 10 --retry-all-errors "$1"; }
           fetch "$PAGE_URL" | grep -q 'id="mdbook-content"'
           fetch "${PAGE_URL}ch00-getting-started/07-compiling-your-first-program.html" | grep -q 'Filename: hello-world.cpp'
-          fetch "${PAGE_URL}conventions/" | grep -q 'URL=../conventions.html'
           echo "The published book at $PAGE_URL is the mdBook build."

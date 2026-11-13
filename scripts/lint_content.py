@@ -19,7 +19,6 @@ Rules, each reported as  docs/page.md:LINE: message
   * no text left over from templates/lesson.md or templates/chapter-index.md (their instructions and placeholders)
   * callouts use only the documented kinds, and tabs are well formed and use only the documented label sets
   * every file in examples/ is used by at least one page (.in files belong to the program next to them)
-  * every redirect in book.toml leads to a page of the book and does not shadow one
 
 Fenced code and `inline code` are never checked for HTML, links or forbidden words, because the book
 legitimately shows such text there. The script needs only Python 3.11 or newer.
@@ -317,22 +316,6 @@ def lint_examples_used(included_by_page: dict[str, set[str]], final: bool) -> li
     return problems
 
 
-def lint_redirects(config: dict, listed: dict[str, str]) -> list[Problem]:
-    """A redirect in book.toml must lead to a page of the book and must not replace one."""
-    problems = []
-    built = {posixpath.splitext(path)[0] + ".html" for path in listed}
-    for old, new in config.get("output", {}).get("html", {}).get("redirect", {}).items():
-        source = old.lstrip("/")
-        if source in built:
-            problems.append(Problem("book.toml", 0, f"redirect '{old}' has the address of a page of the book."))
-        if re.match(r"[a-z][a-z0-9+.-]*:", new):
-            continue
-        target = posixpath.normpath(posixpath.join(posixpath.dirname(source), new.partition("#")[0]))
-        if target not in built:
-            problems.append(Problem("book.toml", 0, f"redirect '{old}' leads to '{target}', which is not a page of the book."))
-    return problems
-
-
 def main() -> int:
     parser = argparse.ArgumentParser(description="Check the structure and writing rules of docs/.")
     parser.add_argument("--final", action="store_true", help="also forbid <!-- STUB --> markers and require lesson 0.11 to include the flags file")
@@ -352,7 +335,6 @@ def main() -> int:
         problems += pages[rel].problems
     problems += lint_links(pages, listed)
     problems += lint_examples_used({rel: page.included for rel, page in pages.items()}, args.final)
-    problems += lint_redirects(config, listed)
 
     for problem in problems:
         print(problem)

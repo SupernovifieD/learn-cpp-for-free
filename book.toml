@@ -38,21 +38,3 @@ additional-js = ["theme/cppbook.js", "theme/mermaid.min.js", "theme/mermaid-init
 # The run button belongs to Rust code, and this book has none.
 [output.html.playground]
 runnable = false
-
-# The addresses that pages had before the book moved to mdBook. Each one becomes a small page that
-# sends the reader to the new address. The home page and the chapter index kept their addresses.
-[output.html.redirect]
-"/conventions/index.html" = "../conventions.html"
-"/ch00-getting-started/01-introduction-to-these-tutorials/index.html" = "../01-introduction-to-these-tutorials.html"
-"/ch00-getting-started/02-programs-and-programming-languages/index.html" = "../02-programs-and-programming-languages.html"
-"/ch00-getting-started/03-introduction-to-c-and-cpp/index.html" = "../03-introduction-to-c-and-cpp.html"
-"/ch00-getting-started/04-introduction-to-cpp-development/index.html" = "../04-introduction-to-cpp-development.html"
-"/ch00-getting-started/05-compiler-linker-and-libraries/index.html" = "../05-compiler-linker-and-libraries.html"
-"/ch00-getting-started/06-installing-an-ide/index.html" = "../06-installing-an-ide.html"
-"/ch00-getting-started/07-compiling-your-first-program/index.html" = "../07-compiling-your-first-program.html"
-"/ch00-getting-started/08-common-cpp-problems/index.html" = "../08-common-cpp-problems.html"
-"/ch00-getting-started/09-build-configurations/index.html" = "../09-build-configurations.html"
-"/ch00-getting-started/10-compiler-extensions/index.html" = "../10-compiler-extensions.html"
-"/ch00-getting-started/11-warning-and-error-levels/index.html" = "../11-warning-and-error-levels.html"
-"/ch00-getting-started/12-choosing-a-language-standard/index.html" = "../12-choosing-a-language-standard.html"
-"/ch00-getting-started/13-what-language-standard-is-my-compiler-using/index.html" = "../13-what-language-standard-is-my-compiler-using.html"

@@ -25,7 +25,7 @@ Open <http://127.0.0.1:3000> to read the book while you edit it. `make build` wr
 | --- | --- |
 | `docs/` | Everything the book publishes: the pages, and `SUMMARY.md`, the table of contents |
 | `examples/` | Every complete C++ program in the book, with its expected output |
-| `book.toml` | The mdBook configuration, including the redirects from the old addresses |
+| `book.toml` | The mdBook configuration |
 | `theme/` | The few additions to mdBook's own look: one stylesheet, one script, the favicon, Mermaid, and a highlight.js bundle with PowerShell |
 | `scripts/` | The example checker, the content linter, the mdBook preprocessor and the tool installer |
 | `tests/ui/` | Browser tests for layout, accessibility and behavior |

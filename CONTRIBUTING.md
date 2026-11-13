@@ -212,7 +212,7 @@ A table wider than the page scrolls inside its frame, and the frame can be scrol
 - tabs have the right roles, work with the keyboard, remember the choice and stay readable without JavaScript,
 - answers stay hidden until opened, and the copy button copies the program in `examples/`,
 - the Mermaid diagram draws in both themes and fits at 320 pixels,
-- every address from before the move to mdBook redirects to its page.
+- an unknown address shows the book's own 404 page, styled and with a working sidebar.
 
 When a check fails, the test run saves a screenshot of the failing page to `artifacts/screenshots/failures/`, and CI uploads that folder. Optional settings: `UI_WORKERS` sets how many browsers run in parallel (`make test-ui UI_WORKERS=4`, default 2), and `BASE_URL` tests a published book instead of the local build, for example `BASE_URL=https://supernovified.github.io/learn-cpp-for-free/`.
 
