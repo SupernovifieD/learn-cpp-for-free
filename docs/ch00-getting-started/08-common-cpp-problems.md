@@ -1,7 +1,3 @@
----
-description: Common problems beginners hit when building a first C++ program, each with its symptom, its cause and a fix, plus advice on searching for error messages.
----
-
 # 0.8 A few common C++ problems
 
 Almost everyone hits a problem when they first set up a C++ toolchain, and the messages can look intimidating. This lesson lists the problems that beginners meet most often. Each one has the same three parts: the **symptom** you see, the **cause** behind it and the **fix**.
@@ -16,7 +12,7 @@ Compilers word their messages differently, so the examples below show the kind o
 
 **Cause:** The program finished, so its window closed with it. This happens when you start the program by double-clicking it, or from an IDE command that does not pause at the end.
 
-**Fix:** Run the program from a terminal, where the output stays on screen after the program ends. In Visual Studio, use **Debug > Start Without Debugging** (++ctrl+f5++), which keeps the window open until you press a key.
+**Fix:** Run the program from a terminal, where the output stays on screen after the program ends. In Visual Studio, use **Debug > Start Without Debugging** (<kbd>Ctrl</kbd>+<kbd>F5</kbd>), which keeps the window open until you press a key.
 
 ### The compiler is not found
 
@@ -34,8 +30,8 @@ Compilers word their messages differently, so the examples below show the kind o
 
 **Fix:** Compare your code with the lesson one character at a time, retype any line you doubt, and write code in a code editor, as lesson 0.4 advised.
 
-!!! tip
-    Read the first error first. One mistake often causes a long list of later errors, and fixing the first one can make all the others disappear. Recompile after each fix.
+> [!TIP]
+> Read the first error first. One mistake often causes a long list of later errors, and fixing the first one can make all the others disappear. Recompile after each fix.
 
 ### The linker cannot find main
 
@@ -60,7 +56,7 @@ Compilers word their messages differently, so the examples below show the kind o
 **Cause:** You used a part of the Standard Library without including the header that provides it. This program shows the mistake:
 
 ```cpp title="missing-include.cpp"
---8<-- "examples/ch00/08-missing-include.fail.cpp"
+{{#include ../../examples/ch00/08-missing-include.fail.cpp}}
 ```
 
 The first line is a comment that records why the program fails, and the book's automated checks read it. The compiler has never heard of `std::cout`, because nothing told it where to find it.
@@ -83,8 +79,8 @@ The first line is a comment that records why the program fails, and the book's a
 
 **Fix:** Open your security software, look in its quarantine or protection history, and restore the file if it is the program you built. Most products let you allow one folder, such as the folder that holds your projects.
 
-!!! warning
-    Do not turn off your protection completely. Allow your projects folder only, and only for programs that you wrote.
+> [!WARNING]
+> Do not turn off your protection completely. Allow your projects folder only, and only for programs that you wrote.
 
 ## How to search for an error message effectively
 

@@ -1,7 +1,3 @@
----
-description: What this free, open-source book teaches, who it is for, what you need to begin, and how to find your way around it.
----
-
 # 0.1 Introduction to these tutorials
 
 Welcome. This book teaches you to program in modern C++, starting from nothing and adding one idea at a time. This first lesson explains what the book is, what you need before you begin, and how to move around in it. A few minutes here will save you time later.
@@ -38,16 +34,16 @@ A typical lesson opens with a short overview, works through its topic in section
 
 ## Finding your way around
 
-On a wide screen, the left sidebar lists every chapter and lesson in the book, and the panel on the right lists the headings of the page you are reading. On a phone, the menu button in the top left corner opens the same list.
+The sidebar on the left lists every chapter and lesson in the book, and under the page you are reading it lists that page's headings. The menu button in the top left corner shows or hides the sidebar, and on a phone the sidebar starts out hidden.
 
-Every page ends with links to the previous and the next lesson. The search box in the header finds words across the whole book.
+Every page has arrows that lead to the previous and the next lesson. The search button at the top, which looks like a magnifying glass, finds words across the whole book.
 
 You can also use the keyboard:
 
-- Press ++n++ for the next page and ++p++ for the previous page.
-- Press ++s++ or ++f++ to jump to the search box.
+- Press <kbd>→</kbd> for the next page and <kbd>←</kbd> for the previous page.
+- Press <kbd>S</kbd> or <kbd>/</kbd> to open the search box.
 
-The button next to the search box switches between a light and a dark color scheme, or follows your computer's setting.
+The button with the paintbrush, next to the search button, switches between a light and a dark theme, or follows your computer's setting.
 
 ## How the examples are tested
 
@@ -55,8 +51,8 @@ Every complete program in this book is stored as a file, and an automated check 
 
 So when the book says a program prints something, a machine has already confirmed it. Lesson 0.11 shows you the exact settings the check uses.
 
-!!! tip
-    Type the examples yourself instead of pasting them. Typing forces you to read every character, and the mistakes you make along the way teach you how the compiler reports problems.
+> [!TIP]
+> Type the examples yourself instead of pasting them. Typing forces you to read every character, and the mistakes you make along the way teach you how the compiler reports problems.
 
 ## A short tour of the boxes
 
@@ -64,7 +60,7 @@ Lessons use colored boxes, called **callouts**, to set some information apart: n
 
 ## Reporting a mistake or helping out
 
-Every page has a pencil icon beside its title. It opens the page's source on GitHub, where you can propose a fix, and you need a GitHub account to send it. If you would rather report a problem than fix it yourself, you can [open an issue](https://github.com/SupernovifieD/learn-cpp-for-free/issues).
+Every page has an edit button in its top right corner. It opens the page's source on GitHub, where you can propose a fix, and you need a GitHub account to send it. If you would rather report a problem than fix it yourself, you can [open an issue](https://github.com/SupernovifieD/learn-cpp-for-free/issues).
 
 The contributing guide in the repository explains how to build the book on your own computer and what a good change looks like.
 
@@ -73,6 +69,6 @@ The contributing guide in the repository explains how to build the book on your 
 - This book is a free, open-source course in modern C++ for beginners and for programmers from other languages.
 - You need a Windows, macOS or Linux computer, a C++ compiler (installed in lesson 0.6) and patience.
 - Lessons are numbered by chapter and lesson, and they are meant to be read in order.
-- The sidebar, the previous and next links, the search box and the keys ++n++, ++p++ and ++s++ help you get around.
+- The sidebar, the previous and next links, the search box and the keys <kbd>←</kbd>, <kbd>→</kbd> and <kbd>S</kbd> help you get around.
 - Every example is built with GCC and Clang using C++20 and strict warnings, and its output is checked.
-- Use the pencil icon on any page to propose a fix, or open an issue to report a problem.
+- Use the edit button on any page to propose a fix, or open an issue to report a problem.

@@ -1,18 +1,17 @@
 """Accessibility checks: U5 (axe-core), U6 (headings) and U11 (keyboard focus).
 
 axe-core is bundled inside the axe-playwright-python package. A violation that
-comes from Material's own markup and cannot be fixed through configuration or
-CSS may be listed in axe_allowlist.json as
+comes from mdBook's own markup and cannot be fixed through configuration, CSS
+or the book's small script may be listed in axe_allowlist.json as
     {"rule": "<axe rule id>", "selector": "<end of the node's selector>", "reason": "<why>"}
-Every entry must also be reported in the milestone report. Anything that CAN be
-fixed with configuration or CSS must be fixed instead of listed.
+Anything that CAN be fixed must be fixed instead of listed.
 """
 
 import json
 from pathlib import Path
 
 import pytest
-from conftest import AXE_WIDTHS, PAGES, SCHEMES, page_id
+from conftest import AXE_WIDTHS, CONTENT, PAGES, SCHEMES, SIDEBAR_SHOWN_FROM, page_id
 
 A11Y_WIDTHS = AXE_WIDTHS
 BLOCKING_IMPACTS = {"serious", "critical"}
@@ -50,15 +49,19 @@ def test_u5_no_serious_or_critical_axe_violations(tabs, path, width, scheme):
 
 @pytest.mark.parametrize("path", PAGES, ids=[page_id(p) for p in PAGES])
 def test_u6_one_h1_and_no_skipped_heading_levels(tabs, path):
-    """U6: exactly one h1 per page, and headings never jump down by more than one level."""
+    """U6: the page's content has exactly one h1, and headings never jump down by more than one level.
+
+    mdBook also puts the book title in an h1 in its menu bar on every page; that one belongs to
+    the frame, not to the page, so only the content is counted.
+    """
     tab = tabs(1280, "light")
     tab.visit(path)
-    h1_count = tab.page.evaluate("document.querySelectorAll('h1').length")
-    assert h1_count == 1, f"The page has {h1_count} h1 elements; it must have exactly one."
     levels = tab.page.evaluate(
-        "[...document.querySelectorAll('.md-content__inner :is(h1, h2, h3, h4, h5, h6)')]"
+        f"[...document.querySelectorAll('{CONTENT} :is(h1, h2, h3, h4, h5, h6)')]"
         ".map(h => [Number(h.tagName[1]), h.textContent.trim()])"
     )
+    h1_count = sum(1 for level, _ in levels if level == 1)
+    assert h1_count == 1, f"The page's content has {h1_count} h1 elements; it must have exactly one."
     previous = 0
     for level, text in levels:
         assert level <= previous + 1, f"Heading level jumps from h{previous} to h{level} at '{text}'."
@@ -66,8 +69,6 @@ def test_u6_one_h1_and_no_skipped_heading_levels(tabs, path):
 
 
 # ---------------------------------------------------------------- U11 ------
-
-FOCUS_PAGES = ["", "conventions/"]
 
 DESCRIBE_FOCUS_JS = """() => {
   const el = document.activeElement;
@@ -82,75 +83,59 @@ DESCRIBE_FOCUS_JS = """() => {
 
 @pytest.mark.parametrize("scheme", SCHEMES)
 @pytest.mark.parametrize("width", A11Y_WIDTHS)
-@pytest.mark.parametrize("path", FOCUS_PAGES, ids=[page_id(p) for p in FOCUS_PAGES])
-def test_u11_first_tab_stop_is_the_visible_skip_link(tabs, path, width, scheme):
-    """U11: on a fresh page the first Tab press lands on 'Skip to content', and it shows a focus outline."""
+def test_u11_the_tab_key_reaches_visible_controls_with_a_focus_outline(tabs, width, scheme):
+    """U11: pressing Tab on a fresh page moves through controls that are on screen and show where focus is."""
     tab = tabs(width, scheme)
-    tab.visit(path)  # a fresh page load, not an in-page navigation
-    tab.page.keyboard.press("Tab")
-    first = tab.page.evaluate(DESCRIBE_FOCUS_JS)
-    assert "md-skip" in first["cls"] and "Skip to content" in first["text"], (
-        f"The first Tab stop is <{first['tag']} class='{first['cls']}'> '{first['text']}', not 'Skip to content'."
-    )
-    assert first["onScreen"], "The 'Skip to content' link has focus but cannot be seen."
-    assert first["hasRing"], "The 'Skip to content' link has focus but no visible outline."
+    tab.visit("index.html")
+    for step in range(1, 6):
+        tab.page.keyboard.press("Tab")
+        stop = tab.page.evaluate(DESCRIBE_FOCUS_JS)
+        where = f"Tab stop {step} (<{stop['tag']} id='{stop['id']}' class='{stop['cls']}'> '{stop['text']}')"
+        assert stop["tag"] != "body", f"Tab stop {step} did not focus anything."
+        assert stop["onScreen"], f"{where} has focus but cannot be seen."
+        assert stop["hasRing"], f"{where} has focus but no visible outline."
 
 
 # Controls a reader uses with the keyboard, found by selector. A control that is not
 # on screen at this width (for example the sidebar on a phone) is skipped.
 FOCUS_CONTROLS = {
-    "link in the text": ".md-content__inner p a:not(.headerlink)",
-    "copy button": ".md-code__button",
-    "collapsible question": ".md-content__inner summary",
-    "repository link": "a.md-source",
-    "sidebar link": ".md-sidebar--primary a.md-nav__link",
+    "link in the text": f"{CONTENT} p a",
+    "copy button": f"{CONTENT} pre .clip-button",
+    "collapsible question": f"{CONTENT} summary",
+    "tab": f"{CONTENT} [role=tab]",
+    "theme button": "#mdbook-theme-toggle",
+    "search button": "#mdbook-search-toggle",
+    "sidebar button": "#mdbook-sidebar-toggle",
+    "repository link": ".right-buttons a[title='Git repository']",
+    "edit link": ".right-buttons a[rel=edit]",
+    "next page link": "a.nav-chapters.next, a.mobile-nav-chapters.next",
+    "sidebar link": "#mdbook-sidebar .chapter a",
 }
-CONTROLS_REQUIRED_AT_ALL_WIDTHS = {"link in the text", "copy button", "collapsible question"}
-SEARCH_FIELD_SHOWN_FROM = 960  # px; Material's 60em breakpoint
+CONTROLS_REQUIRED_AT_ALL_WIDTHS = set(FOCUS_CONTROLS) - {"sidebar link"}
 
 
 @pytest.mark.parametrize("scheme", SCHEMES)
 @pytest.mark.parametrize("width", A11Y_WIDTHS)
 def test_u11_focus_outlines_are_visible_on_the_controls_readers_use(tabs, width, scheme):
-    """U11: keyboard focus is drawn on links, buttons, the palette toggle and the search box."""
+    """U11: keyboard focus is drawn on links, buttons, tabs, questions and the search box."""
     tab = tabs(width, scheme)
-    tab.visit("conventions/")
+    tab.visit("conventions.html")
     page = tab.page
     page.keyboard.press("Tab")  # keyboard mode, so programmatic focus draws a focus ring
     problems, checked = [], set()
 
-    # Material's palette toggle: focus lands on a hidden radio button, and the ring is drawn on its visible label.
-    for _ in range(6):
-        if page.evaluate("document.activeElement.matches('input.md-option')"):
-            break
-        page.keyboard.press("Tab")
-    ring = page.evaluate(
-        """() => { const s = getComputedStyle(document.querySelector('[data-md-component="palette"] label:not([hidden])'));
-                   return s.outlineStyle !== 'none' && parseFloat(s.outlineWidth) > 0; }"""
-    )
-    checked.add("palette toggle")
-    if not ring:
-        problems.append("palette toggle: focus shows no outline")
-
-    # Material's search box: the whole field changes color when it has focus (no outline is drawn).
-    # Below 960px Material hides the field in an overlay that only the search icon opens, so there
-    # is nothing on screen to check (see the keyboard notes in the milestone report).
-    if width >= SEARCH_FIELD_SHOWN_FROM:
-        before = page.evaluate("getComputedStyle(document.querySelector('.md-search__form')).backgroundColor")
-        page.keyboard.press("Tab")
-        assert page.evaluate("document.activeElement.matches('.md-search__input')"), "Tab after the palette toggle did not reach the search box."
-        try:
-            page.wait_for_function(
-                "(before) => getComputedStyle(document.querySelector('.md-search__form')).backgroundColor !== before", arg=before, timeout=3000
-            )
-        except Exception:
-            problems.append("search box: focus does not change how the field looks")
-        checked.add("search box")
-
-    # Everything else: focus it and look at its outline.
+    sidebar_open = page.evaluate("document.documentElement.classList.contains('sidebar-visible')")
     for name, selector in FOCUS_CONTROLS.items():
-        control = page.locator(selector).first
-        if not control.is_visible():
+        if name == "sidebar link" and not sidebar_open:
+            continue  # the closed sidebar is off screen, and its links are not Tab stops
+        if name == "copy button":
+            page.locator(f"{CONTENT} pre").first.hover()  # mdBook shows the button while the pointer is on the block
+            try:
+                page.locator(selector).first.wait_for(state="visible", timeout=5_000)  # it fades in, so wait for it
+            except Exception:
+                pass  # reported below as a control that was not found
+        control = page.locator(selector).locator("visible=true").first
+        if control.count() == 0:
             continue
         control.focus()
         stop = page.evaluate(DESCRIBE_FOCUS_JS)
@@ -158,8 +143,18 @@ def test_u11_focus_outlines_are_visible_on_the_controls_readers_use(tabs, width,
         if not stop["hasRing"]:
             problems.append(f"{name} (<{stop['tag']} class='{stop['cls']}'>): focus shows no outline")
 
+    # The search box appears when the search button is used, and takes focus itself.
+    page.evaluate("window.scrollTo(0, 0)")  # mdBook tucks its menu bar away while the reader scrolls down
+    page.locator("#mdbook-search-toggle").click()
+    page.wait_for_function("document.activeElement.id === 'mdbook-searchbar'", timeout=5_000)
+    stop = page.evaluate(DESCRIBE_FOCUS_JS)
+    checked.add("search box")
+    if not stop["hasRing"]:
+        problems.append("search box: focus shows no outline")
+    page.keyboard.press("Escape")
+
     missing = CONTROLS_REQUIRED_AT_ALL_WIDTHS - checked
     assert not missing, f"These controls were not found on screen, so nothing was checked: {sorted(missing)}"
-    if width >= 1280:
-        assert {"repository link", "sidebar link"} <= checked, "The header repository link or the sidebar was not found at desktop width."
+    if width >= SIDEBAR_SHOWN_FROM:
+        assert "sidebar link" in checked, "The sidebar was not found at desktop width."
     assert not problems, "Focus is not visible on:\n" + "\n".join(f"  {p}" for p in problems)

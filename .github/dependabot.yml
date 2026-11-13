@@ -1,19 +1,14 @@
-# Keeps dependencies current. Every version in requirements*.txt and every
+# Keeps dependencies current. Every version in requirements-dev.txt and every
 # action in .github/workflows is pinned, so updates arrive as pull requests that
-# CI checks before anyone merges them.
+# CI checks before anyone merges them. (The mdBook tools are pinned in
+# scripts/install_tools.py, which Dependabot cannot read: upgrade them by hand.)
 version: 2
 updates:
-  # Python packages in requirements.txt and requirements-dev.txt.
+  # Python packages in requirements-dev.txt.
   - package-ecosystem: pip
     directory: "/"
     schedule:
       interval: weekly
-    ignore:
-      # Material for MkDocs declares "mkdocs>=1.6,<2" (see the comment at the top
-      # of requirements.txt), so never offer a major upgrade of mkdocs. Minor and
-      # patch updates of mkdocs 1.x are fine.
-      - dependency-name: mkdocs
-        update-types: ["version-update:semver-major"]
 
   # The actions used in .github/workflows/site.yml.
   - package-ecosystem: github-actions

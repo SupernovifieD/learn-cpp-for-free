@@ -1,12 +1,1 @@
-[
-  {
-    "rule": "aria-dialog-name",
-    "selector": ".md-search",
-    "reason": "Material's own template renders the search container as <div role=\"dialog\"> without an aria-label. Fixing it needs a theme template override (custom_dir), which this site avoids on purpose (see requirements.txt); there is no configuration option or CSS that can add the label."
-  },
-  {
-    "rule": "scrollable-region-focusable",
-    "selector": ".md-typeset__scrollwrap",
-    "reason": "Material's script wraps every table in a horizontally scrollable <div> without tabindex. A table only triggers this when it is wider than its column (usually on phones). No configuration option or CSS can add tabindex, and raw HTML is not allowed in lessons, so tables must be kept narrow (see CONTRIBUTING.md)."
-  }
-]
+[]

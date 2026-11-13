@@ -1,7 +1,3 @@
----
-description: What a program is, how a computer carries one out, how machine language, assembly and high-level languages differ, and where C++ fits.
----
-
 # 0.2 Introduction to programs and programming languages
 
 Before you write programs, it helps to know what a program is and how a computer carries one out. This lesson follows the path from the hardware inside the machine, through the languages used to instruct it, to the place C++ occupies among them. You do not need to memorize anything here. The goal is a mental picture that later lessons can build on.
@@ -23,8 +19,8 @@ Four kinds of hardware matter for understanding programs:
 
 A program lives in storage. When you start it, the computer copies it into memory, and the CPU reads its instructions from there, one at a time.
 
-!!! key-insight "Key insight"
-    A CPU does not understand your ideas. It understands a small, fixed set of very simple instructions, such as adding two numbers, comparing them or jumping to a different instruction. Every program you will ever run is built from instructions like these.
+> [!KEY-INSIGHT]
+> A CPU does not understand your ideas. It understands a small, fixed set of very simple instructions, such as adding two numbers, comparing them or jumping to a different instruction. Every program you will ever run is built from instructions like these.
 
 ## Machine language
 
@@ -40,7 +36,7 @@ The exact bytes depend on the ISA, the compiler and its settings, so treat this 
 
 **Assembly language** gives each machine instruction a short, readable name. A tool called an **assembler** translates the names back into machine code. The five bytes above are three instructions, and in assembly they look like this:
 
-```nasm title="x86-64 assembly (illustrative)"
+```x86asm title="x86-64 assembly (illustrative)"
 mov eax, edi   ; eax = first
 add eax, esi   ; eax += second
 ret            ; return eax
@@ -50,7 +46,7 @@ A **register** is a tiny storage location inside the CPU. The first line copies 
 
 Assembly is easier to read than raw numbers, but it is still tied to one ISA. This is the same job on ARM64, and the instructions and registers are different:
 
-```gas title="ARM64 assembly (illustrative)"
+```armasm title="ARM64 assembly (illustrative)"
 add w0, w1, w0
 ret
 ```
@@ -81,8 +77,8 @@ Something has to translate high-level code into machine language, and there are 
 
 The line between the two is blurry. Many language implementations mix the approaches, and a **just-in-time (JIT) compiler**, for example, translates parts of a program into machine code while the program is already running.
 
-!!! tip
-    You can look at real assembly yourself. [Compiler Explorer](https://godbolt.org/) is a website where you type C++ and see what different compilers produce for it.
+> [!TIP]
+> You can look at real assembly yourself. [Compiler Explorer](https://godbolt.org/) is a website where you type C++ and see what different compilers produce for it.
 
 ## Portability
 
@@ -96,11 +92,19 @@ C++ is a compiled, high-level language that also lets you work close to the hard
 
 Lesson 0.3 looks at where C++ came from, and lesson 0.5 shows how your source code becomes a program.
 
-??? question "Check your understanding"
-    Why can't you copy a program built for an ARM64 phone onto an x86-64 laptop and run it?
+<details>
+<summary>Check your understanding</summary>
 
-    ??? success "Answer"
-        The program contains machine code for ARM64, and an x86-64 CPU does not understand those instructions. You would need to build the source code again with a compiler that targets x86-64.
+Why can't you copy a program built for an ARM64 phone onto an x86-64 laptop and run it?
+
+<details>
+<summary>Answer</summary>
+
+The program contains machine code for ARM64, and an x86-64 CPU does not understand those instructions. You would need to build the source code again with a compiler that targets x86-64.
+
+</details>
+
+</details>
 
 ## Summary
 

@@ -1,7 +1,3 @@
----
-description: What a language standard is, how compilers name and select one, why this book uses C++20, and how to set the standard in each toolchain.
----
-
 # 0.12 Configuring your compiler: Choosing a language standard
 
 Lesson 0.3 explained that C++ comes in editions, and that each edition is named after a year. Your compiler can build code for several of them, so you have to tell it which one to use. This lesson shows how to choose, and it explains the choice that this book makes.
@@ -59,37 +55,43 @@ Lesson 0.10 introduced the two spellings that GCC and Clang accept for each stan
 
 The default is usually a GNU mode, and it changes between versions. Clang's documentation lists `gnu++17` as its default, GCC's documentation says `gnu++20` for its newest releases, and Microsoft's compiler defaults to C++14. Because the defaults differ, always name the standard yourself, and use the `c++` spelling to keep extensions off.
 
-!!! best-practice "Best practice"
-    Always set the language standard explicitly, and prefer `-std=c++20` over `-std=gnu++20` while you learn.
+> [!BEST-PRACTICE]
+> Always set the language standard explicitly, and prefer `-std=c++20` over `-std=gnu++20` while you learn.
 
 ## Setting the standard
 
-=== "Visual Studio"
+{{#tabs}}
+{{#tab Visual Studio}}
 
-    **Switch:** Open the project's property pages, choose **Configuration Properties**, then **C/C++**, then **Language**. In **C++ Language Standard**, choose **ISO C++20 Standard** from the list.
+**Switch:** Open the project's property pages, choose **Configuration Properties**, then **C/C++**, then **Language**. In **C++ Language Standard**, choose **ISO C++20 Standard** from the list.
 
-    **Note:** Choose **All Configurations** first, as lesson 0.9 explained, so that Debug and Release agree.
+**Note:** Choose **All Configurations** first, as lesson 0.9 explained, so that Debug and Release agree.
 
-=== "VS Code"
+{{#endtab}}
+{{#tab VS Code}}
 
-    **Switch:** Add the option from the **Command line** tab to the list of compiler arguments in your build task, for instance `-std=c++20`.
+**Switch:** Add the option from the **Command line** tab to the list of compiler arguments in your build task, for instance `-std=c++20`.
 
-    **Note:** The C/C++ extension also has a setting for the standard that it uses to analyze your code. Set it to the same value so that the editor and the compiler agree.
+**Note:** The C/C++ extension also has a setting for the standard that it uses to analyze your code. Set it to the same value so that the editor and the compiler agree.
 
-=== "Command line"
+{{#endtab}}
+{{#tab Command line}}
 
-    **Switch:** Put the option before the file name.
+**Switch:** Put the option before the file name.
 
-    ```bash
-    g++ -std=c++20 -o hello-world hello-world.cpp
-    clang++ -std=c++20 -o hello-world hello-world.cpp
-    ```
+```bash
+g++ -std=c++20 -o hello-world hello-world.cpp
+clang++ -std=c++20 -o hello-world hello-world.cpp
+```
 
-    ```powershell
-    cl /std:c++20 /EHsc /Fe:hello-world.exe hello-world.cpp
-    ```
+```powershell
+cl /std:c++20 /EHsc /Fe:hello-world.exe hello-world.cpp
+```
 
-    **Note:** If your compiler rejects the option, it is probably too old to know C++20. Update it, as lesson 0.6 suggested.
+**Note:** If your compiler rejects the option, it is probably too old to know C++20. Update it, as lesson 0.6 suggested.
+
+{{#endtab}}
+{{#endtabs}}
 
 ## Summary
 

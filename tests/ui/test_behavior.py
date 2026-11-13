@@ -1,158 +1,216 @@
-"""Behavior checks: how the site reacts to the reader."""
+"""Behavior checks: how the book reacts to the reader."""
+
+import posixpath
 
 import pytest
-import yaml
-from conftest import PAGES, REPO_ROOT, SCHEMES, Tab, new_context, page_id
+from conftest import BOOK_DIR, CONFIG, CONTENT, PAGES, REPO_ROOT, SCHEMES, SIDEBAR_SHOWN_FROM, THEME_OF_SCHEME, Tab, built_pages, new_context, page_id, read_summary
+
+SUMMARY = read_summary()
+CONVENTIONS = "conventions.html"
+LESSON_0_5 = "ch00-getting-started/05-compiler-linker-and-libraries.html"
+LESSON_0_6 = "ch00-getting-started/06-installing-an-ide.html"
+LESSON_0_7 = "ch00-getting-started/07-compiling-your-first-program.html"
+REDIRECTS = CONFIG["output"]["html"]["redirect"]
 
 
-class _TolerantLoader(yaml.SafeLoader):
-    """Reads mkdocs.yml although it contains Python-specific tags such as !!python/name:..."""
+@pytest.fixture
+def private_tab(browser, base_url):
+    """A tab with its own storage, for tests that change what the book remembers about the reader."""
+    contexts = []
+
+    def make(width: int, scheme: str = "light", **options) -> Tab:
+        context = new_context(browser, width, scheme, **options)
+        contexts.append(context)
+        return Tab(context.new_page(), base_url, width)
+
+    yield make
+    for context in contexts:
+        context.close()
 
 
-_TolerantLoader.add_multi_constructor("tag:yaml.org,2002:python/name:", lambda loader, suffix, node: None)
+# ------------------------------------------------------------- navigation --
 
 
-def read_nav() -> list[tuple[str | None, str]]:
-    """The pages listed in mkdocs.yml's nav, in order, as (label, url_path).
-
-    The label is None for a page listed without one. A chapter's index page is listed
-    without a label, so it takes the chapter's label.
-    """
-    config = yaml.load((REPO_ROOT / "mkdocs.yml").read_text(), Loader=_TolerantLoader)
-    pages: list[tuple[str | None, str]] = []
-
-    def to_url_path(markdown_path: str) -> str:
-        stem = markdown_path.removesuffix(".md")
-        if stem == "index":
-            return ""
-        return stem.removesuffix("/index") + "/" if stem.endswith("/index") else stem + "/"
-
-    def walk(items, chapter_label=None):
-        for item in items:
-            if isinstance(item, str):
-                pages.append((chapter_label, to_url_path(item)))
-                continue
-            for label, value in item.items():
-                if isinstance(value, str):
-                    pages.append((label, to_url_path(value)))
-                else:
-                    walk(value, label)
-
-    walk(config["nav"])
-    return pages
+def test_every_built_page_is_in_the_summary():
+    """Every chapter page that was built is listed in SUMMARY.md, and every listed page was built."""
+    listed, built = set(PAGES), built_pages()
+    assert listed == built, f"Listed but not built: {sorted(listed - built)}. Built but not listed: {sorted(built - listed)}."
 
 
-NAV = read_nav()
-
-
-def test_every_built_page_is_in_the_nav():
-    """Every page that was built is reachable from the nav, and the nav lists no page that was not built."""
-    in_nav = {path for _, path in NAV}
-    assert in_nav == set(PAGES), (
-        f"In the nav but not built: {sorted(in_nav - set(PAGES))}. Built but not in the nav: {sorted(set(PAGES) - in_nav)}."
-    )
-
-
-@pytest.mark.parametrize("position", range(len(NAV)), ids=[page_id(path) for _, path in NAV])
-def test_u8_footer_links_follow_the_nav_order(tabs, base_url, position):
-    """U8: the Previous and Next links at the bottom of a page lead to its neighbors in the nav."""
-    label, path = NAV[position]
+@pytest.mark.parametrize("position", range(len(SUMMARY)), ids=[page_id(path) for _, path in SUMMARY])
+def test_u8_previous_and_next_links_follow_the_summary_order(tabs, base_url, position):
+    """U8: the previous and next arrows of a page lead to its neighbors in SUMMARY.md."""
+    _, path = SUMMARY[position]
     tab = tabs(1280, "light")
     tab.visit(path)
     found = tab.page.evaluate(
-        """() => { const read = (a) => a ? { href: a.href, label: a.getAttribute('aria-label') } : null;
-                  return { prev: read(document.querySelector('.md-footer__link--prev')),
-                           next: read(document.querySelector('.md-footer__link--next')) }; }"""
+        """() => { const read = (selector) => [...document.querySelectorAll(selector)].map(a => a.href);
+                  return { prev: read('a.nav-chapters.previous, a.mobile-nav-chapters.previous'),
+                           next: read('a.nav-chapters.next, a.mobile-nav-chapters.next') }; }"""
     )
     for direction, neighbor in (("prev", position - 1), ("next", position + 1)):
-        link = found[direction]
-        if not 0 <= neighbor < len(NAV):
-            assert link is None, f"'{path or 'index'}' is at the {'start' if direction == 'prev' else 'end'} of the nav but has a {direction} link: {link}"
+        links = found[direction]
+        if not 0 <= neighbor < len(SUMMARY):
+            assert not links, f"'{path}' is at the {'start' if direction == 'prev' else 'end'} of the book but has a {direction} link: {links}"
             continue
-        neighbor_label, neighbor_path = NAV[neighbor]
-        assert link is not None, f"'{path or 'index'}' has no {direction} link; expected one to '{neighbor_path or 'index'}'."
-        assert link["href"] == base_url + neighbor_path, (
-            f"The {direction} link on '{path or 'index'}' goes to {link['href']}, but the nav puts '{neighbor_path or 'index'}' next to it."
-        )
-        if neighbor_label:
-            word = "Previous" if direction == "prev" else "Next"
-            assert link["label"] == f"{word}: {neighbor_label}", f"The {direction} link is labeled '{link['label']}', expected '{word}: {neighbor_label}'."
+        expected = base_url + SUMMARY[neighbor][1]
+        # One arrow beside the page for wide screens and one below it for narrow ones.
+        assert len(links) == 2, f"'{path}' has {len(links)} {direction} links; expected the wide and the narrow one."
+        assert set(links) == {expected}, f"The {direction} links on '{path}' go to {links}, but SUMMARY.md puts {expected} next to it."
 
 
 @pytest.mark.parametrize("width", [375, 1280])
-def test_u7_palette_toggle_cycles_color_schemes(browser, base_url, width):
-    """U7: the header button cycles system -> light -> dark -> system, and the page changes color scheme."""
-    # A private context: Material stores the reader's choice in localStorage, which would leak into other tests.
-    context = new_context(browser, width, "light")
-    try:
-        tab = Tab(context.new_page(), base_url)
-        tab.visit("")
-        read = "[document.body.dataset.mdColorMedia, document.body.dataset.mdColorScheme]"
-        seen = [tab.page.evaluate(read)]
-        for _ in range(3):
-            tab.page.locator('[data-md-component="palette"] label:visible').click()
-            seen.append(tab.page.evaluate(read))
-        medias = [media for media, _ in seen]
-        schemes = [scheme for _, scheme in seen]
-        assert medias == [
-            "(prefers-color-scheme)",
-            "(prefers-color-scheme: light)",
-            "(prefers-color-scheme: dark)",
-            "(prefers-color-scheme)",
-        ], f"The toggle did not step through system, light and dark in order: {medias}"
-        assert schemes == ["default", "default", "slate", "default"], (
-            f"The color scheme did not change as expected (system is light here): {schemes}"
+def test_u8_the_arrow_shown_at_this_width_and_the_arrow_keys_turn_the_page(private_tab, base_url, width):
+    """U8: exactly one next arrow is on screen, clicking it opens the next page, and the arrow keys work too."""
+    tab = private_tab(width)
+    tab.visit(SUMMARY[0][1])
+    arrows = tab.page.locator("a.nav-chapters.next, a.mobile-nav-chapters.next").locator("visible=true")
+    assert arrows.count() == 1, f"{arrows.count()} next arrows are on screen at {width}px; expected one."
+    arrows.first.click()
+    tab.page.wait_for_url(base_url + SUMMARY[1][1])
+    tab.page.keyboard.press("ArrowRight")
+    tab.page.wait_for_url(base_url + SUMMARY[2][1])
+    tab.page.keyboard.press("ArrowLeft")
+    tab.page.wait_for_url(base_url + SUMMARY[1][1])
+
+
+def test_the_home_page_is_served_at_the_book_address(tabs, base_url):
+    """The address of the book itself (without index.html) shows the home page."""
+    tab = tabs(1280, "light")
+    tab.visit("")
+    assert tab.page.locator(f"{CONTENT} h1").inner_text() == CONFIG["book"]["title"]
+    assert not tab.events, f"The home page reported problems: {tab.events}"
+
+
+SIDEBAR_STATE_JS = """() => {
+  const sidebar = document.getElementById('mdbook-sidebar');
+  const box = sidebar.getBoundingClientRect();
+  return { onScreen: box.right > 1 && box.left < innerWidth,
+           links: [...sidebar.querySelectorAll('.chapter a')].map(a => a.getAttribute('href')).filter(h => h && !h.includes('#')),
+           active: [...sidebar.querySelectorAll('.chapter a.active')].map(a => a.textContent.trim()) };
+}"""
+
+
+@pytest.mark.parametrize("width", [375, 768, 1280])
+def test_u12_the_sidebar_lists_every_page_and_opens_and_closes(private_tab, base_url, width):
+    """U12: the sidebar holds the whole table of contents, marks the current page, and its button shows and hides it."""
+    tab = private_tab(width)
+    label, path = SUMMARY[3]
+    tab.visit(path)
+    page = tab.page
+    state = page.evaluate(SIDEBAR_STATE_JS)
+    assert len(state["links"]) == len(SUMMARY), f"The sidebar lists {len(state['links'])} pages, but SUMMARY.md lists {len(SUMMARY)}."
+    assert state["active"] == [label], f"The sidebar marks {state['active']} as the current page, expected ['{label}']."
+    starts_open = width >= SIDEBAR_SHOWN_FROM
+    assert state["onScreen"] == starts_open, f"At {width}px the sidebar should start {'open' if starts_open else 'closed'}."
+
+    toggle = page.locator("#mdbook-sidebar-toggle")
+    for expected in (not starts_open, starts_open):
+        toggle.click()
+        page.wait_for_function(
+            "(open) => document.documentElement.classList.contains('sidebar-visible') === open && document.getAnimations().every(a => a.playState !== 'running')",
+            arg=expected,
+            timeout=5_000,
         )
-    finally:
-        context.close()
+        page.wait_for_timeout(400)  # the sidebar slides with a CSS transition
+        assert page.evaluate(SIDEBAR_STATE_JS)["onScreen"] == expected, f"The sidebar did not {'open' if expected else 'close'} at {width}px."
+
+    if not starts_open:
+        toggle.click()
+        page.locator("#mdbook-sidebar .chapter a", has_text=SUMMARY[5][0]).click()
+        page.wait_for_url(base_url + SUMMARY[5][1])
 
 
-LESSON_0_5 = "ch00-getting-started/05-compiler-linker-and-libraries/"
-SEARCH_FIELD_SHOWN_FROM = 960  # px; below this Material hides the field behind the search icon
+# ----------------------------------------------------------------- themes --
 
 
 @pytest.mark.parametrize("width", [375, 1280])
-def test_u9_searching_for_linker_lists_lesson_0_5(browser, base_url, width):
-    """U9: typing 'linker' into the search box lists lesson 0.5 among the results."""
-    context = new_context(browser, width, "light")
-    try:
-        tab = Tab(context.new_page(), base_url)
-        tab.visit("")
-        page = tab.page
-        if width < SEARCH_FIELD_SHOWN_FROM:
-            page.locator('label.md-header__button[for="__search"]').click()
-        # Type like a reader does. An instant fill() can fire before Material has loaded its search index.
-        page.locator(".md-search__input").press_sequentially("linker", delay=60)
-        page.wait_for_selector(".md-search-result__item", timeout=15_000)
-        links = page.eval_on_selector_all(".md-search-result__link", "links => links.map(a => a.getAttribute('href'))")
-        assert any(LESSON_0_5 in href for href in links), (
-            f"Searching for 'linker' did not list lesson 0.5. The results were: {links}"
-        )
-    finally:
-        context.close()
+def test_u7_the_theme_menu_offers_auto_light_and_navy_and_remembers_the_choice(private_tab, width):
+    """U7: the theme button lists Auto, Light and Navy; a choice changes the page and survives a reload."""
+    tab = private_tab(width, "light")
+    tab.visit("index.html")
+    page = tab.page
+    read = "[document.documentElement.className.split(' ').filter(c => ['light', 'rust', 'coal', 'navy', 'ayu'].includes(c)).join(' '), getComputedStyle(document.documentElement).backgroundColor]"
+
+    theme, light_background = page.evaluate(read)
+    assert theme == "light", f"A reader whose system is light should start in the light theme, not '{theme}'."
+
+    page.locator("#mdbook-theme-toggle").click()
+    choices = page.locator("#mdbook-theme-list button").locator("visible=true").all_inner_texts()
+    assert choices == ["Auto", "Light", "Navy"], f"The theme menu offers {choices}."
+
+    page.locator("#mdbook-theme-navy").click()
+    theme, dark_background = page.evaluate(read)
+    assert theme == "navy" and dark_background != light_background, f"Choosing Navy gave theme '{theme}' and background {dark_background}."
+
+    tab.visit(CONVENTIONS)
+    assert page.evaluate(read)[0] == "navy", "The chosen theme was forgotten on the next page."
+
+    page.locator("#mdbook-theme-toggle").click()
+    page.locator("#mdbook-theme-default_theme").click()
+    assert page.evaluate(read) == ["light", light_background], "Choosing Auto did not return to the system's light scheme."
 
 
-DIAGRAM_JS = """() => {
-  const inner = document.querySelector('.md-content__inner');
+@pytest.mark.parametrize("scheme", SCHEMES)
+def test_u7_the_theme_follows_the_system_color_scheme(tabs, scheme):
+    """U7: without a choice, the book uses the light theme on a light system and Navy on a dark one."""
+    tab = tabs(1280, scheme)
+    tab.visit("index.html")
+    classes = tab.page.evaluate("document.documentElement.className").split()
+    assert THEME_OF_SCHEME[scheme] in classes, f"With a {scheme} system the page has the classes {classes}."
+
+
+# ----------------------------------------------------------------- search --
+
+
+@pytest.mark.parametrize("width", [375, 1280])
+def test_u9_searching_for_linker_lists_lesson_0_5(private_tab, base_url, width):
+    """U9: typing 'linker' into the search box lists lesson 0.5 among the results, and a result opens it."""
+    tab = private_tab(width)
+    tab.visit("index.html")
+    page = tab.page
+    page.locator("#mdbook-search-toggle").click()
+    # Type like a reader does. An instant fill() can fire before the search index has loaded.
+    page.locator("#mdbook-searchbar").press_sequentially("linker", delay=60)
+    page.wait_for_selector("#mdbook-searchresults li a", timeout=15_000)
+    links = page.eval_on_selector_all("#mdbook-searchresults li a", "links => links.map(a => a.getAttribute('href'))")
+    matching = [href for href in links if LESSON_0_5 in href]
+    assert matching, f"Searching for 'linker' did not list lesson 0.5. The results were: {links}"
+    page.locator(f'#mdbook-searchresults li a[href="{matching[0]}"]').first.click()
+    page.wait_for_url(lambda url: url.startswith(base_url + LESSON_0_5))
+    assert not tab.events, f"Opening a search result reported problems: {tab.events}"
+
+
+# --------------------------------------------------------------- diagrams --
+
+DIAGRAM_JS = """(content) => {
+  const inner = document.querySelector(content);
   const style = getComputedStyle(inner);
   const box = inner.getBoundingClientRect();
   const left = box.left + parseFloat(style.paddingLeft), right = box.right - parseFloat(style.paddingRight);
-  const hosts = [...document.querySelectorAll('.mermaid')];
+  const hosts = [...document.querySelectorAll('pre.mermaid')];
   return {
     hosts: hosts.length,
-    drawn: hosts.filter(h => h.shadowRoot && h.shadowRoot.querySelector('svg')).length,
+    drawn: hosts.filter(h => h.querySelector('svg')).length,
     pageFits: document.documentElement.scrollWidth <= document.documentElement.clientWidth,
     diagrams: hosts.map(h => {
-      const svg = h.shadowRoot && h.shadowRoot.querySelector('svg');
+      const svg = h.querySelector('svg');
       if (!svg) return null;
       const r = svg.getBoundingClientRect();
       const scale = r.width / svg.viewBox.baseVal.width;
       const fonts = [...svg.querySelectorAll('text, span, p, div')].map(e => parseFloat(getComputedStyle(e).fontSize)).filter(n => n > 0);
+      const label = svg.querySelector('.nodeLabel');
       return { left: Math.round(r.left), right: Math.round(r.right), columnLeft: Math.round(left), columnRight: Math.round(right),
-               smallestTextPx: fonts.length ? +(Math.min(...fonts) * scale).toFixed(1) : null };
+               smallestTextPx: fonts.length ? +(Math.min(...fonts) * scale).toFixed(1) : null,
+               textColor: label ? getComputedStyle(label).color : null };
     }),
   };
 }"""
+
+
+def _brightness(color: str) -> float:
+    red, green, blue = (float(part) for part in color[color.index("(") + 1 : color.index(")")].split(",")[:3])
+    return 0.299 * red + 0.587 * green + 0.114 * blue
 
 
 @pytest.mark.parametrize("scheme", SCHEMES)
@@ -160,7 +218,7 @@ def test_u10_lesson_0_5_diagram_renders_and_fits_at_320(tabs, scheme):
     """U10: the Mermaid diagram draws an <svg> in both color schemes, fits at 320px and keeps its text readable."""
     tab = tabs(320, scheme)
     tab.visit(LESSON_0_5)  # also fails with a clear message if the diagram never renders
-    found = tab.page.evaluate(DIAGRAM_JS)
+    found = tab.page.evaluate(DIAGRAM_JS, CONTENT)
     assert found["hosts"] >= 1, "Lesson 0.5 has no diagram."
     assert found["drawn"] == found["hosts"], f"{found['hosts'] - found['drawn']} diagram(s) did not render an <svg>."
     assert found["pageFits"], "The diagram makes the page scroll sideways at 320px."
@@ -172,3 +230,229 @@ def test_u10_lesson_0_5_diagram_renders_and_fits_at_320(tabs, scheme):
             f"The diagram is scaled down so far that its text is {diagram['smallestTextPx']}px; the minimum is 12px. "
             "Use fewer nodes per row or shorter labels."
         )
+        # Mermaid's dark theme has light text and its default theme dark text.
+        bright = _brightness(diagram["textColor"]) > 128
+        assert bright == (scheme == "dark"), f"In the {scheme} scheme the diagram's text is {diagram['textColor']}: it was drawn for the other scheme."
+
+
+def test_u10_a_diagram_is_redrawn_when_the_theme_changes(private_tab):
+    """U10: switching from the light theme to Navy redraws the diagram with Mermaid's dark colors."""
+    tab = private_tab(1280, "light")
+    tab.visit(LESSON_0_5)
+    page = tab.page
+    before = page.evaluate(DIAGRAM_JS, CONTENT)["diagrams"][0]["textColor"]
+    page.locator("#mdbook-theme-toggle").click()
+    with page.expect_navigation():  # the page reloads itself to draw the diagram again
+        page.locator("#mdbook-theme-navy").click()
+    page.wait_for_function("[...document.querySelectorAll('pre.mermaid')].every(d => d.querySelector('svg'))", timeout=20_000)
+    after = page.evaluate(DIAGRAM_JS, CONTENT)["diagrams"][0]["textColor"]
+    assert _brightness(before) < 128 < _brightness(after), f"The diagram's text went from {before} to {after}."
+
+
+# ------------------------------------------------------------------- tabs --
+
+TABS_JS = """() => [...document.querySelectorAll('.tabs')].map(group => {
+  const tabs = [...group.querySelectorAll('[role=tab]')];
+  const panels = [...group.querySelectorAll(':scope > .tab')];
+  const shown = (el) => el.getBoundingClientRect().height > 0;
+  return {
+    hasTablist: !!group.querySelector('[role=tablist][aria-label]'),
+    labels: tabs.map(t => t.textContent),
+    selected: tabs.filter(t => t.getAttribute('aria-selected') === 'true').map(t => t.textContent),
+    tabStops: tabs.filter(t => t.tabIndex === 0).length,
+    shownPanels: panels.filter(shown).map(p => p.dataset.tab),
+    wired: tabs.every((t, i) => t.getAttribute('aria-controls') === panels[i].id && panels[i].getAttribute('aria-labelledby') === t.id
+                                 && panels[i].getAttribute('role') === 'tabpanel'),
+    staticLabelsShown: [...group.querySelectorAll('.tab-label')].filter(shown).length,
+    tallEnough: tabs.every(t => t.getBoundingClientRect().height >= 44),
+  };
+})"""
+
+OS_LABELS = ["Windows", "macOS", "Linux"]
+TOOL_LABELS = ["Visual Studio", "VS Code", "Command line"]
+
+
+@pytest.mark.parametrize("width", [320, 1280])
+def test_u13_tabs_are_accessible_and_show_one_panel(private_tab, width):
+    """U13: each group is a tablist with one selected tab, one visible panel and usable touch targets."""
+    tab = private_tab(width)
+    tab.visit(CONVENTIONS)
+    groups = tab.page.evaluate(TABS_JS)
+    assert [group["labels"] for group in groups] == [OS_LABELS, TOOL_LABELS], f"The Conventions page has these tabs: {groups}"
+    for group in groups:
+        first = group["labels"][0]
+        assert group["hasTablist"] and group["wired"], f"The tabs {group['labels']} lack tablist, tab or tabpanel wiring."
+        assert group["selected"] == [first] and group["shownPanels"] == [first], f"Expected only '{first}' to be selected and shown: {group}"
+        assert group["tabStops"] == 1, "Exactly one tab of a group may be a Tab-key stop; the arrow keys reach the others."
+        assert group["staticLabelsShown"] == 0, "The labels meant for readers without JavaScript are showing next to the tabs."
+        assert group["tallEnough"], "A tab is less than 44px tall, which is too small for a finger."
+
+
+def test_u13_tabs_work_with_the_keyboard_without_turning_the_page(private_tab, base_url):
+    """U13: the arrow, Home and End keys move between tabs, and do not trigger mdBook's page-turning keys."""
+    tab = private_tab(1280)
+    tab.visit(CONVENTIONS)
+    page = tab.page
+    page.locator("[role=tab]", has_text="Windows").focus()
+    for key, expected in [("ArrowRight", "macOS"), ("ArrowRight", "Linux"), ("ArrowRight", "Windows"), ("ArrowLeft", "Linux"), ("Home", "Windows"), ("End", "Linux")]:
+        page.keyboard.press(key)
+        group = page.evaluate(TABS_JS)[0]
+        focused = page.evaluate("document.activeElement.textContent")
+        assert group["selected"] == [expected] and group["shownPanels"] == [expected] and focused == expected, (
+            f"After {key}, expected '{expected}' to be selected, shown and focused; got {group['selected']}, {group['shownPanels']}, '{focused}'."
+        )
+    assert page.url == base_url + CONVENTIONS, f"An arrow key inside the tabs turned the page to {page.url}."
+
+
+def test_u13_a_chosen_tab_is_remembered_across_groups_and_pages(private_tab):
+    """U13: choosing macOS selects it in every operating-system group in the book, and leaves other groups alone."""
+    tab = private_tab(375)
+    tab.visit(CONVENTIONS)
+    page = tab.page
+    page.locator("[role=tab]", has_text="macOS").click()
+    page.locator("[role=tab]", has_text="Command line").click()
+    groups = page.evaluate(TABS_JS)
+    assert [group["shownPanels"] for group in groups] == [["macOS"], ["Command line"]], f"After two clicks the page shows {groups}"
+
+    tab.visit(LESSON_0_6)
+    assert [group["selected"] for group in page.evaluate(TABS_JS)] == [["macOS"]], "Lesson 0.6 did not open on the macOS tab."
+    tab.visit(LESSON_0_7)
+    assert [group["selected"] for group in page.evaluate(TABS_JS)] == [["Command line"]], "Lesson 0.7 did not open on the Command line tab."
+
+
+def test_u13_without_javascript_every_tab_is_readable(private_tab):
+    """U13: with JavaScript off, all the instructions are shown one after another, each under its label."""
+    tab = private_tab(375, java_script_enabled=False)
+    tab.page.goto(tab.base_url + LESSON_0_6, wait_until="load")
+    found = tab.page.evaluate(
+        """() => { const shown = (el) => el.getBoundingClientRect().height > 0;
+                  return { labels: [...document.querySelectorAll('.tab-label')].filter(shown).map(l => l.textContent),
+                           panels: [...document.querySelectorAll('.tab')].filter(shown).length,
+                           buttons: document.querySelectorAll('[role=tab]').length,
+                           pageFits: document.documentElement.scrollWidth <= document.documentElement.clientWidth }; }"""
+    )
+    assert found["labels"] == OS_LABELS and found["panels"] == 3, f"Without JavaScript the page shows {found}."
+    assert found["buttons"] == 0 and found["pageFits"]
+
+
+# ------------------------------------------------- questions and answers --
+
+
+@pytest.mark.parametrize("width", [375, 1280])
+def test_u14_answers_stay_hidden_until_the_reader_opens_them(private_tab, width):
+    """U14: a question is collapsed, opening it shows the question but not the answer, and the keyboard works."""
+    tab = private_tab(width)
+    tab.visit(CONVENTIONS)
+    page = tab.page
+    question = page.locator(f"{CONTENT} > details")
+    answer = question.locator("details")
+    assert question.count() == 1 and answer.count() == 1, "The Conventions page should have one question with one answer."
+    assert question.locator("> summary").inner_text() == "Check your understanding"
+    assert not question.evaluate("d => d.open"), "The question is open when the page loads."
+    assert not page.get_by_text("The best practice callout.").is_visible(), "The answer can be seen before the reader asks for it."
+
+    question.locator("> summary").click()
+    assert page.get_by_text("Which callout type marks a habit").is_visible(), "Opening the question did not show it."
+    assert not answer.evaluate("d => d.open") and not page.get_by_text("The best practice callout.").is_visible(), "Opening the question also revealed the answer."
+
+    answer.locator("> summary").focus()
+    page.keyboard.press("Enter")
+    assert page.get_by_text("The best practice callout.").is_visible(), "Pressing Enter on 'Answer' did not show the answer."
+    page.keyboard.press("Enter")
+    assert not page.get_by_text("The best practice callout.").is_visible(), "Pressing Enter again did not hide the answer."
+
+
+# ------------------------------------------------------------- code blocks --
+
+
+def test_u15_the_copy_button_copies_the_program_and_no_block_can_be_run(private_tab):
+    """U15: every code block has a copy button that copies its exact text, and none has a Rust run button."""
+    tab = private_tab(1280, permissions=["clipboard-read", "clipboard-write"])
+    tab.visit(LESSON_0_7)
+    page = tab.page
+    blocks = page.locator(f"{CONTENT} pre:not(.mermaid)")
+    assert blocks.count() > 0 and page.locator(f"{CONTENT} pre:not(.mermaid) .clip-button").count() == blocks.count(), "A code block has no copy button."
+    assert page.locator(".play-button").count() == 0, "A code block has a run button."
+
+    program = blocks.first
+    program.hover()
+    program.locator(".clip-button").click()
+    copied = page.evaluate("navigator.clipboard.readText()")
+    source = (REPO_ROOT / "examples" / "ch00" / "07-hello-world.cpp").read_text()
+    assert copied.rstrip("\n") == source.rstrip("\n"), f"The copy button copied {copied!r}, not the program in examples/."
+
+
+def test_u15_code_blocks_are_labeled_and_highlighted(tabs):
+    """U15: a program shows its file name, output is labeled, and C++ and PowerShell are both highlighted."""
+    tab = tabs(1280, "light")
+    tab.visit(LESSON_0_7)
+    found = tab.page.evaluate(
+        """() => ({ labels: [...document.querySelectorAll('figure.listing > .file-name')].map(l => l.textContent),
+                   cpp: document.querySelectorAll('code.language-cpp [class^=hljs-]').length,
+                   powershell: document.querySelectorAll('code.language-powershell [class^=hljs-]').length,
+                   literal: document.querySelector('main').textContent.includes('{{#') })"""
+    )
+    assert found["labels"] == ["Filename: hello-world.cpp", "Output"], f"The code labels on lesson 0.7 are {found['labels']}."
+    assert found["cpp"] > 0, "The C++ program is not syntax-highlighted."
+    assert found["powershell"] > 0, "The PowerShell commands are not syntax-highlighted."
+    assert not found["literal"], "An include or tab marker is printed as text on the page."
+
+
+# ---------------------------------------------------------- links and URLs --
+
+
+@pytest.mark.parametrize("path", PAGES, ids=[page_id(p) for p in PAGES])
+def test_u16_edit_and_repository_links_point_at_the_page_source(tabs, path):
+    """U16: 'Suggest an edit' opens this page's Markdown file on GitHub, and the repository link the repository."""
+    tab = tabs(1280, "light")
+    tab.visit(path)
+    repository = CONFIG["output"]["html"]["git-repository-url"]
+    source = "docs/" + posixpath.splitext(path)[0] + ".md"
+    assert (REPO_ROOT / source).is_file(), f"{source} does not exist."
+    assert tab.page.locator("a[rel=edit]").get_attribute("href") == f"{repository}/edit/main/{source}"
+    assert tab.page.locator(".right-buttons a[title='Git repository']").get_attribute("href") == repository
+
+
+@pytest.mark.parametrize("path", PAGES, ids=[page_id(p) for p in PAGES])
+def test_u16_links_between_pages_lead_to_pages_and_headings_that_exist(tabs, base_url, path):
+    """U16: every link in a page's content that stays inside the book leads to a built page, and its #fragment to an element."""
+    tab = tabs(1280, "light")
+    tab.visit(path)
+    links = tab.page.eval_on_selector_all(f"{CONTENT} a[href]", "links => links.map(a => a.href)")
+    for link in links:
+        if not link.startswith(base_url):
+            continue
+        target, _, fragment = link[len(base_url) :].partition("#")
+        file = BOOK_DIR / (target or "index.html")
+        assert file.is_file(), f"'{path}' links to {link}, which was not built."
+        if fragment:
+            assert f'id="{fragment}"' in file.read_text(), f"'{path}' links to {link}, but that page has no element with the id '{fragment}'."
+
+
+@pytest.mark.parametrize("old", sorted(REDIRECTS), ids=[page_id(old.strip("/").removesuffix("/index.html")) for old in sorted(REDIRECTS)])
+def test_u17_an_address_from_before_mdbook_leads_to_the_page(tabs, base_url, old):
+    """U17: the directory-style address a page had on the old site sends the reader to the page's new address."""
+    old_address = old.lstrip("/").removesuffix("index.html")  # as readers bookmarked it: 'conventions/'
+    expected = posixpath.normpath(posixpath.join(posixpath.dirname(old.lstrip("/")), REDIRECTS[old]))
+    assert expected in PAGES, f"The redirect '{old}' leads to '{expected}', which is not a page of the book."
+    tab = tabs(1280, "light")
+    tab.page.goto(base_url + old_address, wait_until="load")
+    tab.page.wait_for_url(base_url + expected, timeout=10_000)
+    label = next(label for label, path in SUMMARY if path == expected)
+    assert tab.page.locator(f"{CONTENT} h1").inner_text() == label
+
+
+def test_u17_an_unknown_address_shows_a_styled_404_page(private_tab, base_url):
+    """U17: the 'not found' page loads its styles and scripts from the book's address, even from a deeper path."""
+    tab = private_tab(1280)
+    page = tab.page
+    tab.events.clear()
+    page.goto(base_url + "no-such-chapter/no-such-page.html", wait_until="load")
+    page.wait_for_selector("#mdbook-sidebar .chapter a", state="attached", timeout=10_000)
+    assert "not found" in page.locator(f"{CONTENT}").inner_text().lower()
+    # The address itself answers 404, which the browser also logs once as a console error without a URL.
+    failed = [event for event in tab.events if not event.startswith("console error: Failed to load resource")]
+    assert len(failed) == 1 and "no-such-page.html" in failed[0], f"The 404 page failed to load some of its files: {failed}"
+    assert len(tab.events) == 2, f"The 404 page reported more than its own address: {tab.events}"
+    page.locator("#mdbook-sidebar .chapter a").first.click()
+    page.wait_for_url(base_url + SUMMARY[0][1])

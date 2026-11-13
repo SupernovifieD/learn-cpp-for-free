@@ -5,8 +5,8 @@
 Writes artifacts/screenshots/<page>/<width>-<scheme>.png (git-ignored):
 375 and 1280 px wide for every page, plus 320 px for pages that contain tabs,
 tables or diagrams, in both color schemes. Uses the same browser setup as the
-tests, so BASE_URL and MERMAID_JS work here too. Review the images against the
-visual checklist V1-V12 in CONTRIBUTING.md.
+tests, so BASE_URL works here too. Review the images against the visual
+checklist in CONTRIBUTING.md.
 """
 
 from pathlib import Path
@@ -17,7 +17,7 @@ from playwright.sync_api import sync_playwright
 OUTPUT = REPO_ROOT / "artifacts" / "screenshots"
 BASE_WIDTHS = [375, 1280]
 EXTRA_NARROW_WIDTH = 320
-NEEDS_NARROW_VIEW = "!!document.querySelector('.tabbed-set, table, .mermaid')"
+NEEDS_NARROW_VIEW = "!!document.querySelector('.tabs, table, .mermaid')"
 
 
 def main() -> None:

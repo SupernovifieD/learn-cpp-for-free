@@ -1,7 +1,3 @@
----
-description: A short history of C and C++, the language standards from C++98 to C++26, the ideas behind C++ and the trade-offs that come with its power.
----
-
 # 0.3 Introduction to C/C++
 
 C++ did not appear from nowhere. It grew out of an earlier language called C, and it has been revised many times since. This lesson tells that story briefly, explains the ideas that shape the language, and sets honest expectations about what C++ is good at and where it can hurt you.
@@ -35,8 +31,8 @@ Like C, C++ is defined by an international standard, and each new version of the
 
 The phrase **modern C++** usually means C++11 and the editions after it. This book teaches modern C++, using the C++20 edition.
 
-!!! note
-    The 2023 in the name C++23 is the year the committee finished its technical work. The ISO publication carries the year 2024, as ISO/IEC 14882:2024, because of administrative delay between final approval and publication.
+> [!NOTE]
+> The 2023 in the name C++23 is the year the committee finished its technical work. The ISO publication carries the year 2024, as ISO/IEC 14882:2024, because of administrative delay between final approval and publication.
 
 You do not need to know what any of the features in the table mean yet. They are there so that you can see how the language has grown, and so that the names are familiar when you meet them later. The status of the newest edition changes, so check the [ISO C++ website](https://isocpp.org/std/the-standard) for the current state.
 
@@ -80,11 +76,19 @@ The biggest hazard for beginners is **undefined behavior**. When a program break
 
 This book puts safe, modern practice first. You will turn on strict compiler warnings in lesson 0.11, prefer the standard library's tools over hand-made ones, and learn what causes undefined behavior so you can avoid it.
 
-??? question "Check your understanding"
-    What does the zero-overhead principle say?
+<details>
+<summary>Check your understanding</summary>
 
-    ??? success "Answer"
-        What you do not use, you do not pay for, and what you do use could not be written any better by hand.
+What does the zero-overhead principle say?
+
+<details>
+<summary>Answer</summary>
+
+What you do not use, you do not pay for, and what you do use could not be written any better by hand.
+
+</details>
+
+</details>
 
 ## Summary
 

@@ -4,9 +4,14 @@
 # Virtual environment created by `make install` (ignored by git).
 VENV ?= .venv
 
-# Interpreter that runs mkdocs, pytest and the scripts. Point it at your own
-# if you do not use the virtual environment, e.g. `make PY=python build`.
+# Interpreter that runs pytest and the scripts. Point it at your own if you do
+# not use the virtual environment, e.g. `make PY=python lint`.
 PY ?= $(VENV)/bin/python
+
+# Where scripts/install_tools.py puts the pinned mdbook and mdbook-mermaid
+# (ignored by git). It goes first on PATH, so mdBook finds its preprocessors.
+TOOLS_BIN = $(CURDIR)/.tools/bin
+MDBOOK = PATH="$(TOOLS_BIN):$$PATH" mdbook
 
 # Interpreter used only to create the virtual environment.
 BOOTSTRAP_PY ?= python3
@@ -37,16 +42,23 @@ UI_WORKERS ?= 2
 help: ## Show this list of targets
 	@grep -E '^[a-z-]+:.*## ' $(MAKEFILE_LIST) | sed -e 's/:.*## /\t/'
 
-install: ## Create .venv and install all dependencies
+install: ## Download the pinned mdBook tools, create .venv and install the test dependencies
+	$(BOOTSTRAP_PY) scripts/install_tools.py
 	$(BOOTSTRAP_PY) -m venv $(VENV)
 	$(PY) -m pip install -r requirements-dev.txt
 	$(PY) -m playwright install chromium
 
-serve: ## Preview the book at http://127.0.0.1:8000 with live reload
-	$(PY) -m mkdocs serve
+serve: ## Preview the book at http://127.0.0.1:3000 with live reload
+	$(MDBOOK) serve
 
-build: ## Build the site into site/, failing on any warning
-	$(PY) -m mkdocs build --strict
+# mdBook only logs a problem such as an include of a missing file and still exits with success, so
+# the build also fails when the log has a WARN or ERROR line. (The note that mdbook-mermaid was
+# built against an older mdBook 0.5 release is neither; it is expected and harmless.)
+build: ## Build the book into book/, failing on any warning or error
+	@log=$$($(MDBOOK) build 2>&1); status=$$?; printf '%s\n' "$$log"; \
+	if [ $$status -ne 0 ] || printf '%s\n' "$$log" | grep -Eq '^[[:space:]]*(WARN|ERROR)[[:space:]]'; then \
+		echo "The build reported a problem (see above)." >&2; exit 1; \
+	fi
 
 test-ui: build ## Build, then run the browser tests (layout, accessibility, behavior)
 	$(PY) -m pytest tests/ui -q --durations=5 -n $(UI_WORKERS) --dist loadscope
@@ -66,4 +78,4 @@ format: ## Reformat every C++ example in place
 format-check: ## Fail if any C++ example is not formatted (changes nothing)
 	$(CLANG_FORMAT) --dry-run --Werror $(CPP_FILES)
 
-check: lint examples format-check build test-ui ## Everything CI checks: lint, examples, format, build, browser tests
+check: lint examples format-check test-ui ## Everything CI checks: lint, examples, format, build, browser tests

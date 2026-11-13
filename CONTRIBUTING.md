@@ -1,16 +1,16 @@
 # Contributing to The C++ Book
 
-Thank you for helping. This guide explains how to set up your computer, how to add a lesson or a chapter, and the rules that keep the book consistent. A new lesson should need only Markdown and C++ files: you never have to touch the stylesheet, the workflow or the scripts.
+Thank you for helping. This guide explains how to set up your computer, how to add a lesson or a chapter, and the rules that keep the book consistent. A new lesson should need only Markdown and C++ files: you never have to touch the theme, the workflow or the scripts.
 
 ## Ground rules
 
 - **Write everything yourself.** Do not copy or closely paraphrase text, examples or images from other books or websites. Check facts against primary sources such as cppreference.com, isocpp.org and the GCC, Clang and Microsoft documentation.
-- **Keep it simple.** Plain Markdown, one stylesheet, no custom JavaScript, no third-party plugins and no theme overrides. The site must stay easy to move to another generator.
+- **Keep it simple.** Plain Markdown on top of mdBook's own look. The only additions are one small stylesheet and script in `theme/` and one preprocessor, `scripts/mdbook_cppbook.py`. No copies of mdBook's templates, and no other plugins unless a lesson cannot be written without them.
 - **Never weaken a check** to make it pass. Fix the cause instead.
 
 ## Set up your computer
 
-You need Python 3.11 or newer, `make`, Git and a C++ compiler. The example checker builds every program with both GCC and Clang, so install both if you can.
+You need Python 3.11 or newer, `make`, Git and a C++ compiler. The example checker builds every program with both GCC and Clang, so install both if you can. You do not need Rust: mdBook is a single program that `make install` downloads.
 
 **macOS and Linux**
 
@@ -20,15 +20,16 @@ cd learn-cpp-for-free
 make install
 ```
 
-`make install` creates a virtual environment in `.venv`, installs the pinned dependencies and downloads the browser that the UI tests use.
+`make install` downloads mdBook and mdbook-mermaid at the versions pinned in `scripts/install_tools.py` into `.tools/` (it checks each download against a SHA-256), creates a virtual environment in `.venv` for the test tools, installs the pinned packages and downloads the browser that the UI tests use.
 
 **Windows (PowerShell)**
 
-`make` is often missing on Windows, so run the commands directly. After the setup below, activate the virtual environment with `.venv\Scripts\Activate.ps1`, so that `python` in the table points at it.
+`make` is often missing on Windows, so run the commands directly. After the setup below, activate the virtual environment with `.venv\Scripts\Activate.ps1`, so that `python` in the table points at it, and put the tools on your path with `$env:PATH = "$PWD\.tools\bin;$env:PATH"`.
 
 ```powershell
 git clone https://github.com/SupernovifieD/learn-cpp-for-free.git
 cd learn-cpp-for-free
+py -3 scripts/install_tools.py
 py -3 -m venv .venv
 .venv\Scripts\python -m pip install -r requirements-dev.txt
 .venv\Scripts\python -m playwright install chromium
@@ -36,23 +37,24 @@ py -3 -m venv .venv
 
 | Task | `make` target | Command without `make` |
 | --- | --- | --- |
-| Preview the book | `make serve` | `python -m mkdocs serve` |
-| Build the site | `make build` | `python -m mkdocs build --strict` |
+| Preview the book | `make serve` | `mdbook serve` |
+| Build the book | `make build` | `mdbook build` |
 | Lint the content | `make lint` | `python scripts/lint_content.py` |
 | Check the examples | `make examples` | `python scripts/check_examples.py` |
 | Check formatting | `make format-check` | `clang-format --dry-run --Werror` on every `.cpp` file in `examples/` |
-| Browser tests | `make test-ui` | `python -m pytest tests/ui -n 2 --dist loadscope` |
+| Browser tests | `make test-ui` | `mdbook build`, then `python -m pytest tests/ui -n 2 --dist loadscope` |
+| Screenshots | `make screenshots` | `mdbook build`, then `python tests/ui/screenshots.py` |
+
+Two details of `mdbook build`: it prints a note that mdbook-mermaid was built against an earlier 0.5 release, which is expected, and it exits successfully even when an include names a missing file, so `make build` also fails when its log contains a `WARN` or `ERROR` line.
 
 **A note about GCC on macOS.** The `g++` command on macOS is Apple's Clang. The example checker detects this, does not count it as GCC and prints a warning. To check with real GCC, install it (for example with Homebrew) and point the checker at it: `GXX=g++-15 make examples`. CI always checks with real GCC.
 
 ## Daily workflow
 
 1. Create a branch from `main`.
-2. Run `make serve` and edit files. The browser reloads when you save.
-3. Run `make check` before you commit. It runs, in order: the content lint, the example check, the format check, the strict build and the browser tests. CI runs the same commands.
+2. Run `make serve` and edit files. The browser reloads when you save, also when you change a file in `examples/`.
+3. Run `make check` before you commit. It runs, in order: the content lint, the example check, the format check, the build and the browser tests. CI runs the same commands.
 4. Open a pull request. The checklist in the pull request template mirrors this guide.
-
-Material for MkDocs prints a notice about its end of life at the start of every build. That is expected, and it does not fail the build.
 
 `make format` reformats the C++ examples with the pinned `clang-format`, so everyone formats the same way. `make screenshots` saves pictures of every page to `artifacts/screenshots/` for the visual review described below.
 
@@ -60,39 +62,39 @@ Material for MkDocs prints a notice about its end of life at the start of every 
 
 Suppose you are adding lesson 0.14, "Example lesson".
 
-1. **Copy the template.** Copy `templates/lesson.md` to `docs/ch00-getting-started/14-example-lesson.md`. Lesson files are named `NN-slug.md`, with a two-digit number and a kebab-case slug. Fill in the `description` (one sentence, at most 160 characters) and the title. The first heading must be the label you will use in the navigation, such as `# 0.14 Example lesson`. Then write the lesson: replace every placeholder with real text and delete every comment from the template. `make lint` rejects a page that still contains template text.
+1. **Copy the template.** Copy `templates/lesson.md` to `docs/ch00-getting-started/14-example-lesson.md`. Lesson files are named `NN-slug.md`, with a two-digit number and a kebab-case slug. The first heading must be the label you will use in the table of contents, such as `# 0.14 Example lesson`. Pages have no front matter: the file starts with its heading. Then write the lesson: replace every placeholder with real text and delete every comment from the template. `make lint` rejects a page that still contains template text.
 2. **Write the example programs.** Put each complete program in `examples/ch00/14-example-lesson.cpp` and its exact expected output in `examples/ch00/14-example-lesson.out`. Run `make format` and then `make examples`, and fix everything they report. If the output differs between machines, leave out the `.out` file and show an example output in the lesson.
-3. **Include the programs in the lesson.** Never paste a complete program into a lesson. Include the file, and its output, like this:
+3. **Include the programs in the lesson.** Never paste a complete program into a lesson. Include the file, and its output, with `{{#include}}`. The path is relative to the page, so from a lesson in `docs/ch00-getting-started/` it starts with `../../examples/`:
 
     ````markdown
     ```cpp title="example-lesson.cpp"
-    --8<-- "examples/ch00/14-example-lesson.cpp"
+    {{#include ../../examples/ch00/14-example-lesson.cpp}}
     ```
 
     ```text title="Output"
-    --8<-- "examples/ch00/14-example-lesson.out"
+    {{#include ../../examples/ch00/14-example-lesson.out}}
     ```
     ````
 
-4. **Add the page to the navigation.** In `mkdocs.yml`, add a line under the chapter in `nav:` with the same label as the lesson's first heading:
+    The `title` is the label above the block: a file name is shown as "Filename: example-lesson.cpp", and any other title, such as `Output`, as written. An inline fragment of five lines or fewer may be written in the fence itself, with or without a title. Always give a fence a language (`cpp`, `bash`, `powershell`, `text`). A line of code that is too wide scrolls inside its block.
+4. **Add the page to the table of contents.** In `docs/SUMMARY.md`, add a line under the chapter, indented by two spaces, with the same label as the lesson's first heading:
 
-    ```yaml
-    - "0.14 Example lesson": ch00-getting-started/14-example-lesson.md
+    ```markdown
+    - [0.14 Example lesson](ch00-getting-started/14-example-lesson.md)
     ```
 
-    Also add the lesson to the list in the chapter's `index.md`.
-5. **Check, review and commit.** Run `make check`. Then run `make screenshots`, look at the pictures of your page (see the visual checklist below), and commit with a message such as `docs(ch00): add lesson 0.14`.
+    Also add the lesson to the list in the chapter's `index.md`. Order in `SUMMARY.md` is the reading order and the order of the previous and next arrows.
+5. **Check, review and commit.** Run `make check`. Then run `make serve` or `make screenshots`, look at your page (see the visual checklist below), and commit with a message such as `docs(ch00): add lesson 0.14`.
 
 ## Add a chapter
 
 1. Create the folder `docs/chNN-slug/` with a two-digit chapter number.
 2. Copy `templates/chapter-index.md` to `docs/chNN-slug/index.md` and fill it in.
-3. Add the chapter to `nav:` in `mkdocs.yml`. The chapter's `index.md` comes first, with no label, followed by its lessons:
+3. Add the chapter to `docs/SUMMARY.md`. The chapter's `index.md` is the chapter's own entry, and its lessons are indented by two spaces under it:
 
-    ```yaml
-    - "1. Chapter title":
-        - ch01-slug/index.md
-        - "1.1 First lesson": ch01-slug/01-first-lesson.md
+    ```markdown
+    - [1. Chapter title](ch01-slug/index.md)
+      - [1.1 First lesson](ch01-slug/01-first-lesson.md)
     ```
 
 4. Add the chapter to the contents list on the home page (`docs/index.md`).
@@ -113,30 +115,54 @@ Suppose you are adding lesson 0.14, "Example lesson".
 - Keep paragraphs to four sentences or fewer, with one idea per section.
 - Bold a term where you define it, and use it consistently afterwards.
 - Never use "simply", "just", "obviously" or "easy".
-- Put identifiers, file names and commands in backticks, UI labels in bold (**File > New > Project**) and keys like `++ctrl+f5++`.
+- Put identifiers, file names and commands in backticks, UI labels in bold (**File > New > Project**) and keys in `<kbd>`, one element per key: `<kbd>Ctrl</kbd>+<kbd>F5</kbd>`.
 - Point forward ("You will learn what `std::cout` is in Chapter 1") instead of over-explaining.
 - Phrase facts that change, such as versions and menu names, so that they age well, and link the official page.
-- No raw HTML and no emoji in pages.
+- No raw HTML and no emoji in pages. The only HTML allowed is `<details>`, `<summary>` and `<kbd>`, without attributes.
 - Shell commands go in `bash` (or `powershell`) blocks without a `$` prompt, so the copy button copies a runnable command.
 
-Each lesson has this shape: front matter with a `description`, the heading, an opening paragraph, sections in sentence case, an optional "Check your understanding" collapsible, a `## Summary` with 3 to 6 bullets, and an optional `## Further reading` that links primary sources over https. Do not write previous and next links by hand, because the page footer provides them.
+Each lesson has this shape: the heading, an opening paragraph, sections in sentence case, an optional "Check your understanding" collapsible, a `## Summary` with 3 to 6 bullets, and an optional `## Further reading` that links primary sources over https. Do not write previous and next links by hand, because the book provides the arrows. Links to other pages are relative `.md` links (`[Conventions](../conventions.md)`, optionally with `#heading-id`); the linter checks that the page and the heading exist.
 
 ## Callouts
 
-Use only these types, and use them sparingly: never two callouts back to back, about one per 300 words at most, and never put a complete program inside one.
+A callout is a block quote whose first line names its kind in capitals:
 
-| Type | Use it for |
+```markdown
+> [!TIP]
+> Type each example yourself instead of pasting it.
+```
+
+Use only these kinds, and use them sparingly: never two callouts back to back, about one per 300 words at most, and never put a complete program inside one.
+
+| Kind | Use it for |
 | --- | --- |
-| `note` | Useful context that is not essential |
-| `tip` | A handier way to do something |
-| `warning` | A common mistake or a surprise |
-| `danger` | Something that can lose data or damage a setup (rare) |
-| `best-practice` | A habit professionals follow, with the reason |
-| `key-insight` | The idea that makes a topic fall into place |
-| `advanced` | An aside for readers who want more depth |
-| `question` and `success` | The collapsible question and its answer |
+| `[!NOTE]` | Useful context that is not essential |
+| `[!TIP]` | A handier way to do something |
+| `[!WARNING]` | A common mistake or a surprise |
+| `[!DANGER]` | Something that can lose data or damage a setup (rare) |
+| `[!BEST-PRACTICE]` | A habit professionals follow, with the reason |
+| `[!KEY-INSIGHT]` | The idea that makes a topic fall into place |
+| `[!ADVANCED]` | An aside for readers who want more depth |
 
-The page "Conventions used in this book" shows every type.
+The first three are mdBook's own. `scripts/mdbook_cppbook.py` renders the other four with the same markup. A question with its answer is a pair of nested `<details>` elements, which start closed. Keep the empty lines and do not indent anything:
+
+```markdown
+<details>
+<summary>Check your understanding</summary>
+
+The question.
+
+<details>
+<summary>Answer</summary>
+
+The answer.
+
+</details>
+
+</details>
+```
+
+The page "Conventions used in this book" shows every kind.
 
 ## Tabs
 
@@ -145,43 +171,65 @@ When instructions depend on the reader's system or tools, use tabs, and use only
 - Operating systems: `Windows`, `macOS`, `Linux`
 - Toolchains: `Visual Studio`, `VS Code`, `Command line`
 
-Every tab in a set holds the same kind of information in the same order, with bold labels such as **Install:** and **Check:**. The linter rejects other labels and mixed sets.
+Every tab in a set holds the same kind of information in the same order, with bold labels such as **Install:** and **Check:**. Every marker stands alone at the start of a line, with an empty line after `{{#tab ...}}`:
+
+```markdown
+{{#tabs}}
+{{#tab Windows}}
+
+**Install:** Text for Windows.
+
+{{#endtab}}
+{{#tab macOS}}
+
+**Install:** Text for macOS.
+
+{{#endtab}}
+{{#endtabs}}
+```
+
+In the browser the groups become tabs that work with the arrow keys, and a reader's choice applies to every group with the same labels, on every page. Without JavaScript, all tabs are shown one under another, each under its label. The linter rejects other labels, mixed sets and unbalanced markers.
 
 ## Diagrams
 
-Use Mermaid, top to bottom (`flowchart TD`), with short node labels and no custom colors. Put one plain sentence that describes the diagram before it, for screen-reader users. Keep each row to at most two nodes: a wider diagram is scaled down on a phone until its text is too small, and the UI test for the diagram fails when text falls below 12px.
+Use Mermaid in a ```` ```mermaid ```` fence, top to bottom (`flowchart TD`), with short node labels and no custom colors. Put one plain sentence that describes the diagram before it, for screen-reader users. Keep each row to at most two nodes: a wider diagram is scaled down on a phone until its text is too small, and the UI test for the diagram fails when text falls below 12px. Mermaid is bundled in `theme/` and draws in the colors of the current theme.
 
 ## Tables
 
-A table wider than the page scrolls inside its frame, but readers on phones should not have to scroll. Keep tables to three columns or fewer with short cells, and split a wide table into two. Material's own markup for scrolling tables cannot be made keyboard-focusable without a template override, which this book avoids on purpose (see `tests/ui/axe_allowlist.json`).
+A table wider than the page scrolls inside its frame, and the frame can be scrolled with the keyboard. Readers on phones should still not have to scroll: keep tables to three columns or fewer with short cells, and split a wide table into two.
 
 ## Browser tests and visual review
 
-`make test-ui` builds the site and opens every page in a headless browser at nine widths (320 to 1920 pixels) in light and dark mode. It checks, among other things, that:
+`make test-ui` builds the book and opens every page in a headless browser at nine widths (320 to 1920 pixels) in light and dark mode, served under the same path as on GitHub Pages. The list of pages comes from `docs/SUMMARY.md`, and a listed page that was not built is an error. It checks, among other things, that:
 
 - the page never scrolls sideways and nothing sticks out of the text column,
 - long code lines scroll inside their own block,
 - there are no console errors or failed requests,
-- axe-core finds no serious or critical accessibility problems,
-- every page has one `h1` and no skipped heading levels,
-- the theme toggle, the previous and next links, the search and the Mermaid diagram work.
+- axe-core finds no serious or critical accessibility problems (`tests/ui/axe_allowlist.json` is empty; an entry needs a written reason),
+- every page has one `h1` in its content and no skipped heading levels,
+- keyboard focus is visible on the controls readers use,
+- the previous and next arrows follow `SUMMARY.md`, and the sidebar, search, theme menu and edit links work,
+- tabs have the right roles, work with the keyboard, remember the choice and stay readable without JavaScript,
+- answers stay hidden until opened, and the copy button copies the program in `examples/`,
+- the Mermaid diagram draws in both themes and fits at 320 pixels,
+- every address from before the move to mdBook redirects to its page.
 
-When a check fails, the test run saves a screenshot of the failing page to `artifacts/screenshots/failures/`, and CI uploads that folder. Optional settings: `UI_WORKERS` sets how many browsers run in parallel (`make test-ui UI_WORKERS=4`, default 2), `BASE_URL` tests a published site instead of the local build, and `MERMAID_JS` points to a local copy of Material's Mermaid script if you cannot reach its CDN.
+When a check fails, the test run saves a screenshot of the failing page to `artifacts/screenshots/failures/`, and CI uploads that folder. Optional settings: `UI_WORKERS` sets how many browsers run in parallel (`make test-ui UI_WORKERS=4`, default 2), and `BASE_URL` tests a published book instead of the local build, for example `BASE_URL=https://supernovified.github.io/learn-cpp-for-free/`.
 
 Automated checks do not see everything, so look at the screenshots of your page (375 and 1280 pixels wide in both color schemes, plus 320 for pages with tabs, tables or diagrams) and check that:
 
-1. callout icons are centered on the title and custom callouts match the built-in ones;
-2. the copy button never covers code, and code titles line up with the block edges;
+1. callouts line up with the text, and the custom kinds look like the built-in ones;
+2. the copy button never covers code, and file names line up with the block edges;
 3. output blocks look different from code but line up with it;
 4. tab labels sit on one line and nothing is clipped on a phone;
-5. long sidebar titles wrap with a clean indent and the current page is clearly highlighted;
-6. the previous and next titles at the bottom do not overlap their arrows;
+5. long sidebar titles wrap cleanly and the current page is clearly highlighted;
+6. the arrows at the bottom of the page do not overlap the text on a phone;
 7. tables have an aligned header row and padded cells;
 8. there is no doubled or collapsed spacing, for example between a heading and a callout;
-9. dark mode has no white boxes and no dark-on-dark text;
-10. the header never collides at 320 to 414 pixels;
+9. the dark theme has no white boxes and no dark-on-dark text;
+10. the menu bar never collides at 320 to 414 pixels;
 11. rendered keys do not disturb the line height;
-12. no text is smaller than 12px, and inline code is legible in both color schemes.
+12. no text is smaller than 12px, and inline code is legible in both themes.
 
 ## Content checklist
 
@@ -192,7 +240,7 @@ Before you open a pull request, check that:
 3. the lesson covers what it promises and does not teach later chapters in depth;
 4. every complete program is an included, checked example;
 5. each term is bolded once where it is defined, and used consistently afterwards;
-6. callouts have the right type and are not stacked or overused;
+6. callouts have the right kind and are not stacked or overused;
 7. tabs use the exact label sets;
 8. the length is reasonable and paragraphs have four sentences or fewer;
 9. a summary is present, and further reading uses primary sources over https;
@@ -202,6 +250,6 @@ Before you open a pull request, check that:
 
 Use Conventional Commits, `type(scope): description`, with one coherent change per commit. Common types are `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `build`, `ci` and `chore`. Examples: `docs(ch00): add lesson 0.14`, `fix(theme): keep icons aligned in callouts`.
 
-Do not commit the virtual environment, the `site/` folder, screenshots, caches or secrets. Open a pull request against `main` and fill in the checklist. Every check must be green before it can be merged.
+Do not commit the virtual environment, `.tools/`, the `book/` folder, screenshots, caches or secrets. Open a pull request against `main` and fill in the checklist. Every check must be green before it can be merged.
 
-Found a factual mistake? [Open an issue](https://github.com/SupernovifieD/learn-cpp-for-free/issues/new?template=content-error.md) or use the **Edit this page** button on the page.
+Found a factual mistake? [Open an issue](https://github.com/SupernovifieD/learn-cpp-for-free/issues/new?template=content-error.md) or use the edit button in the top right corner of the page.

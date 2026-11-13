@@ -1,0 +1,202 @@
+/* The book's additions to mdBook's stock theme. Everything else is mdBook's
+   own look, so keep this file small and use the theme's variables for colors. */
+
+/* --- Themes ---------------------------------------------------------------
+   The book offers a light and a dark theme (mdBook's Light and Navy). The
+   other entries are removed from the menu by theme/cppbook.js; this rule
+   hides them before that script runs. */
+#mdbook-theme-rust,
+#mdbook-theme-coal,
+#mdbook-theme-ayu {
+    display: none;
+}
+
+/* --- Navy contrast --------------------------------------------------------
+   Navy's stock link color has a contrast of 3.6:1 on its background, below
+   the 4.5:1 that WCAG AA asks for. This lighter blue reaches it, also on the
+   sidebar. It is then too close to the text color to tell a link by color
+   alone, so links in running text are underlined in this theme. */
+.navy {
+    --links: #5aa9e6;
+    --sidebar-active: #5aa9e6;
+}
+
+.navy .content main :is(p, li, td) a:not(.header) {
+    text-decoration: underline;
+}
+
+.content pre > code:focus-visible,
+.content .table-wrapper:focus-visible,
+#mdbook-sidebar-toggle:focus-visible {
+    outline: 2px solid var(--links);
+    outline-offset: 2px;
+}
+
+/* --- Labeled code blocks --------------------------------------------------
+   Same as the listings of the Rust book: the label is plain text above the
+   code. */
+figure.listing {
+    margin: 0;
+}
+
+.listing .file-name {
+    display: block;
+}
+
+/* Program output has a rule down its left edge, so it reads differently
+   from source code. */
+.listing-output pre > code {
+    border-inline-start: 4px solid var(--icons);
+}
+
+/* --- Callouts -------------------------------------------------------------
+   mdBook colors note, tip and warning itself. These are the book's own
+   kinds, written by scripts/mdbook_cppbook.py with the same markup. */
+:root {
+    --callout-danger-color: #b52731;
+    --callout-best-practice-color: #0a7a74;
+    --callout-advanced-color: #5f6b7a;
+}
+
+.navy {
+    --callout-danger-color: #ff6b6b;
+    --callout-best-practice-color: #3fc7bd;
+    --callout-advanced-color: #a3acbd;
+}
+
+@media (prefers-color-scheme: dark) {
+    html:not(.js) {
+        --callout-danger-color: #ff6b6b;
+        --callout-best-practice-color: #3fc7bd;
+        --callout-advanced-color: #a3acbd;
+    }
+}
+
+.blockquote-tag-danger {
+    border-inline-start-color: var(--callout-danger-color);
+}
+
+.blockquote-tag-danger > .blockquote-tag-title {
+    color: var(--callout-danger-color);
+}
+
+.blockquote-tag-best-practice {
+    border-inline-start-color: var(--callout-best-practice-color);
+}
+
+.blockquote-tag-best-practice > .blockquote-tag-title {
+    color: var(--callout-best-practice-color);
+}
+
+.blockquote-tag-key-insight {
+    border-inline-start-color: var(--blockquote-important-color);
+}
+
+.blockquote-tag-key-insight > .blockquote-tag-title {
+    color: var(--blockquote-important-color);
+}
+
+.blockquote-tag-advanced {
+    border-inline-start-color: var(--callout-advanced-color);
+}
+
+.blockquote-tag-advanced > .blockquote-tag-title {
+    color: var(--callout-advanced-color);
+}
+
+/* --- Tabs -----------------------------------------------------------------
+   Without JavaScript every tab is a labeled section, one after another.
+   theme/cppbook.js adds the row of tab buttons and the class .tabs-ready. */
+.tabs {
+    margin: 1em 0;
+}
+
+.tab-label {
+    font-weight: 600;
+    margin: 1em 0 0;
+    padding-bottom: 4px;
+    border-bottom: 1px solid var(--theme-popup-border);
+}
+
+.tabs-ready .tab-label {
+    display: none;
+}
+
+.tab-list {
+    display: flex;
+    flex-wrap: wrap;
+    border-bottom: 1px solid var(--theme-popup-border);
+}
+
+.tab-list button {
+    min-height: 44px;
+    margin: 0 0 -1px;
+    padding: 8px 14px;
+    border: 0;
+    border-bottom: 3px solid transparent;
+    background: none;
+    color: var(--fg);
+    font: inherit;
+    cursor: pointer;
+}
+
+.tab-list button:hover {
+    background-color: var(--theme-hover);
+}
+
+.tab-list button[aria-selected="true"] {
+    border-bottom-color: var(--links);
+    font-weight: 600;
+}
+
+.tab-list button:focus-visible,
+.tab:focus-visible {
+    outline: 2px solid var(--links);
+    outline-offset: 2px;
+}
+
+.tab[hidden] {
+    display: none;
+}
+
+/* --- Questions and answers ------------------------------------------------ */
+.content details {
+    margin: 1em 0;
+    padding: 0 16px;
+    border: 1px solid var(--theme-popup-border);
+    border-radius: 4px;
+}
+
+.content details > summary {
+    margin: 0 -16px;
+    padding: 10px 16px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.content details > summary:focus-visible {
+    outline: 2px solid var(--links);
+    outline-offset: -2px;
+}
+
+.content details[open] > summary {
+    border-bottom: 1px solid var(--theme-popup-border);
+}
+
+/* --- Diagrams ------------------------------------------------------------- */
+.content pre.mermaid {
+    text-align: center;
+    overflow-x: auto;
+}
+
+/* --- Printing: show every tab, each under its label ---------------------- */
+@media print {
+    .tab-list {
+        display: none;
+    }
+
+    .tabs-ready .tab-label,
+    .tab[hidden] {
+        display: block;
+    }
+}

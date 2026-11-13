@@ -1,28 +1,21 @@
----
-description: One sentence, at most 160 characters, that says what this chapter teaches.
----
-
 <!--
   HOW TO USE THIS TEMPLATE
   1. Create the folder docs/chNN-slug/ (two-digit chapter number) and copy this file
      to docs/chNN-slug/index.md.
   2. Replace every placeholder, then delete every comment like this one.
-  3. Add the chapter to nav: in mkdocs.yml. The chapter's index.md comes first and has
-     no label of its own; it takes the chapter's label:
+  3. Add the chapter to docs/SUMMARY.md. The chapter's index.md is the chapter's own
+     entry, and its lessons are indented by two spaces under it:
 
-       - "1. Chapter title":
-           - ch01-slug/index.md
-           - "1.1 First lesson": ch01-slug/01-first-lesson.md
+       - [1. Chapter title](ch01-slug/index.md)
+         - [1.1 First lesson](ch01-slug/01-first-lesson.md)
 
   4. Add the chapter to the "Contents" list on the home page (docs/index.md).
   5. Read CONTRIBUTING.md, then run: make check
-
-  FRONT MATTER (above): `description` is required and must be at most 160 characters.
 -->
 
 <!--
   HEADING: exactly one level-1 heading, written as "<chapter number>. <Chapter title>".
-  It must be identical to the chapter's label in mkdocs.yml.
+  It must be identical to the chapter's label in docs/SUMMARY.md.
 -->
 
 # 1. Chapter title
