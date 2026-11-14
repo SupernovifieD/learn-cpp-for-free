@@ -17,3 +17,7 @@
   - [0.11 Configuring your compiler: Warning and error levels](ch00-getting-started/11-warning-and-error-levels.md)
   - [0.12 Configuring your compiler: Choosing a language standard](ch00-getting-started/12-choosing-a-language-standard.md)
   - [0.13 What language standard is my compiler using?](ch00-getting-started/13-what-language-standard-is-my-compiler-using.md)
+- [1. C++ Basics](ch01-cpp-basics/index.md)
+  - [1.1 Statements and the structure of a program](ch01-cpp-basics/01-statements-and-the-structure-of-a-program.md)
+  - [1.2 Comments](ch01-cpp-basics/02-comments.md)
+  - [1.3 Introduction to objects and variables](ch01-cpp-basics/03-introduction-to-objects-and-variables.md)
