@@ -29,3 +29,4 @@
   - [1.9 Introduction to literals and operators](ch01-cpp-basics/09-introduction-to-literals-and-operators.md)
   - [1.10 Introduction to expressions](ch01-cpp-basics/10-introduction-to-expressions.md)
   - [1.11 Developing your first program](ch01-cpp-basics/11-developing-your-first-program.md)
+  - [1.x Chapter 1 summary and quiz](ch01-cpp-basics/x-summary-and-quiz.md)
