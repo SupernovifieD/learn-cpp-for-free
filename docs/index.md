@@ -15,6 +15,7 @@
 
 - [0. Introduction / Getting Started](ch00-getting-started/index.md): what a program is, how to install the tools, and how to build and run your first program.
 - [1. C++ Basics](ch01-cpp-basics/index.md): statements, variables, input and output, operators and expressions.
+- [2. C++ Basics: Functions and Files](ch02-functions-and-files/index.md): writing functions, working with several files, headers and the preprocessor.
 
 ## About
 
