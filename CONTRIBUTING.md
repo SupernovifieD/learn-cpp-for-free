@@ -100,10 +100,23 @@ Suppose you are adding lesson 0.14, "Example lesson".
 
 4. Add the chapter to the contents list on the home page (`docs/index.md`).
 5. Create `examples/ch01/` for the chapter's programs, and then add the lessons as described above.
+6. End the chapter with a summary and quiz page (see the next section).
+
+## Add a summary and quiz page
+
+A chapter can end with a page that recaps its lessons and tests the reader.
+
+1. **Copy the template.** Copy `templates/summary-and-quiz.md` to `docs/chNN-slug/x-summary-and-quiz.md`. The `x-` keeps the page after the numbered lessons. The first heading is the label in `docs/SUMMARY.md`, written like `1.x Chapter 1 summary and quiz`.
+2. **Write the summary.** Under `## Summary`, write one short paragraph or bullet group for each lesson, in lesson order. Each links to its lesson and restates its key terms in plain words. Teach nothing new here.
+3. **Write the quiz.** Under `## Quiz`, write 5 to 8 questions in rising difficulty. Each is a `### Question N` heading, the question as normal visible text, and the solution inside a `<details>` whose summary is `Solution`. At least half of the questions are programming tasks. Their solution programs are named `x-qN-slug` (`examples/ch01/x-q3-seat-count.cpp`, or a project folder), checked like every other example, and included in the solution together with their Output or Example session block.
+4. **Add the page** to `docs/SUMMARY.md` as the last entry of the chapter, and to the lesson list in the chapter's `index.md`.
+
+On a quiz page the question stays visible and only the solution is collapsed. The nested question-and-answer pattern under "Callouts" is for the "Check your understanding" questions inside lessons.
 
 ## Rules for examples
 
-- **Names.** `examples/chNN/NN-slug.cpp`, where `NN` is the number of the lesson that first uses the program.
+- **Names.** `examples/chNN/NN-slug.cpp`, where `NN` is the number of the lesson that first uses the program. The programs of a chapter's quiz are named `x-qN-slug` instead, after the page `x-summary-and-quiz.md` that uses them. In a lesson, a single-file program is titled with its file name without the number prefix (`title="hello-world.cpp"`), and the files of a project keep their real names (`title="main.cpp"`).
+- **Names in code.** Variables and functions use `camelCase` (`readNumber`, `totalSeats`). Header files end in `.h`, and a header guard is named after its file in `UPPER_SNAKE_CASE` (`ADD_H` for `add.h`). Once the book has explained header guards, every header has one; a lesson that shows headers earlier says why they have none yet. The book picks one style and says in its lesson about names that other styles exist.
 - **Projects (programs with several files).** A program is either one file or a folder. A project is a folder such as `examples/ch02/08-two-files/` that holds the program's `.cpp` files and the `.h` headers they include, with one of the files named `main.cpp`. The checker compiles and links every `.cpp` file of the folder in one command. The folder is flat (no folders inside it), and a `.cpp` file inside it is never a program of its own. Headers are allowed only inside project folders, and they follow the same formatting rules as `.cpp` files.
 - **Files that belong to a program** sit next to it, whether it is a file or a folder, never inside the project folder: `08-two-files.out` is the output of the folder `08-two-files/`. The exact expected standard output goes in `NN-slug.out`.
 - **Programs that read input** have two more files. `NN-slug.in` holds what the reader types, one line for each press of the Enter key. `NN-slug.session` holds what the reader sees in the console: the program's output with the typed lines where they appear on the screen. For a program that prints `Enter a number: ` and then `Twice that is 14` after the reader types 7, the session is `Enter a number: 7` followed by `Twice that is 14` on the next line. The checker proves that removing each line of `.in`, in order, from where it appears in the session leaves exactly the program's output, so a wrong output line, a missing typed line and an input line that the session never shows are all errors. It cannot prove that the program really read every typed line, so keep the input short and say in the lesson what the reader types. A program has `.out` or `.session`, never both, and `.in` always goes with `.session`. Show a session in a block titled `Example session` (```` ```text title="Example session" ````) instead of `Output`, and write in the prose what the reader types ("Type 7 and press Enter").
@@ -112,6 +125,12 @@ Suppose you are adding lesson 0.14, "Example lesson".
 - **Every example is used.** Each file in `examples/` must be included by at least one page, or `make lint` fails. A lesson shows a project as one titled block per file (`title="main.cpp"`, `title="add.h"`): headers first, then the other `.cpp` files, then `main.cpp`, then the output.
 - **Formatting.** 4-space indent, braces on their own line, at most 80 columns, one statement per line, brace initialization, `"\n"` instead of `std::endl`. `make format` applies the rules from `.clang-format` to every `.cpp` and `.h` file.
 - **The strict flags.** `examples/flags-gcc-clang.txt` holds the one line of compiler flags that CI uses and that lesson 0.11 shows. Change it only on purpose, because it changes what the book promises.
+
+## Teach in order
+
+An example or an explanation may use only what earlier lessons have taught. Think of a lesson's **toolbox**: everything the lessons before it taught, plus what the lesson teaches itself. Before you write an example, list what it uses and check every item against the toolbox. If an example needs something that is not in it, change the example or the order of the lessons, never the rule.
+
+A later feature may be named in prose with a forward reference ("You will meet `if` statements in Chapter 4"), but it never appears in a program that readers type or that the checker runs, and the lesson does not teach it in depth. Something that a lesson shows only to say that it is wrong goes into a `.fail` program. When you review a lesson, ask whether a reader who has read only the earlier lessons could follow every line.
 
 ## Writing style
 

@@ -16,7 +16,8 @@ Rules, each reported as  docs/page.md:LINE: message
   * links to other pages point at a listed page and, with a #fragment, at one of its headings
   * images have alt text; links to other sites use https
   * none of: TODO, TBD, FIXME, lorem, "coming soon"
-  * no text left over from templates/lesson.md or templates/chapter-index.md (their instructions and placeholders)
+  * no text left over from templates/lesson.md, templates/chapter-index.md or templates/summary-and-quiz.md
+    (their instructions and placeholders)
   * callouts use only the documented kinds, and tabs are well formed and use only the documented label sets
   * every file in examples/ is used by at least one page (.in files belong to the program next to them, a
     .cpp file or a project folder), so every .cpp and .h file of a project needs its own include
@@ -58,6 +59,12 @@ TEMPLATE_LEFTOVERS = [
     "First main point.",
     "# 1. Chapter title",
     "Explain the first big idea of the chapter",
+    # templates/summary-and-quiz.md
+    "# N.x Chapter N summary and quiz",
+    "what this page recaps",
+    "Restate the key terms of the lesson",
+    "Write the first question here",
+    "Explain the solution here",
 ]
 FORBIDDEN_WORDS = re.compile(r"\b(TODO|TBD|FIXME|lorem|coming soon)\b", re.IGNORECASE)
 # Syntax of the former site generator. mdBook would print it as plain text.

@@ -71,3 +71,26 @@ def test_a_session_must_be_included_by_a_page(examples):
 def test_files_the_operating_system_adds_are_not_examples(examples):
     examples(["ch01/01-a.cpp", "ch01/.DS_Store"])
     assert problems_for({"examples/ch01/01-a.cpp"}) == []
+
+
+# ------------------------------------------------------------- templates --
+
+TEMPLATES = Path(__file__).resolve().parents[2] / "templates"
+
+
+@pytest.mark.parametrize("template", ["lesson.md", "chapter-index.md", "summary-and-quiz.md"])
+def test_a_page_that_is_still_a_template_is_rejected(tmp_path, monkeypatch, template):
+    monkeypatch.setattr(lint_content, "REPO", tmp_path)
+    monkeypatch.setattr(lint_content, "DOCS", tmp_path / "docs")
+    page = tmp_path / "docs" / "ch01" / "page.md"
+    page.parent.mkdir(parents=True)
+    page.write_text((TEMPLATES / template).read_text())
+    problems = lint_content.lint_page(page, "label", "Book", final=False).problems
+    assert any("template is still here" in problem.message for problem in problems), [str(p) for p in problems]
+
+
+def test_every_placeholder_phrase_of_the_quiz_template_is_known_to_the_linter():
+    text = (TEMPLATES / "summary-and-quiz.md").read_text()
+    phrases = [phrase for phrase in lint_content.TEMPLATE_LEFTOVERS if phrase in text]
+    for expected in ("# N.x Chapter N summary and quiz", "what this page recaps", "Restate the key terms of the lesson", "Write the first question here", "Explain the solution here"):
+        assert expected in phrases, f"'{expected}' is not in TEMPLATE_LEFTOVERS, or no longer in the quiz template."
