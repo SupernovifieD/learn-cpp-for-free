@@ -44,7 +44,7 @@ py -3 -m venv .venv
 | Test the example checker | `make test-scripts` | `python -m pytest tests/scripts` |
 | Check formatting | `make format-check` | `clang-format --dry-run --Werror` on every `.cpp` and `.h` file in `examples/` |
 | Browser tests | `make test-ui` | `mdbook build`, then `python -m pytest tests/ui -n 2 --dist loadscope` |
-| Screenshots | `make screenshots` | `mdbook build`, then `python tests/ui/screenshots.py` |
+| Screenshots | `make screenshots` | `mdbook build`, then `python tests/ui/screenshots.py` (options: `--open-details`, `--only <text>`, `--widths 320,768`) |
 
 Two details of `mdbook build`: it prints a note that mdbook-mermaid was built against an earlier 0.5 release, which is expected, and it exits successfully even when an include names a missing file, so `make build` also fails when its log contains a `WARN` or `ERROR` line.
 
@@ -206,7 +206,7 @@ A table wider than the page scrolls inside its frame, and the frame can be scrol
 
 `make test-ui` builds the book and opens every page in a headless browser at nine widths (320 to 1920 pixels) in light and dark mode, served under the same path as on GitHub Pages. The list of pages comes from `docs/SUMMARY.md`, and a listed page that was not built is an error. It checks, among other things, that:
 
-- the page never scrolls sideways and nothing sticks out of the text column,
+- the page never scrolls sideways, neither does the text area inside it, and nothing sticks out of the text column,
 - long code lines scroll inside their own block,
 - there are no console errors or failed requests,
 - axe-core finds no serious or critical accessibility problems (`tests/ui/axe_allowlist.json` is empty; an entry needs a written reason),
@@ -215,12 +215,13 @@ A table wider than the page scrolls inside its frame, and the frame can be scrol
 - the previous and next arrows follow `SUMMARY.md`, and the sidebar, search, theme menu and edit links work,
 - tabs have the right roles, work with the keyboard, remember the choice and stay readable without JavaScript,
 - answers stay hidden until opened, and the copy button copies the program in `examples/`,
-- the Mermaid diagram draws in both themes and fits at 320 pixels,
+- every page with a question is measured again with every `<details>` opened (nested ones too) at 320, 375 and 1280 pixels, so code, tables and diagrams inside answers are checked like the rest of the page, and axe-core checks the opened answers as well,
+- every Mermaid diagram, found in the built pages, draws in both themes, fits at 320 pixels and keeps its text at 12 pixels or more,
 - an unknown address shows the book's own 404 page, styled and with a working sidebar.
 
 When a check fails, the test run saves a screenshot of the failing page to `artifacts/screenshots/failures/`, and CI uploads that folder. Optional settings: `UI_WORKERS` sets how many browsers run in parallel (`make test-ui UI_WORKERS=4`, default 2), and `BASE_URL` tests a published book instead of the local build, for example `BASE_URL=https://supernovified.github.io/learn-cpp-for-free/`.
 
-Automated checks do not see everything, so look at the screenshots of your page (375 and 1280 pixels wide in both color schemes, plus 320 for pages with tabs, tables or diagrams) and check that:
+Automated checks do not see everything, so look at the screenshots of your page (375 and 1280 pixels wide in both color schemes, plus 320 for pages with tabs, tables or diagrams) and check the points below. For a page with questions, look at the screenshots twice: once with the answers closed, and once with every answer opened (`make screenshots SCREENSHOT_ARGS="--open-details --only ch01"` saves the second set next to the first, with `-open` in the file name). Check that:
 
 1. callouts line up with the text, and the custom kinds look like the built-in ones;
 2. the copy button never covers code, and file names line up with the block edges;

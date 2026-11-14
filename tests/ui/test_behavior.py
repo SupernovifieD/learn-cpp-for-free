@@ -1,9 +1,25 @@
 """Behavior checks: how the book reacts to the reader."""
 
 import posixpath
+import re
 
 import pytest
-from conftest import BOOK_DIR, CONFIG, CONTENT, PAGES, REPO_ROOT, SCHEMES, SIDEBAR_SHOWN_FROM, THEME_OF_SCHEME, Tab, built_pages, new_context, page_id, read_summary
+from conftest import (
+    BOOK_DIR,
+    CONFIG,
+    CONTENT,
+    DIAGRAM_PAGES,
+    PAGES,
+    REPO_ROOT,
+    SCHEMES,
+    SIDEBAR_SHOWN_FROM,
+    THEME_OF_SCHEME,
+    Tab,
+    built_pages,
+    new_context,
+    page_id,
+    read_summary,
+)
 
 SUMMARY = read_summary()
 CONVENTIONS = "conventions.html"
@@ -212,13 +228,22 @@ def _brightness(color: str) -> float:
     return 0.299 * red + 0.587 * green + 0.114 * blue
 
 
-@pytest.mark.parametrize("scheme", SCHEMES)
-def test_u10_lesson_0_5_diagram_renders_and_fits_at_320(tabs, scheme):
-    """U10: the Mermaid diagram draws an <svg> in both color schemes, fits at 320px and keeps its text readable."""
-    tab = tabs(320, scheme)
-    tab.visit(LESSON_0_5)  # also fails with a clear message if the diagram never renders
+# Every page whose built HTML has a diagram is checked, so a diagram in a later lesson is tested the day it is added.
+DIAGRAM_CASES = [pytest.param(path, 320, scheme, id=f"{page_id(path)}-320-{scheme}") for scheme in SCHEMES for path in DIAGRAM_PAGES]
+
+
+def test_u10_the_pages_with_diagrams_are_found_in_the_built_book():
+    """U10: the list of pages with a diagram comes from the built HTML; an empty list would test nothing."""
+    assert LESSON_0_5 in DIAGRAM_PAGES and CONVENTIONS in DIAGRAM_PAGES, f"Lesson 0.5 and the Conventions page have diagrams, but the list is {DIAGRAM_PAGES}."
+
+
+@pytest.mark.parametrize("path, width, scheme", DIAGRAM_CASES)
+def test_u10_every_diagram_renders_and_fits_at_320(tabs, path, width, scheme):
+    """U10: each diagram draws an <svg> in both color schemes, fits at 320px and keeps its text readable."""
+    tab = tabs(width, scheme)
+    tab.visit(path)  # also fails with a clear message if the diagram never renders
     found = tab.page.evaluate(DIAGRAM_JS, CONTENT)
-    assert found["hosts"] >= 1, "Lesson 0.5 has no diagram."
+    assert found["hosts"] >= 1, f"{path} has no diagram."
     assert found["drawn"] == found["hosts"], f"{found['hosts'] - found['drawn']} diagram(s) did not render an <svg>."
     assert found["pageFits"], "The diagram makes the page scroll sideways at 320px."
     for diagram in found["diagrams"]:
@@ -229,6 +254,7 @@ def test_u10_lesson_0_5_diagram_renders_and_fits_at_320(tabs, scheme):
             f"The diagram is scaled down so far that its text is {diagram['smallestTextPx']}px; the minimum is 12px. "
             "Use fewer nodes per row or shorter labels."
         )
+        assert diagram["textColor"] is not None, "The diagram has no node labels, so its colors cannot be checked. Write it as `flowchart TD`."
         # Mermaid's dark theme has light text and its default theme dark text.
         bright = _brightness(diagram["textColor"]) > 128
         assert bright == (scheme == "dark"), f"In the {scheme} scheme the diagram's text is {diagram['textColor']}: it was drawn for the other scheme."
@@ -343,9 +369,13 @@ def test_u14_answers_stay_hidden_until_the_reader_opens_them(private_tab, width)
     tab = private_tab(width)
     tab.visit(CONVENTIONS)
     page = tab.page
-    question = page.locator(f"{CONTENT} > details")
+    # Other questions may be added to this page, so the one tested here is found by its summary and its text.
+    question = page.locator(f"{CONTENT} > details").filter(
+        has=page.locator("> summary", has_text=re.compile(r"^Check your understanding$")),
+        has_text="Which callout type marks a habit",
+    )
     answer = question.locator("details")
-    assert question.count() == 1 and answer.count() == 1, "The Conventions page should have one question with one answer."
+    assert question.count() == 1 and answer.count() == 1, "The Conventions page should have one question about callouts, with one answer."
     assert question.locator("> summary").inner_text() == "Check your understanding"
     assert not question.evaluate("d => d.open"), "The question is open when the page loads."
     assert not page.get_by_text("The best practice callout.").is_visible(), "The answer can be seen before the reader asks for it."

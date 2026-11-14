@@ -32,6 +32,9 @@ LINT_ARGS ?= --final
 # Every C++ source and header in the book's examples.
 CPP_FILES = $(shell find examples \( -name '*.cpp' -o -name '*.h' \) | sort)
 
+# Options for tests/ui/screenshots.py, e.g. `make screenshots SCREENSHOT_ARGS="--open-details --only ch01"`.
+SCREENSHOT_ARGS ?=
+
 # Browser test workers. Each one runs its own Chromium (hundreds of MB), so the
 # default is small enough for a laptop with 8 GB; raise it on a bigger machine,
 # e.g. `make test-ui UI_WORKERS=4`.
@@ -66,8 +69,8 @@ test-ui: build ## Build, then run the browser tests (layout, accessibility, beha
 test-scripts: ## Test the example checker against the fixtures in tests/scripts/
 	$(PY) -m pytest tests/scripts -q
 
-screenshots: build ## Build, then save screenshots of every page to artifacts/screenshots/
-	$(PY) tests/ui/screenshots.py
+screenshots: build ## Build, then save screenshots to artifacts/screenshots/ (options: SCREENSHOT_ARGS='--open-details --only ch01')
+	$(PY) tests/ui/screenshots.py $(SCREENSHOT_ARGS)
 
 lint: ## Check the structure and writing rules of docs/ (see scripts/lint_content.py)
 	$(PY) scripts/lint_content.py $(LINT_ARGS)

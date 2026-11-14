@@ -11,7 +11,7 @@ import json
 from pathlib import Path
 
 import pytest
-from conftest import AXE_WIDTHS, CONTENT, PAGES, SCHEMES, SIDEBAR_SHOWN_FROM, page_id
+from conftest import AXE_WIDTHS, CONTENT, DETAILS_PAGES, PAGES, SCHEMES, SIDEBAR_SHOWN_FROM, page_id
 
 A11Y_WIDTHS = AXE_WIDTHS
 BLOCKING_IMPACTS = {"serious", "critical"}
@@ -26,14 +26,21 @@ A11Y_CASES = [
 ]
 
 
+# The same axe-core check with every <details> opened, for the pages that have questions: the colors and
+# structure of the answers are never rendered while they are closed.
+OPENED_A11Y_CASES = [
+    pytest.param(path, width, scheme, id=f"{page_id(path)}-open-{width}-{scheme}")
+    for scheme in SCHEMES
+    for width in A11Y_WIDTHS
+    for path in DETAILS_PAGES
+]
+
+
 def _allowed(rule: str, target: str) -> bool:
     return any(entry["rule"] == rule and target.endswith(entry["selector"]) for entry in ALLOWLIST)
 
 
-@pytest.mark.parametrize("path, width, scheme", A11Y_CASES)
-def test_u5_no_serious_or_critical_axe_violations(tabs, path, width, scheme):
-    """U5: axe-core finds no serious or critical problems (color contrast included)."""
-    violations = tabs(width, scheme).survey(path).axe_violations
+def _assert_no_blocking_violations(violations, width):
     assert violations is not None, f"axe-core did not run at {width}px, but U5 requires it."
     lines = []
     for violation in violations:
@@ -45,6 +52,18 @@ def test_u5_no_serious_or_critical_axe_violations(tabs, path, width, scheme):
                 summary = " ".join(node.get("failureSummary", "").split("\n")[1:2]).strip()
                 lines.append(f"  [{violation['impact']}] {violation['id']}: {violation['help']}\n      at {target}\n      {summary}")
     assert not lines, "axe-core found problems:\n" + "\n".join(lines)
+
+
+@pytest.mark.parametrize("path, width, scheme", A11Y_CASES)
+def test_u5_no_serious_or_critical_axe_violations(tabs, path, width, scheme):
+    """U5: axe-core finds no serious or critical problems (color contrast included)."""
+    _assert_no_blocking_violations(tabs(width, scheme).survey(path).axe_violations, width)
+
+
+@pytest.mark.parametrize("path, width, scheme", OPENED_A11Y_CASES)
+def test_u5_no_serious_or_critical_axe_violations_with_every_answer_opened(tabs, path, width, scheme):
+    """U5 with every answer opened: axe-core also finds nothing in the questions and answers."""
+    _assert_no_blocking_violations(tabs(width, scheme).survey(path, open_details=True).axe_violations, width)
 
 
 @pytest.mark.parametrize("path", PAGES, ids=[page_id(p) for p in PAGES])

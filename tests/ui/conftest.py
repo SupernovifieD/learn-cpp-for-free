@@ -97,6 +97,15 @@ def built_pages() -> set[str]:
     return pages
 
 
+def pages_containing(pages: list[str], marker: str) -> list[str]:
+    """The pages whose built HTML contains `marker`.
+
+    Found in the built pages themselves, so a lesson that gets its first answer or diagram is tested
+    without anyone remembering to list it. Code that shows HTML is escaped (`&lt;details`), so it never matches.
+    """
+    return [path for path in pages if marker in (BOOK_DIR / path).read_text(encoding="utf-8")]
+
+
 def page_id(path: str) -> str:
     """A readable, file-system-safe name for a page ('ch00/01-x.html' becomes 'ch00__01-x')."""
     return path.removesuffix(".html").strip("/").replace("/", "__") or "index"
@@ -205,8 +214,18 @@ SURVEY_JS = (
     }
   }
 
-  return { scrollWidth: doc.scrollWidth, clientWidth: doc.clientWidth, outside, clipped,
-           codeBlocksThatDoNotScroll };
+  // A diagram that was drawn while its answer was closed can end up with no size when the answer opens.
+  const emptyDiagrams = [...inner.querySelectorAll('pre.mermaid svg')]
+    .filter((svg) => { const r = svg.getBoundingClientRect(); return r.width === 0 || r.height === 0; })
+    .map(name);
+
+  // mdBook lets the text area (#mdbook-content) scroll sideways, so something wider than the column
+  // does not widen the document: the page would still look fine to a check of the document alone.
+  const area = inner.closest('#mdbook-content');
+
+  return { scrollWidth: doc.scrollWidth, clientWidth: doc.clientWidth,
+           areaScrollWidth: area.scrollWidth, areaClientWidth: area.clientWidth, outside, clipped,
+           codeBlocksThatDoNotScroll, emptyDiagrams };
 }
 """
 )
@@ -218,9 +237,12 @@ class Survey:
 
     scroll_width: int
     client_width: int
+    area_scroll_width: int  # the text area, which mdBook lets scroll sideways on its own
+    area_client_width: int
     outside: list[dict]
     clipped: list[dict]
     code_blocks_that_do_not_scroll: list[dict]
+    empty_diagrams: list[str]  # drawn diagrams with no size (only meaningful when every answer is open)
     problems: list[str]  # console errors, uncaught errors, failed or >=400 same-origin requests
     axe_violations: list[dict] | None  # axe-core violations, or None at widths where axe is not run
 
@@ -233,7 +255,7 @@ class Tab:
     base_url: str
     width: int = 0
     events: list[str] = field(default_factory=list)
-    surveys: dict[str, Survey] = field(default_factory=dict)
+    surveys: dict[tuple[str, bool], Survey] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
         origin = urlparse(self.base_url).netloc
@@ -248,13 +270,20 @@ class Tab:
             lambda r: self.events.append(f"HTTP {r.status}: {r.url}") if r.status >= 400 and urlparse(r.url).netloc == origin else None,
         )
 
-    def visit(self, path: str) -> None:
-        """Open a page fresh and wait until it has finished drawing."""
+    def visit(self, path: str, open_details: bool = False) -> None:
+        """Open a page fresh and wait until it has finished drawing.
+
+        With open_details, every <details> on the page (answers and the questions around them, nested ones
+        included) is opened, as a reader who wants to see all the answers would do.
+        """
         self.events.clear()
         self.page.goto(self.base_url + path, wait_until="load")
         self.page.evaluate("document.fonts.ready.then(() => true)")
         # mdBook fills the sidebar with a script; wait for it so the page is measured as readers see it.
         self.page.wait_for_selector("#mdbook-sidebar .chapter a", state="attached", timeout=10_000)
+        if open_details:
+            self.page.evaluate("document.querySelectorAll('details').forEach((d) => { d.open = true; })")
+            self.page.evaluate("new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done)))")
         # Let animations finish, so measurements (and axe's color checks) never see a half-faded state.
         self.page.wait_for_function(
             "document.getAnimations().every(a => a.playState !== 'running' || a.effect.getComputedTiming().iterations === Infinity)",
@@ -269,21 +298,25 @@ class Tab:
             except Exception as error:
                 raise AssertionError(f"The diagram on '{path}' did not render.") from error
 
-    def survey(self, path: str) -> Survey:
-        """Load a page once and measure it; later calls reuse the result."""
-        if path not in self.surveys:
-            self.visit(path)
+    def survey(self, path: str, open_details: bool = False) -> Survey:
+        """Load a page once (closed, or with every answer opened) and measure it; later calls reuse the result."""
+        key = (path, open_details)
+        if key not in self.surveys:
+            self.visit(path, open_details)
             raw = self.page.evaluate(SURVEY_JS, [CONTENT, CONTAINED_SELECTOR])
-            self.surveys[path] = Survey(
+            self.surveys[key] = Survey(
                 scroll_width=raw["scrollWidth"],
                 client_width=raw["clientWidth"],
+                area_scroll_width=raw["areaScrollWidth"],
+                area_client_width=raw["areaClientWidth"],
                 outside=raw["outside"],
                 clipped=raw["clipped"],
                 code_blocks_that_do_not_scroll=raw["codeBlocksThatDoNotScroll"],
+                empty_diagrams=raw["emptyDiagrams"],
                 problems=list(self.events),
                 axe_violations=Axe().run(self.page).response["violations"] if self.width in AXE_WIDTHS else None,
             )
-        return self.surveys[path]
+        return self.surveys[key]
 
 
 # ------------------------------------------------------- parallel scheduling --
@@ -296,14 +329,17 @@ def _scope_of(nodeid: str) -> str:
     """The group of tests that should run on one worker, so they can share loaded pages.
 
     A test id ends in the page, the width and the color scheme (for example
-    "[index-375-light]"). Everything measured at one width and scheme shares one browser tab
+    "[index-375-light]", or "[conventions-open-375-light]" for the pass with every answer opened). Everything measured at one width and scheme shares one browser tab
     that remembers each page it has loaded, so all of those tests go to the same worker: a page
     is then loaded once, not once per check. Checks that are not tied to a viewport form one
     group per check.
     """
     viewport = _VIEWPORT_ID.search(nodeid)
     if viewport:
-        return f"{viewport.group(1)}-{viewport.group(2)}"
+        # The pass with every answer opened is as large as the closed one, so it gets its own groups
+        # and the two can run on different workers.
+        opened = "open-" if "-open-" in nodeid else ""
+        return f"{opened}{viewport.group(1)}-{viewport.group(2)}"
     scheme_only = _SCHEME_ONLY_ID.search(nodeid)
     if scheme_only:  # the checks that are made at 320px and named only by color scheme
         return f"320-{scheme_only.group(1)}"
@@ -373,7 +409,7 @@ def pytest_runtest_makereport(item, call):
     try:
         tab = tabs(params["width"], params["scheme"])
         if "path" in params:
-            tab.visit(params["path"])
+            tab.visit(params["path"], open_details="-open-" in item.callspec.id)
         FAILURE_SHOTS.mkdir(parents=True, exist_ok=True)
         name = re.sub(r"[^A-Za-z0-9_.-]+", "_", item.name)
         tab.page.screenshot(path=str(FAILURE_SHOTS / f"{name}.png"), full_page=True)
@@ -418,3 +454,7 @@ def tabs(browser, base_url):
 
 # Every book page. Discovery fails loudly (rather than testing nothing) if book/ is missing or incomplete.
 PAGES = discover_pages()
+
+# The pages that have at least one question with an answer, and the pages that have a diagram.
+DETAILS_PAGES = pages_containing(PAGES, "<details")
+DIAGRAM_PAGES = pages_containing(PAGES, 'class="mermaid"')
