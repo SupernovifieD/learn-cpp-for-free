@@ -1,0 +1,5 @@
+copy form: 5
+direct form: 6
+brace form: 7
+empty braces: 0
+brace form after assignment: 70

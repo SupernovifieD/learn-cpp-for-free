@@ -16,9 +16,11 @@ Rules, each reported as  docs/page.md:LINE: message
   * links to other pages point at a listed page and, with a #fragment, at one of its headings
   * images have alt text; links to other sites use https
   * none of: TODO, TBD, FIXME, lorem, "coming soon"
-  * no text left over from templates/lesson.md or templates/chapter-index.md (their instructions and placeholders)
+  * no text left over from templates/lesson.md, templates/chapter-index.md or templates/summary-and-quiz.md
+    (their instructions and placeholders)
   * callouts use only the documented kinds, and tabs are well formed and use only the documented label sets
-  * every file in examples/ is used by at least one page (.in files belong to the program next to them)
+  * every file in examples/ is used by at least one page (.in files belong to the program next to them, a
+    .cpp file or a project folder), so every .cpp and .h file of a project needs its own include
 
 Fenced code and `inline code` are never checked for HTML, links or forbidden words, because the book
 legitimately shows such text there. The script needs only Python 3.11 or newer.
@@ -57,6 +59,12 @@ TEMPLATE_LEFTOVERS = [
     "First main point.",
     "# 1. Chapter title",
     "Explain the first big idea of the chapter",
+    # templates/summary-and-quiz.md
+    "# N.x Chapter N summary and quiz",
+    "what this page recaps",
+    "Restate the key terms of the lesson",
+    "Write the first question here",
+    "Explain the solution here",
 ]
 FORBIDDEN_WORDS = re.compile(r"\b(TODO|TBD|FIXME|lorem|coming soon)\b", re.IGNORECASE)
 # Syntax of the former site generator. mdBook would print it as plain text.
@@ -297,12 +305,12 @@ def lint_examples_used(included_by_page: dict[str, set[str]], final: bool) -> li
     """Every file in examples/ must be shown by at least one page."""
     used = {path for paths in included_by_page.values() for path in paths}
     problems = []
-    for file in sorted(p for p in EXAMPLES.rglob("*") if p.is_file()):
+    for file in sorted(p for p in EXAMPLES.rglob("*") if p.is_file() and p.name != ".DS_Store"):
         rel = file.relative_to(REPO).as_posix()
         if file.suffix == ".in":
-            program = file.with_suffix(".cpp")
-            if not program.exists():
-                problems.append(Problem(rel, 0, "input file has no program next to it."))
+            # The typed lines of a program: X.in belongs to X.cpp or to the project folder X/ next to it.
+            if not file.with_suffix(".cpp").exists() and not file.with_suffix("").is_dir():
+                problems.append(Problem(rel, 0, "input file has no program next to it (expected a .cpp file or a project folder with the same name)."))
             continue
         if rel == FLAGS_EXAMPLE:
             if not final:

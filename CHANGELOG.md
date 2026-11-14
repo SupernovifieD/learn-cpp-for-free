@@ -7,6 +7,43 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
+### Added
+
+- Chapter 1, "C++ Basics": 11 lessons, from statements and comments to
+  variables, input and output, operators, expressions and a first program,
+  and a summary and quiz page.
+- Chapter 2, "C++ Basics: Functions and Files": 13 lessons on functions,
+  scope, several source files, namespaces, the preprocessor, header files and
+  header guards, and a summary and quiz page.
+- Example programs of several files. A program in `examples/` is a file or a
+  folder with `.cpp` and `.h` files that are built together, and headers are
+  checked for length and formatting like the sources.
+- Console sessions for programs that read input. `X.in` holds what the reader
+  types, and `X.session` holds what the reader sees, which the checker proves
+  against the output of the program.
+- Every running example is also built and run with AddressSanitizer and UBSan.
+- Tests for the example checker itself, with example trees that it must accept
+  or reject (`make test-scripts`), run in `make check` and in CI.
+- Browser tests for every page with answers, measured again with all of them
+  opened, and for every page with a diagram, and a search test for "header
+  guard".
+- A template for summary and quiz pages, and contributor rules for projects,
+  sessions, quiz pages, naming and the order in which topics are taught.
+
+### Changed
+
+- The browser test that checks that a page never scrolls sideways now also
+  checks the text area, which mdBook lets scroll on its own and which used to
+  hide an element that was too wide.
+- `tests/ui/screenshots.py` can open all answers, choose pages and choose
+  widths.
+- Forward references in Chapter 0 link to the lessons that explain them.
+
+### Fixed
+
+- The example checker looked for `X.out` instead of `X.fail.out` when it
+  checked a failing program, so a stray `X.fail.out` file went unnoticed.
+
 ## [0.2.0] - 2026-11-13
 
 ### Changed

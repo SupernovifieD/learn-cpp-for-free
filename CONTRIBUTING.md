@@ -41,19 +41,20 @@ py -3 -m venv .venv
 | Build the book | `make build` | `mdbook build` |
 | Lint the content | `make lint` | `python scripts/lint_content.py` |
 | Check the examples | `make examples` | `python scripts/check_examples.py` |
-| Check formatting | `make format-check` | `clang-format --dry-run --Werror` on every `.cpp` file in `examples/` |
+| Test the example checker | `make test-scripts` | `python -m pytest tests/scripts` |
+| Check formatting | `make format-check` | `clang-format --dry-run --Werror` on every `.cpp` and `.h` file in `examples/` |
 | Browser tests | `make test-ui` | `mdbook build`, then `python -m pytest tests/ui -n 2 --dist loadscope` |
-| Screenshots | `make screenshots` | `mdbook build`, then `python tests/ui/screenshots.py` |
+| Screenshots | `make screenshots` | `mdbook build`, then `python tests/ui/screenshots.py` (options: `--open-details`, `--only <text>`, `--widths 320,768`) |
 
 Two details of `mdbook build`: it prints a note that mdbook-mermaid was built against an earlier 0.5 release, which is expected, and it exits successfully even when an include names a missing file, so `make build` also fails when its log contains a `WARN` or `ERROR` line.
 
-**A note about GCC on macOS.** The `g++` command on macOS is Apple's Clang. The example checker detects this, does not count it as GCC and prints a warning. To check with real GCC, install it (for example with Homebrew) and point the checker at it: `GXX=g++-15 make examples`. CI always checks with real GCC.
+**A note about GCC on macOS.** The `g++` command on macOS is Apple's Clang. The example checker detects this, does not count it as GCC and prints a warning. To check with real GCC, install it (for example with Homebrew) and point the checker at it: `GXX=g++-15 make examples`. CI always checks with real GCC. Also on macOS, the system scans every newly built program, so its first start can take a few seconds. The checker therefore starts a program that exceeds the time limit once more, and reports it only when it is too slow both times.
 
 ## Daily workflow
 
 1. Create a branch from `main`.
 2. Run `make serve` and edit files. The browser reloads when you save, also when you change a file in `examples/`.
-3. Run `make check` before you commit. It runs, in order: the content lint, the example check, the format check, the build and the browser tests. CI runs the same commands.
+3. Run `make check` before you commit. It runs, in order: the content lint, the tests of the example checker, the example check, the format check, the build and the browser tests. CI runs the same commands.
 4. Open a pull request. The checklist in the pull request template mirrors this guide.
 
 `make format` reformats the C++ examples with the pinned `clang-format`, so everyone formats the same way. `make screenshots` saves pictures of every page to `artifacts/screenshots/` for the visual review described below.
@@ -99,15 +100,37 @@ Suppose you are adding lesson 0.14, "Example lesson".
 
 4. Add the chapter to the contents list on the home page (`docs/index.md`).
 5. Create `examples/ch01/` for the chapter's programs, and then add the lessons as described above.
+6. End the chapter with a summary and quiz page (see the next section).
+
+## Add a summary and quiz page
+
+A chapter can end with a page that recaps its lessons and tests the reader.
+
+1. **Copy the template.** Copy `templates/summary-and-quiz.md` to `docs/chNN-slug/x-summary-and-quiz.md`. The `x-` keeps the page after the numbered lessons. The first heading is the label in `docs/SUMMARY.md`, written like `1.x Chapter 1 summary and quiz`.
+2. **Write the summary.** Under `## Summary`, write one short paragraph or bullet group for each lesson, in lesson order. Each links to its lesson and restates its key terms in plain words. Teach nothing new here.
+3. **Write the quiz.** Under `## Quiz`, write 5 to 8 questions in rising difficulty. Each is a `### Question N` heading, the question as normal visible text, and the solution inside a `<details>` whose summary is `Solution`. At least half of the questions are programming tasks. Their solution programs are named `x-qN-slug` (`examples/ch01/x-q3-seat-count.cpp`, or a project folder), checked like every other example, and included in the solution together with their Output or Example session block.
+4. **Add the page** to `docs/SUMMARY.md` as the last entry of the chapter, and to the lesson list in the chapter's `index.md`.
+
+On a quiz page the question stays visible and only the solution is collapsed. The nested question-and-answer pattern under "Callouts" is for the "Check your understanding" questions inside lessons.
 
 ## Rules for examples
 
-- **Names.** `examples/chNN/NN-slug.cpp`, where `NN` is the number of the lesson that first uses the program.
-- **Output.** The exact expected standard output goes in `NN-slug.out`. If the program reads input, put it in `NN-slug.in`.
-- **Programs that must fail.** Name them `NN-slug.fail.cpp`. The first line must be `// expect-fail: <one-line reason>`. An optional second line, `// passes-without: <flag> [<flag> ...]`, makes the checker also prove that the file builds once those flags are removed, which shows that the failure comes from the flags the book teaches.
-- **Every example is used.** Each file in `examples/` must be included by at least one page, or `make lint` fails.
-- **Formatting.** 4-space indent, braces on their own line, at most 80 columns, one statement per line, brace initialization, `"\n"` instead of `std::endl`. `make format` applies the rules from `.clang-format`.
+- **Names.** `examples/chNN/NN-slug.cpp`, where `NN` is the number of the lesson that first uses the program. The programs of a chapter's quiz are named `x-qN-slug` instead, after the page `x-summary-and-quiz.md` that uses them. In a lesson, a single-file program is titled with its file name without the number prefix (`title="hello-world.cpp"`), and the files of a project keep their real names (`title="main.cpp"`).
+- **Names in code.** Variables and functions use `camelCase` (`readNumber`, `totalSeats`). Header files end in `.h`, and a header guard is named after its file in `UPPER_SNAKE_CASE` (`ADD_H` for `add.h`). Once the book has explained header guards, every header has one; a lesson that shows headers earlier says why they have none yet. The book picks one style and says in its lesson about names that other styles exist.
+- **Projects (programs with several files).** A program is either one file or a folder. A project is a folder such as `examples/ch02/08-two-files/` that holds the program's `.cpp` files and the `.h` headers they include, with one of the files named `main.cpp`. The checker compiles and links every `.cpp` file of the folder in one command. The folder is flat (no folders inside it), and a `.cpp` file inside it is never a program of its own. Headers are allowed only inside project folders, and they follow the same formatting rules as `.cpp` files.
+- **Files that belong to a program** sit next to it, whether it is a file or a folder, never inside the project folder: `08-two-files.out` is the output of the folder `08-two-files/`. The exact expected standard output goes in `NN-slug.out`.
+- **Programs that read input** have two more files. `NN-slug.in` holds what the reader types, one line for each press of the Enter key. `NN-slug.session` holds what the reader sees in the console: the program's output with the typed lines where they appear on the screen. For a program that prints `Enter a number: ` and then `Twice that is 14` after the reader types 7, the session is `Enter a number: 7` followed by `Twice that is 14` on the next line. The checker proves that removing each line of `.in`, in order, from where it appears in the session leaves exactly the program's output, so a wrong output line, a missing typed line and an input line that the session never shows are all errors. The proof covers the order of the typed lines and that everything else is the program's output. It does not check where a typed line sits, which should be right after the prompt that asks for it, and it cannot tell that the program really read every typed line. Place the lines as the program would show them, keep the input short, and say in the lesson what the reader types. A program has `.out` or `.session`, never both, and `.in` always goes with `.session`. Show a session in a block titled `Example session` (```` ```text title="Example session" ````) instead of `Output`, and write in the prose what the reader types ("Type 7 and press Enter").
+- **Programs that must fail.** Name a file `NN-slug.fail.cpp` and a project folder `NN-slug.fail/`. The first line of the file (of `main.cpp` for a project) must be `// expect-fail: <one-line reason>`. An optional second line, `// passes-without: <flag> [<flag> ...]`, makes the checker also prove that the program builds once those flags are removed, which shows that the failure comes from the flags the book teaches. A failing program never runs, so it has no `.out`, `.in` or `.session` file. The checker only knows that the build failed, so check yourself that it fails for the reason you describe. `make format` formats failing programs too, and `clang-format` cannot format code that does not parse: it may join two lines, because a missing semicolon turns two statements into one, or write `* /` for a stray `*/`. Read the file again after formatting, and choose a layout that the formatter leaves alone (a missing semicolon before a closing brace is one).
+- **Sanitizers.** The checker also builds every running program with AddressSanitizer and UBSan and runs it again with the same input, so a program with undefined behavior or a memory error fails even if it happened to print the right output (the `san` column of the result table). A compiler without a sanitizer runtime only gives a warning on your computer, so install the runtime that comes with your compiler to see the same results as CI, which requires it.
+- **Every example is used.** Each file in `examples/` must be included by at least one page, or `make lint` fails. A lesson shows a project as one titled block per file (`title="main.cpp"`, `title="add.h"`): headers first, then the other `.cpp` files, then `main.cpp`, then the output.
+- **Formatting.** 4-space indent, braces on their own line, at most 80 columns, one statement per line, brace initialization, `"\n"` instead of `std::endl`. `make format` applies the rules from `.clang-format` to every `.cpp` and `.h` file.
 - **The strict flags.** `examples/flags-gcc-clang.txt` holds the one line of compiler flags that CI uses and that lesson 0.11 shows. Change it only on purpose, because it changes what the book promises.
+
+## Teach in order
+
+An example or an explanation may use only what earlier lessons have taught. Think of a lesson's **toolbox**: everything the lessons before it taught, plus what the lesson teaches itself. Before you write an example, list what it uses and check every item against the toolbox. If an example needs something that is not in it, change the example or the order of the lessons, never the rule.
+
+A later feature may be named in prose with a forward reference ("You will meet `if` statements in Chapter 4"), but it never appears in a program that readers type or that the checker runs, and the lesson does not teach it in depth. Something that a lesson shows only to say that it is wrong goes into a `.fail` program. When you review a lesson, ask whether a reader who has read only the earlier lessons could follow every line.
 
 ## Writing style
 
@@ -202,7 +225,7 @@ A table wider than the page scrolls inside its frame, and the frame can be scrol
 
 `make test-ui` builds the book and opens every page in a headless browser at nine widths (320 to 1920 pixels) in light and dark mode, served under the same path as on GitHub Pages. The list of pages comes from `docs/SUMMARY.md`, and a listed page that was not built is an error. It checks, among other things, that:
 
-- the page never scrolls sideways and nothing sticks out of the text column,
+- the page never scrolls sideways, neither does the text area inside it, and nothing sticks out of the text column,
 - long code lines scroll inside their own block,
 - there are no console errors or failed requests,
 - axe-core finds no serious or critical accessibility problems (`tests/ui/axe_allowlist.json` is empty; an entry needs a written reason),
@@ -211,12 +234,13 @@ A table wider than the page scrolls inside its frame, and the frame can be scrol
 - the previous and next arrows follow `SUMMARY.md`, and the sidebar, search, theme menu and edit links work,
 - tabs have the right roles, work with the keyboard, remember the choice and stay readable without JavaScript,
 - answers stay hidden until opened, and the copy button copies the program in `examples/`,
-- the Mermaid diagram draws in both themes and fits at 320 pixels,
+- every page with a question is measured again with every `<details>` opened (nested ones too) at 320, 375 and 1280 pixels, so code, tables and diagrams inside answers are checked like the rest of the page, and axe-core checks the opened answers as well,
+- every Mermaid diagram, found in the built pages, draws in both themes, fits at 320 pixels and keeps its text at 12 pixels or more,
 - an unknown address shows the book's own 404 page, styled and with a working sidebar.
 
 When a check fails, the test run saves a screenshot of the failing page to `artifacts/screenshots/failures/`, and CI uploads that folder. Optional settings: `UI_WORKERS` sets how many browsers run in parallel (`make test-ui UI_WORKERS=4`, default 2), and `BASE_URL` tests a published book instead of the local build, for example `BASE_URL=https://supernovified.github.io/learn-cpp-for-free/`.
 
-Automated checks do not see everything, so look at the screenshots of your page (375 and 1280 pixels wide in both color schemes, plus 320 for pages with tabs, tables or diagrams) and check that:
+Automated checks do not see everything, so look at the screenshots of your page (375 and 1280 pixels wide in both color schemes, plus 320 for pages with tabs, tables or diagrams) and check the points below. For a page with questions, look at the screenshots twice: once with the answers closed, and once with every answer opened (`make screenshots SCREENSHOT_ARGS="--open-details --only ch01"` saves the second set next to the first, with `-open` in the file name). Check that:
 
 1. callouts line up with the text, and the custom kinds look like the built-in ones;
 2. the copy button never covers code, and file names line up with the block edges;

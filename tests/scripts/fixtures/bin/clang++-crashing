@@ -1,0 +1,19 @@
+#!/bin/sh
+# Stand-in for a clang++ whose sanitized programs crash at start-up: with -fsanitize it writes a
+# program that fails, otherwise it is the real clang++.
+sanitized=no
+output=a.out
+previous=
+for argument in "$@"; do
+    case "$argument" in
+        -fsanitize*) sanitized=yes ;;
+    esac
+    if [ "$previous" = "-o" ]; then output="$argument"; fi
+    previous="$argument"
+done
+if [ "$sanitized" = yes ]; then
+    printf '#!/bin/sh\necho "AddressSanitizer:DEADLYSIGNAL" >&2\nexit 1\n' > "$output"
+    chmod +x "$output"
+    exit 0
+fi
+exec clang++ "$@"

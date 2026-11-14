@@ -4,7 +4,7 @@ A free, open-source book for learning modern C++ from first principles. It is bu
 
 **Read it online: <https://supernovified.github.io/learn-cpp-for-free/>**
 
-This is a pilot. It contains the introduction, the home page, a page that explains the conventions used in the book, and **Chapter 0 (Introduction / Getting Started)** with 13 lessons. Every complete program in the book is compiled with GCC and Clang, using C++20 and strict warnings, and its output is checked automatically.
+The book grows chapter by chapter. It now has a home page, a page that explains the conventions used in the book, and three chapters: **Chapter 0 (Introduction / Getting Started)** with 13 lessons, **Chapter 1 (C++ Basics)** with 11 lessons, and **Chapter 2 (C++ Basics: Functions and Files)** with 13 lessons. Chapters 1 and 2 each end with a summary and a quiz. Every complete program in the book is compiled with GCC and Clang, using C++20 and strict warnings, and run again under AddressSanitizer and UBSan, and its output is checked automatically.
 
 ## Quick start
 
@@ -24,17 +24,18 @@ Open <http://127.0.0.1:3000> to read the book while you edit it. `make build` wr
 | Path | What it holds |
 | --- | --- |
 | `docs/` | Everything the book publishes: the pages, and `SUMMARY.md`, the table of contents |
-| `examples/` | Every complete C++ program in the book, with its expected output |
+| `examples/` | Every complete C++ program in the book, as a file or a folder of files, with its expected output or console session |
 | `book.toml` | The mdBook configuration |
 | `theme/` | The few additions to mdBook's own look: one stylesheet, one script, the favicon, Mermaid, and a highlight.js bundle with PowerShell |
 | `scripts/` | The example checker, the content linter, the mdBook preprocessor and the tool installer |
+| `tests/scripts/` | Tests of the example checker, with small example trees (fixtures) that it must accept or reject |
 | `tests/ui/` | Browser tests for layout, accessibility and behavior |
-| `templates/` | Copy-me starting points for a new lesson and a new chapter |
+| `templates/` | Copy-me starting points for a new lesson, a new chapter and a summary and quiz page |
 | `.github/` | The CI workflow, Dependabot and the pull request and issue templates |
 
 ## How it is checked and published
 
-`make check` runs everything that CI runs: it lints the content, builds and runs the C++ examples with GCC and Clang, checks their formatting, builds the book, and runs the browser tests against it.
+`make check` runs everything that CI runs: it lints the content, tests the example checker itself, builds and runs the C++ examples with GCC and Clang (also under AddressSanitizer and UBSan), checks their formatting, builds the book, and runs the browser tests against it.
 
 A GitHub Actions workflow repeats these checks for every push and pull request. When a change lands on `main` and every check passes, the same workflow uploads `book/` and publishes it to GitHub Pages, and then checks that the published address serves the new book.
 

@@ -37,7 +37,7 @@ The `-o` option names the output file, so this command writes an executable call
 
 A **library** is a collection of code that someone else already wrote and compiled, so you can reuse it. You tell the linker which libraries your program needs, and it takes the pieces you use.
 
-The most important library is the **C++ Standard Library**. It comes with your compiler, and it provides ready-made tools for common jobs, such as printing text and storing collections of values. You will meet its parts one by one, starting in Chapter 1, and compilers add the Standard Library to your program automatically.
+The most important library is the **C++ Standard Library**. It comes with your compiler, and it provides ready-made tools for common jobs, such as printing text and storing collections of values. You will meet its parts one by one, starting in [Chapter 1](../ch01-cpp-basics/index.md), and compilers add the Standard Library to your program automatically.
 
 Libraries written by other people are called third-party libraries. You will not need any of them for a long while.
 

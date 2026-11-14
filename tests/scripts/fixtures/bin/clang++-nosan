@@ -1,0 +1,11 @@
+#!/bin/sh
+# Stand-in for a clang++ that has no sanitizer runtime: refuse -fsanitize, otherwise be the real clang++.
+for argument in "$@"; do
+    case "$argument" in
+        -fsanitize*)
+            echo "ld: cannot find libclang_rt.asan (stand-in for a missing sanitizer runtime)" >&2
+            exit 1
+            ;;
+    esac
+done
+exec clang++ "$@"

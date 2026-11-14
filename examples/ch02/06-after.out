@@ -1,0 +1,9 @@
+Tea
+  amount: 2
+  cost: 6 euros
+Coffee
+  amount: 1
+  cost: 4 euros
+Cake
+  amount: 3
+  cost: 15 euros
