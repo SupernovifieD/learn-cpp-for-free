@@ -28,6 +28,7 @@ Open <http://127.0.0.1:3000> to read the book while you edit it. `make build` wr
 | `book.toml` | The mdBook configuration |
 | `theme/` | The few additions to mdBook's own look: one stylesheet, one script, the favicon, Mermaid, and a highlight.js bundle with PowerShell |
 | `scripts/` | The example checker, the content linter, the mdBook preprocessor and the tool installer |
+| `tests/scripts/` | Tests of the example checker, with small example trees (fixtures) that it must accept or reject |
 | `tests/ui/` | Browser tests for layout, accessibility and behavior |
 | `templates/` | Copy-me starting points for a new lesson and a new chapter |
 | `.github/` | The CI workflow, Dependabot and the pull request and issue templates |

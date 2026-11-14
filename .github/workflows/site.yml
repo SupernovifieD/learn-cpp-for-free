@@ -83,6 +83,12 @@ jobs:
       - name: Lint the content
         run: make PY=python lint
 
+      # The example checker has tests of its own: small example trees (tests/scripts/fixtures)
+      # that it must accept or reject with a clear message. They run before the checker judges
+      # the book's examples, so a broken checker cannot pass them by accident.
+      - name: Test the example checker
+        run: make PY=python test-scripts
+
       # Build and run every C++ example with GCC and Clang. --require-all makes a
       # missing compiler a failure instead of a warning.
       - name: Compile and run the examples
