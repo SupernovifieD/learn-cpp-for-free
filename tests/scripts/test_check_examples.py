@@ -14,6 +14,7 @@ from __future__ import annotations
 import os
 import subprocess
 import sys
+import tempfile
 from pathlib import Path
 
 import pytest
@@ -30,12 +31,34 @@ CLANG_FORMAT = check_examples.find_clang_format()
 
 needs_compiler = pytest.mark.skipif(not COMPILERS, reason="no real g++ or clang++ was found, so the checker cannot build anything")
 needs_clang_format = pytest.mark.skipif(CLANG_FORMAT is None, reason="clang-format was not found (install requirements-dev.txt)")
+CLANG = next((compiler for compiler in COMPILERS if compiler.kind == "clang"), None)
+needs_clang = pytest.mark.skipif(CLANG is None, reason="no real clang++ was found, which the stand-in compilers in fixtures/bin wrap")
 
 
-def run_checker(case: str, *arguments: str) -> subprocess.CompletedProcess:
-    """Run the checker on the fixture tree `case`, with the fixtures' own flags file."""
-    command = [sys.executable, str(SCRIPTS / "check_examples.py"), "--root", str(FIXTURES / case), "--flags-file", str(FIXTURES / "flags.txt"), *arguments]
-    result = subprocess.run(command, capture_output=True, text=True, timeout=300)
+
+
+@pytest.fixture(scope="session")
+def sanitizer_compilers() -> list:
+    """The compilers on this machine that can build and run programs with the sanitizers (probing is slow, so once)."""
+    with tempfile.TemporaryDirectory() as tmp:
+        return [compiler for compiler in COMPILERS if check_examples.probe_sanitizers(compiler, Path(tmp)) is None]
+
+
+@pytest.fixture
+def working_sanitizers(sanitizer_compilers) -> list:
+    if not sanitizer_compilers:
+        pytest.skip("no compiler here has a working sanitizer runtime")
+    return sanitizer_compilers
+
+
+def run_checker(case: str, *arguments: str, sanitizers: bool = False, env: dict[str, str] | None = None) -> subprocess.CompletedProcess:
+    """Run the checker on the fixture tree `case`, with the fixtures' own flags file.
+
+    The sanitizer builds are slow, so they are skipped unless a test is about them.
+    """
+    skip = [] if sanitizers else ["--skip-sanitizers"]
+    command = [sys.executable, str(SCRIPTS / "check_examples.py"), "--root", str(FIXTURES / case), "--flags-file", str(FIXTURES / "flags.txt"), *skip, *arguments]
+    result = subprocess.run(command, capture_output=True, text=True, timeout=300, env={**os.environ, **(env or {})})
     result.output = result.stdout + result.stderr  # type: ignore[attr-defined]
     return result
 
@@ -54,9 +77,10 @@ MINIMAL = "int main()\n{\n    return 0;\n}\n"
 
 
 @pytest.mark.skipif(not os.environ.get("CI"), reason="only CI insists on the tools")
-def test_ci_has_a_compiler_and_clang_format():
+def test_ci_has_a_compiler_and_clang_format(sanitizer_compilers):
     assert COMPILERS, "CI must have a real g++ or clang++, or every build test would be skipped."
     assert CLANG_FORMAT, "CI must have clang-format, or every format test would be skipped."
+    assert sanitizer_compilers, "CI must have a working AddressSanitizer and UBSan, or the sanitizer tests would be skipped."
 
 
 # --------------------------------------------------------------- the whole checker --
@@ -178,6 +202,59 @@ def test_an_input_file_needs_a_session_instead_of_an_out_file():
     assert run.returncode == 1, run.output
     assert "01-twice.in needs 01-twice.session" in run.output
     assert "replace 01-twice.out by 01-twice.session" in run.output
+
+
+# ------------------------------------------------------------------ sanitizers --
+
+
+def cells_of(output: str, name: str) -> list[str]:
+    """The result cells (gcc, clang, san, 80col, format) of the table row that names `name`."""
+    row = next(line for line in output.splitlines() if name in line)
+    return row.split()[1:]
+
+
+@needs_compiler
+def test_a_running_program_is_also_run_under_the_sanitizers_and_a_failing_one_is_not(sanitizer_compilers):
+    run = run_checker("good", sanitizers=True)
+    assert run.returncode == 0, run.output
+    assert cells_of(run.output, "01-hello.cpp")[2] == ("PASS" if sanitizer_compilers else "SKIP")
+    assert cells_of(run.output, "03-never-builds.fail.cpp")[2] == "-"
+
+
+def test_a_run_time_finding_fails_even_though_the_program_builds_cleanly(working_sanitizers):
+    run = run_checker("sanitizer-finding", sanitizers=True)
+    assert run.returncode == 1, run.output
+    assert "AddressSanitizer and UBSan" in run.output
+    assert "signed integer overflow" in run.output
+    # The same program is fine without the sanitizer run, so the sanitizers caused the failure.
+    relaxed = run_checker("sanitizer-finding")  # without the sanitizer run
+    assert relaxed.returncode == 0, relaxed.output
+
+
+@needs_clang
+def test_a_compiler_without_a_sanitizer_runtime_only_warns_unless_everything_is_required():
+    nosan = str(FIXTURES / "bin" / "clang++-nosan")
+    lenient = run_checker("good", sanitizers=True, env={"CLANGXX": nosan})
+    assert lenient.returncode == 0, lenient.output
+    assert "WARNING clang sanitizers:" in lenient.output
+    assert "sanitizer runtime is probably not installed" in lenient.output
+    strict = run_checker("good", "--require-all", sanitizers=True, env={"CLANGXX": nosan})
+    assert strict.returncode == 1, strict.output
+    assert "--require-all: clang sanitizers:" in strict.output
+
+
+@needs_clang
+def test_a_sanitizer_that_crashes_at_start_up_is_told_apart_from_a_missing_runtime(tmp_path):
+    compiler = check_examples.Compiler("clang", str(FIXTURES / "bin" / "clang++-crashing"), "stand-in")
+    reason = check_examples.probe_sanitizers(compiler, tmp_path)
+    assert reason is not None
+    assert "crashes at start-up" in reason and "vm.mmap_rnd_bits=28" in reason
+    missing = check_examples.Compiler("clang", str(FIXTURES / "bin" / "clang++-nosan"), "stand-in")
+    assert "probably not installed" in check_examples.probe_sanitizers(missing, tmp_path)
+
+
+def test_the_probe_accepts_a_compiler_whose_sanitizers_work(tmp_path, working_sanitizers):
+    assert check_examples.probe_sanitizers(working_sanitizers[0], tmp_path) is None
 
 
 # ------------------------------------------------- the folder rules (no compiler) --

@@ -21,7 +21,7 @@ BOOTSTRAP_PY ?= python3
 CLANG_FORMAT ?= $(VENV)/bin/clang-format
 
 # Extra options for scripts/check_examples.py. CI passes --require-all so that
-# a missing compiler fails the build instead of only printing a warning.
+# a missing compiler or sanitizer runtime fails the build instead of only printing a warning.
 EXAMPLES_ARGS ?=
 
 # Options for scripts/lint_content.py. --final also rejects leftover <!-- STUB --> markers and
@@ -72,7 +72,7 @@ screenshots: build ## Build, then save screenshots of every page to artifacts/sc
 lint: ## Check the structure and writing rules of docs/ (see scripts/lint_content.py)
 	$(PY) scripts/lint_content.py $(LINT_ARGS)
 
-examples: ## Compile, run and format-check every C++ example with GCC and Clang
+examples: ## Compile, run (also under ASan and UBSan) and format-check every C++ example with GCC and Clang
 	$(PY) scripts/check_examples.py $(EXAMPLES_ARGS)
 
 format: ## Reformat every C++ example (sources and headers) in place

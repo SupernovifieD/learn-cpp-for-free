@@ -2,7 +2,7 @@
 """Check every C++ example in examples/: it must build, run, print what the book says, and be formatted.
 
     python scripts/check_examples.py                 # all examples
-    python scripts/check_examples.py --require-all   # CI: a missing compiler is a failure
+    python scripts/check_examples.py --require-all   # CI: a missing compiler or sanitizer is a failure
     python scripts/check_examples.py examples/ch00/07-hello-world.cpp   # just these programs
     python scripts/check_examples.py --root tests/scripts/fixtures/good --flags-file tests/scripts/fixtures/flags.txt
 
@@ -21,6 +21,8 @@ How each program is judged, with the strict flags from examples/flags-gcc-clang.
                                   removing each X.in line, in order, from where it appears in
                                   X.session must leave exactly the program's standard output.
                      A program has X.out or X.session, never both, and X.in goes with X.session.
+                     Then the same program is built again with the strict flags plus AddressSanitizer
+                     and UBSan and run again: any sanitizer report is a failure ("san" column).
   X.fail.cpp or      must FAIL to build on every compiler. The first lines of the file (of main.cpp
   X.fail/            for a project) must contain
                          // expect-fail: <one-line reason>
@@ -35,7 +37,7 @@ is written to the repository: builds happen in a temporary directory.
 
 Compilers: "g++" must really be GCC and "clang++" must really be Clang. Apple's g++ is a copy of
 Clang, so it is not counted as GCC; set GXX to a real GCC (for example GXX=g++-15) to test it.
-Without --require-all a missing compiler is only a warning.
+Without --require-all a missing compiler (or a compiler without sanitizer runtime) is only a warning.
 The script needs nothing but Python 3 and the compilers (clang-format is found through the
 clang-format package or PATH).
 """
@@ -58,9 +60,33 @@ DEFAULT_ROOT = REPO / "examples"
 FLAGS_NAME = "flags-gcc-clang.txt"
 MAX_COLUMNS = 80
 RUN_TIMEOUT_SECONDS = 5
+SANITIZER_RUN_TIMEOUT_SECONDS = 10
 COMPILE_TIMEOUT_SECONDS = 120
+SANITIZER_FLAGS = ["-fsanitize=address,undefined", "-fno-sanitize-recover=all", "-g"]
 COMPANION_SUFFIXES = (".out", ".in", ".session")
 IGNORED_NAMES = {".DS_Store"}
+
+# Two tiny programs that tell "this machine has no sanitizer runtime" and "this machine's sanitizers
+# crash at start-up" apart from "an example has a real finding". The first allocates and frees; the
+# second overflows a signed integer, which UBSan must report (and, with
+# -fno-sanitize-recover=all, must answer with a non-zero exit code).
+PROBE_CLEAN = """#include <iostream>
+int main(int argc, char**)
+{
+    int* values = new int[4]{argc, 0, 0, 0};
+    std::cout << values[0] << "\\n";
+    delete[] values;
+    return 0;
+}
+"""
+PROBE_OVERFLOW = """int main(int argc, char**)
+{
+    int value = 2147483647;
+    value += argc;
+    return value == 0;
+}
+"""
+
 
 @dataclass
 class Compiler:
@@ -408,6 +434,20 @@ def check_program(compiler: Compiler, flags: list[str], program: Program, scratc
     return True
 
 
+def check_sanitized(compiler: Compiler, flags: list[str], program: Program, scratch: Path, result: Result) -> bool:
+    """The same program built with AddressSanitizer and UBSan: it must still build, run and print the same."""
+    exe = scratch / f"{program.stem}-{compiler.kind}-san"
+    built = build(compiler, [*flags, *SANITIZER_FLAGS], program.sources, exe, scratch)
+    if built.returncode != 0:
+        result.fail("san", f"{compiler.command} could not build this program with the sanitizers:\n{indent(built.stdout + built.stderr)}")
+        return False
+    problem = run_and_judge(exe, program, SANITIZER_RUN_TIMEOUT_SECONDS, scratch)
+    if problem:
+        result.fail("san", f"{compiler.command} with AddressSanitizer and UBSan: {problem}")
+        return False
+    return True
+
+
 def check_failing_program(compiler: Compiler, flags: list[str], flags_name: str, program: Program, scratch: Path, result: Result) -> None:
     """X.fail.cpp or X.fail/: must not build, and must build once the 'passes-without' flags are removed."""
     column = compiler.kind
@@ -431,6 +471,38 @@ def check_failing_program(compiler: Compiler, flags: list[str], flags_name: str,
             )
             return
     result.cells[column] = "PASS"
+
+
+def probe_sanitizers(compiler: Compiler, scratch: Path) -> str | None:
+    """None when this compiler can build and run programs with the sanitizers, else the reason it cannot."""
+    flags = ["-std=c++20", *SANITIZER_FLAGS]
+    clean_source = scratch / f"probe-clean-{compiler.kind}.cpp"
+    clean_source.write_text(PROBE_CLEAN)
+    clean = build(compiler, flags, (clean_source,), scratch / f"probe-clean-{compiler.kind}", scratch)
+    if clean.returncode != 0:
+        return (
+            f"{compiler.command} cannot build with -fsanitize=address,undefined, so its sanitizer runtime is probably not installed "
+            f"(on Ubuntu: libasan and libubsan for GCC, libclang-rt-<version>-dev for Clang):\n{indent(clean.stdout + clean.stderr)}"
+        )
+    try:
+        ran = subprocess.run([str(scratch / f"probe-clean-{compiler.kind}")], capture_output=True, timeout=SANITIZER_RUN_TIMEOUT_SECONDS, cwd=scratch)
+    except subprocess.TimeoutExpired:
+        return "a trivial program built with the sanitizers did not finish."
+    if ran.returncode != 0:
+        return (
+            f"a trivial program built with {compiler.command} and the sanitizers crashes at start-up, so the sanitizers cannot run here "
+            f"(on Linux this is usually the high ASLR entropy problem; `sudo sysctl -w vm.mmap_rnd_bits=28` is the documented fix):\n"
+            f"{indent(ran.stderr.decode(errors='replace'))}"
+        )
+    overflow_source = scratch / f"probe-overflow-{compiler.kind}.cpp"
+    overflow_source.write_text(PROBE_OVERFLOW)
+    overflow = build(compiler, flags, (overflow_source,), scratch / f"probe-overflow-{compiler.kind}", scratch)
+    if overflow.returncode != 0:
+        return f"{compiler.command} could not build the UBSan probe:\n{indent(overflow.stdout + overflow.stderr)}"
+    found = subprocess.run([str(scratch / f"probe-overflow-{compiler.kind}")], capture_output=True, timeout=SANITIZER_RUN_TIMEOUT_SECONDS, cwd=scratch)
+    if found.returncode == 0:
+        return f"{compiler.command} did not report a signed integer overflow with -fsanitize=undefined, so UBSan does not work here."
+    return None
 
 
 # --------------------------------------------------------------------------- rules --
@@ -508,28 +580,36 @@ def check_one(
     flags: list[str],
     flags_name: str,
     clang_format: str | None,
+    sanitizers: set[str],
     root: Path,
 ) -> Result:
     result = Result(display(program.base, root) + ("/" if program.is_project else ""))
     check_rules(program, result)
+    ran_sanitized = False
     with tempfile.TemporaryDirectory(prefix="cppbook-example-") as tmp:
         scratch = Path(tmp)
         for compiler in compilers:
             if program.expects_failure:
                 check_failing_program(compiler, flags, flags_name, program, scratch, result)
-            else:
-                check_program(compiler, flags, program, scratch, result)
+            elif check_program(compiler, flags, program, scratch, result) and compiler.kind in sanitizers:
+                ran_sanitized = True
+                check_sanitized(compiler, flags, program, scratch, result)
+    if program.expects_failure:
+        result.cells["san"] = "-"
+    elif ran_sanitized and "san" not in result.cells:
+        result.cells["san"] = "PASS"
     check_style(program, clang_format, result)
     return result
 
 
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description="Compile, run and format-check the C++ examples.")
+    parser = argparse.ArgumentParser(description="Compile, run, sanitize and format-check the C++ examples.")
     parser.add_argument("targets", nargs="*", type=Path, metavar="PROGRAM", help="check only these programs: a .cpp file, a project folder or a file inside one (default: every program under the root)")
     parser.add_argument("--root", type=Path, default=DEFAULT_ROOT, help="the folder that holds the chapter folders (default: examples/)")
     parser.add_argument("--flags-file", type=Path, default=None, help=f"the file with the strict flags (default: <root>/{FLAGS_NAME})")
-    parser.add_argument("--require-all", action="store_true", help="fail when GCC, Clang or clang-format is missing (used in CI)")
+    parser.add_argument("--require-all", action="store_true", help="fail when GCC, Clang, a sanitizer runtime or clang-format is missing (used in CI)")
     parser.add_argument("--skip-format", action="store_true", help="do not run clang-format (only for machines that cannot install it)")
+    parser.add_argument("--skip-sanitizers", action="store_true", help="do not build and run the programs with AddressSanitizer and UBSan")
     args = parser.parse_args(argv)
 
     root = args.root.resolve()
@@ -549,6 +629,16 @@ def main(argv: list[str] | None = None) -> int:
     if clang_format is None and not args.skip_format:
         notes.append("clang-format was not found (install requirements-dev.txt).")
 
+    sanitizers: set[str] = set()
+    if not args.skip_sanitizers:
+        with tempfile.TemporaryDirectory(prefix="cppbook-probe-") as tmp:
+            for compiler in compilers:
+                reason = probe_sanitizers(compiler, Path(tmp))
+                if reason is None:
+                    sanitizers.add(compiler.kind)
+                else:
+                    notes.append(f"{compiler.kind} sanitizers: {reason}")
+
     problems: list[str] = []
     if args.require_all:
         problems += [f"--require-all: {note}" for note in notes]
@@ -561,15 +651,15 @@ def main(argv: list[str] | None = None) -> int:
     print()
 
     with ThreadPoolExecutor(max_workers=4) as pool:
-        results = list(pool.map(lambda p: check_one(p, compilers, flags, flags_file.name, clang_format, root), selected))
+        results = list(pool.map(lambda p: check_one(p, compilers, flags, flags_file.name, clang_format, sanitizers, root), selected))
 
-    columns = ["gcc", "clang", "80col", "format"]
+    columns = ["gcc", "clang", "san", "80col", "format"]
     width = max(len(r.name) for r in results)
     print(f"{'example':<{width}}  " + "  ".join(f"{c:<6}" for c in columns))
     for r in results:
         cells = []
         for column in columns:
-            skipped = column in missing or (column == "format" and clang_format is None)
+            skipped = column in missing or (column == "format" and clang_format is None) or (column == "san" and not sanitizers)
             cells.append(f"{r.cells.get(column, 'SKIP' if skipped else '-'):<6}")
         print(f"{r.name:<{width}}  " + "  ".join(cells))
 
