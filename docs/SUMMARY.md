@@ -24,3 +24,6 @@
   - [1.4 Variable assignment and initialization](ch01-cpp-basics/04-variable-assignment-and-initialization.md)
   - [1.5 Introduction to iostream: cout, cin, and endl](ch01-cpp-basics/05-introduction-to-iostream-cout-cin-and-endl.md)
   - [1.6 Uninitialized variables and undefined behavior](ch01-cpp-basics/06-uninitialized-variables-and-undefined-behavior.md)
+  - [1.7 Keywords and naming identifiers](ch01-cpp-basics/07-keywords-and-naming-identifiers.md)
+  - [1.8 Whitespace and basic formatting](ch01-cpp-basics/08-whitespace-and-basic-formatting.md)
+  - [1.9 Introduction to literals and operators](ch01-cpp-basics/09-introduction-to-literals-and-operators.md)

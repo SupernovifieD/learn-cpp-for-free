@@ -74,7 +74,7 @@ int low, int high;
 The comma continues the same definition, so the compiler expects another name after it and finds the word `int` instead. The compiler reports an error.
 
 > [!BEST-PRACTICE]
-> Define one variable per statement, each on its own line. The code is easier to read, you can comment each variable separately, and you avoid the mistake above.
+> Define one variable per statement, each on its own line. The code is more readable, you can comment each variable separately, and you avoid the mistake above.
 
 <details>
 <summary>Check your understanding</summary>

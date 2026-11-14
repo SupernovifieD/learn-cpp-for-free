@@ -19,3 +19,6 @@ This chapter teaches the smallest building blocks of a C++ program: statements, 
 - [1.4 Variable assignment and initialization](04-variable-assignment-and-initialization.md): giving variables their first value, and replacing it later.
 - [1.5 Introduction to iostream: cout, cin, and endl](05-introduction-to-iostream-cout-cin-and-endl.md): printing, reading from the keyboard, and what `std::endl` adds.
 - [1.6 Uninitialized variables and undefined behavior](06-uninitialized-variables-and-undefined-behavior.md): why every variable needs a value.
+- [1.7 Keywords and naming identifiers](07-keywords-and-naming-identifiers.md): which names are allowed, which to avoid, and how to choose good ones.
+- [1.8 Whitespace and basic formatting](08-whitespace-and-basic-formatting.md): where layout matters, and how to let a tool format your code.
+- [1.9 Introduction to literals and operators](09-introduction-to-literals-and-operators.md): values in the code, and the arithmetic you can do with them.
