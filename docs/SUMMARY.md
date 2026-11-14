@@ -37,3 +37,6 @@
   - [2.4 Introduction to function parameters and arguments](ch02-functions-and-files/04-introduction-to-function-parameters-and-arguments.md)
   - [2.5 Introduction to local scope](ch02-functions-and-files/05-introduction-to-local-scope.md)
   - [2.6 Why functions are useful, and how to use them effectively](ch02-functions-and-files/06-why-functions-are-useful-and-how-to-use-them-effectively.md)
+  - [2.7 Forward declarations and definitions](ch02-functions-and-files/07-forward-declarations-and-definitions.md)
+  - [2.8 Programs with multiple code files](ch02-functions-and-files/08-programs-with-multiple-code-files.md)
+  - [2.9 Naming collisions and an introduction to namespaces](ch02-functions-and-files/09-naming-collisions-and-an-introduction-to-namespaces.md)

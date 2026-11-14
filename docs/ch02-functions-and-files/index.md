@@ -19,3 +19,6 @@ A program of any size is built from pieces. This chapter shows you how to write 
 - [2.4 Introduction to function parameters and arguments](04-introduction-to-function-parameters-and-arguments.md): passing values into a function.
 - [2.5 Introduction to local scope](05-introduction-to-local-scope.md): where a variable lives and where its name can be used.
 - [2.6 Why functions are useful, and how to use them effectively](06-why-functions-are-useful-and-how-to-use-them-effectively.md): when to write a function, and how to keep it good.
+- [2.7 Forward declarations and definitions](07-forward-declarations-and-definitions.md): calling a function before its definition, and the one-definition rule.
+- [2.8 Programs with multiple code files](08-programs-with-multiple-code-files.md): building one program from several source files.
+- [2.9 Naming collisions and an introduction to namespaces](09-naming-collisions-and-an-introduction-to-namespaces.md): keeping names apart, and why the book writes `std::`.
