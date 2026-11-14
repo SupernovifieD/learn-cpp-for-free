@@ -16,7 +16,7 @@ This is the program. Type it into a new file named `hello-world.cpp`, rather tha
 {{#include ../../examples/ch00/07-hello-world.cpp}}
 ```
 
-You will learn how each line works in Chapter 1, so this is only a first orientation:
+You will learn how each line works in [lesson 1.1](../ch01-cpp-basics/01-statements-and-the-structure-of-a-program.md), so this is only a first orientation:
 
 - `#include <iostream>` makes the tools for printing text available to your program.
 - `int main()` marks the place where your program starts running. Every C++ program has one `main`.
@@ -86,7 +86,7 @@ If the build fails or the output is different, do not worry. Almost everyone hit
 ## Summary
 
 - An IDE groups your files and settings into a project, and every program in this book is a console application.
-- `main` is where a C++ program starts, and you will learn the other lines of the first program in Chapter 1.
+- `main` is where a C++ program starts, and you will learn the other lines of the first program in [lesson 1.1](../ch01-cpp-basics/01-statements-and-the-structure-of-a-program.md).
 - Building turns your source file into an executable, and you run the executable to see the program work.
 - Visual Studio builds with **Build Solution** and runs with <kbd>Ctrl</kbd>+<kbd>F5</kbd>, and the command line uses `g++`, `clang++` or `cl`.
 - The program prints `Hello, world!` when it works, and lesson 0.8 helps if it does not.

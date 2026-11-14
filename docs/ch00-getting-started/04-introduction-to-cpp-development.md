@@ -36,7 +36,7 @@ Once you have written down the answers, the code almost writes itself. Make a ha
 
 Source code lives in text files called **source files**. By convention, C++ source files end in `.cpp`. Compilers accept other endings too, such as `.cc` and `.cxx`, but this book always uses `.cpp`.
 
-A program usually grows to span several source files, and you will see how they work together in the next lesson. Some files hold code that several source files share. These are **header files**, and their names usually end in `.h` or `.hpp`. A later chapter explains headers in detail, so for now it is enough to know that they exist.
+A program usually grows to span several source files, and you will see how they work together in the next lesson. Some files hold code that several source files share. These are **header files**, and their names usually end in `.h` or `.hpp`. [Lesson 2.11](../ch02-functions-and-files/11-header-files.md) explains headers in detail, so for now it is enough to know that they exist.
 
 Source files are plain text. They have no fonts, colors or hidden formatting, only the characters you typed.
 
