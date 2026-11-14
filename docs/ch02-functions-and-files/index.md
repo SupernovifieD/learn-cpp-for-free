@@ -16,3 +16,6 @@ A program of any size is built from pieces. This chapter shows you how to write 
 - [2.1 Introduction to functions](01-introduction-to-functions.md): defining a function and calling it.
 - [2.2 Function return values](02-function-return-values.md): handing a value back to the caller, and what `main` returns.
 - [2.3 Void functions (non-value returning functions)](03-void-functions.md): functions that do something and return nothing.
+- [2.4 Introduction to function parameters and arguments](04-introduction-to-function-parameters-and-arguments.md): passing values into a function.
+- [2.5 Introduction to local scope](05-introduction-to-local-scope.md): where a variable lives and where its name can be used.
+- [2.6 Why functions are useful, and how to use them effectively](06-why-functions-are-useful-and-how-to-use-them-effectively.md): when to write a function, and how to keep it good.

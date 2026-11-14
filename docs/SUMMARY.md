@@ -34,3 +34,6 @@
   - [2.1 Introduction to functions](ch02-functions-and-files/01-introduction-to-functions.md)
   - [2.2 Function return values](ch02-functions-and-files/02-function-return-values.md)
   - [2.3 Void functions (non-value returning functions)](ch02-functions-and-files/03-void-functions.md)
+  - [2.4 Introduction to function parameters and arguments](ch02-functions-and-files/04-introduction-to-function-parameters-and-arguments.md)
+  - [2.5 Introduction to local scope](ch02-functions-and-files/05-introduction-to-local-scope.md)
+  - [2.6 Why functions are useful, and how to use them effectively](ch02-functions-and-files/06-why-functions-are-useful-and-how-to-use-them-effectively.md)
