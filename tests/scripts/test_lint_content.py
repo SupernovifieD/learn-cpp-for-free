@@ -61,6 +61,13 @@ def test_an_input_file_without_a_program_is_reported(examples):
     assert len(problems) == 1 and "09-orphan.in" in problems[0] and "no program" in problems[0]
 
 
+def test_a_session_must_be_included_by_a_page(examples):
+    examples(["ch01/01-read.cpp", "ch01/01-read.in", "ch01/01-read.session"])
+    problems = problems_for({"examples/ch01/01-read.cpp"})
+    assert len(problems) == 1 and "01-read.session" in problems[0] and "is not used by any page" in problems[0]
+    assert problems_for({"examples/ch01/01-read.cpp", "examples/ch01/01-read.session"}) == []
+
+
 def test_files_the_operating_system_adds_are_not_examples(examples):
     examples(["ch01/01-a.cpp", "ch01/.DS_Store"])
     assert problems_for({"examples/ch01/01-a.cpp"}) == []

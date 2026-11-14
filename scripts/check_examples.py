@@ -9,13 +9,18 @@
 A program is either one file, examples/chNN/X.cpp, or a project: a folder examples/chNN/X/ that holds
 .cpp files and the .h headers they include. Every .cpp file of a project is compiled and linked in
 ONE command (the folder is flat, and one of the files is main.cpp). The files that belong to a program
-sit NEXT TO it, whether it is a file or a folder: X.out and X.in.
+sit NEXT TO it, whether it is a file or a folder: X.out, X.in and X.session.
 
 How each program is judged, with the strict flags from examples/flags-gcc-clang.txt:
 
   X.cpp or X/        must compile and link with ZERO diagnostics on every compiler, run for at most
                      5 seconds (stdin comes from X.in when it exists) and exit with code 0, and
-                     print what X.out says, byte for byte, when X.out exists.
+                     print what the book promises:
+                       X.out      standard output must match it byte for byte;
+                       X.session  what a reader SEES in a console when typing the lines of X.in:
+                                  removing each X.in line, in order, from where it appears in
+                                  X.session must leave exactly the program's standard output.
+                     A program has X.out or X.session, never both, and X.in goes with X.session.
   X.fail.cpp or      must FAIL to build on every compiler. The first lines of the file (of main.cpp
   X.fail/            for a project) must contain
                          // expect-fail: <one-line reason>
@@ -23,7 +28,7 @@ How each program is judged, with the strict flags from examples/flags-gcc-clang.
                          // passes-without: <flag> [<flag> ...]
                      which also makes the checker prove the program builds once those flags are
                      removed, which shows the failure really comes from the flags the book teaches.
-                     A failing program never runs, so it has no X.out or X.in.
+                     A failing program never runs, so it has no X.out, X.in or X.session.
 
 Every .cpp and .h file must also have lines of at most 80 columns and be clang-format clean. Nothing
 is written to the repository: builds happen in a temporary directory.
@@ -54,7 +59,7 @@ FLAGS_NAME = "flags-gcc-clang.txt"
 MAX_COLUMNS = 80
 RUN_TIMEOUT_SECONDS = 5
 COMPILE_TIMEOUT_SECONDS = 120
-COMPANION_SUFFIXES = (".out", ".in")
+COMPANION_SUFFIXES = (".out", ".in", ".session")
 IGNORED_NAMES = {".DS_Store"}
 
 @dataclass
@@ -93,7 +98,7 @@ class Program:
         return (*self.sources, *self.headers)
 
     def companion(self, suffix: str) -> Path:
-        """X.out or X.in next to the program (not inside a project folder)."""
+        """X.out, X.in or X.session next to the program (not inside a project folder)."""
         return self.base.with_name(self.stem + suffix)
 
 
@@ -218,7 +223,7 @@ def discover(root: Path) -> tuple[list[Program], list[str]]:
             else:
                 problems.append(
                     f"{shown(entry)} has an unexpected file type (a chapter folder holds .cpp files, project folders "
-                    f"and the .out and .in files of programs)."
+                    f"and the .out, .in and .session files of programs)."
                 )
 
     seen: dict[tuple[Path, str], Program] = {}
@@ -252,7 +257,7 @@ def discover_project(folder: Path, shown, problems: list[str]) -> Program | None
         else:
             problems.append(
                 f"{shown(item)} has an unexpected file type inside a project folder (only .cpp and .h files; "
-                f"put {folder.name}.out and {folder.name}.in NEXT TO the folder)."
+                f"put {folder.name}.out, {folder.name}.in and {folder.name}.session NEXT TO the folder)."
             )
     if folder / "main.cpp" not in sources:
         problems.append(f"{shown(folder)}/ needs a main.cpp (the project's entry point), but has none.")
@@ -275,11 +280,68 @@ def select_programs(targets: list[Path], programs: list[Program], root: Path) ->
     return chosen
 
 
-# ------------------------------------------------------------------------ judging --
+# ------------------------------------------------------------------------ sessions --
+
+
+def prove_session(session: bytes, typed: bytes, stdout: bytes, names: tuple[str, str] = ("X.in", "X.session")) -> str | None:
+    """Prove that `session` is the program's `stdout` with the `typed` lines mixed in. None means proven.
+
+    Removing each typed line (with its newline), in order, from where it appears in the session must
+    leave exactly stdout, and every typed line must be found. A line the reader typed may look like text
+    the program prints, so instead of deleting greedily this walks every consistent way to read the
+    session: from (offset i in the session, k typed lines found so far), the next bytes are either
+    typed line k or the next byte of stdout (which is at offset i - length of the first k typed lines).
+    """
+    lines = typed.splitlines(keepends=True)
+    count = len(lines)
+    consumed = [0]
+    for line in lines:
+        consumed.append(consumed[-1] + len(line))
+    reach: list[set[int]] = [set() for _ in range(len(session) + 1)]
+    reach[0].add(0)
+    farthest = 0
+    for i in range(len(session) + 1):
+        if not reach[i]:
+            continue
+        farthest = i
+        for k in reach[i]:
+            if k < count and session.startswith(lines[k], i):
+                reach[i + len(lines[k])].add(k + 1)
+            j = i - consumed[k]
+            if i < len(session) and j < len(stdout) and session[i] == stdout[j]:
+                reach[i + 1].add(k)
+    if count in reach[len(session)] and len(session) - consumed[count] == len(stdout):
+        return None
+
+    k = max(reach[farthest])
+    j = farthest - consumed[k]
+    typed_name, session_name = names
+    if farthest == len(session):
+        if k < count:
+            return (
+                f"typed line {k + 1} of {typed_name} ({lines[k].decode(errors='replace').rstrip()!r}) does not appear in {session_name}; "
+                f"every line the reader types must be shown where it is typed."
+            )
+        return f"{session_name} ends too early: the program also prints {stdout[j:][:60].decode(errors='replace')!r}."
+    number = session.count(b"\n", 0, farthest) + 1
+    start = session.rfind(b"\n", 0, farthest) + 1
+    end = session.find(b"\n", farthest)
+    shown_line = session[start : end if end != -1 else len(session)].decode(errors="replace")
+    # Show the program's text from where the session line began, so the difference is easy to see.
+    context = stdout[max(0, j - (farthest - start)) : j + 40].decode(errors="replace")
+    options = [f"the program prints {context!r}"] if j < len(stdout) else []
+    if k < count:
+        options.append(f"the reader types {lines[k].decode(errors='replace').rstrip()!r} (typed line {k + 1} of {typed_name})")
+    return f"line {number} of {session_name} reads {shown_line!r}, but at this point " + (" or ".join(options) or "nothing more is printed or typed") + "."
 
 
 def judge_stdout(program: Program, stdout: bytes) -> str | None:
     """None when standard output is what the book promises for this program, otherwise a message."""
+    session = program.companion(".session")
+    if session.exists():
+        typed_file = program.companion(".in")
+        typed = typed_file.read_bytes() if typed_file.exists() else b""
+        return prove_session(session.read_bytes(), typed, stdout, (typed_file.name, session.name))
     expected_file = program.companion(".out")
     if expected_file.exists() and stdout != expected_file.read_bytes():
         return f"output differs from {expected_file.name}.\n      expected: {expected_file.read_bytes()[:200]!r}\n      actual:   {stdout[:200]!r}"
@@ -323,7 +385,7 @@ def run_and_judge(exe: Path, program: Program, timeout: int, cwd: Path) -> str |
 
 
 def check_program(compiler: Compiler, flags: list[str], program: Program, scratch: Path, result: Result) -> bool:
-    """X.cpp or X/: builds cleanly, runs, exits 0, and prints what X.out says."""
+    """X.cpp or X/: builds cleanly, runs, exits 0, and prints what X.out or X.session promises."""
     column = compiler.kind
     exe = scratch / f"{program.stem}-{compiler.kind}"
     built = build(compiler, flags, program.sources, exe, scratch)
@@ -421,11 +483,23 @@ def check_rules(program: Program, result: Result) -> None:
                 )
                 break
 
-    out, typed = (program.companion(suffix) for suffix in COMPANION_SUFFIXES)
+    out, typed, session = (program.companion(suffix) for suffix in COMPANION_SUFFIXES)
     if program.expects_failure:
-        for extra in (out, typed):
+        for extra in (out, typed, session):
             if extra.exists():
                 result.fail("rules", f"{extra.name}: a failing program never runs, so it cannot have an {extra.suffix} file; delete it.")
+        return
+    if out.exists() and session.exists():
+        result.fail("rules", f"{out.name} and {session.name} cannot both exist: a program that reads input shows its session, any other program its output; delete one.")
+    if session.exists() and not typed.exists():
+        result.fail("rules", f"{session.name} needs {typed.name}, the lines the reader types, one per Enter press.")
+    if typed.exists() and not session.exists():
+        result.fail("rules", f"{typed.name} needs {session.name}: a program that reads input shows what the reader sees in the console, so replace {out.name} by {session.name}.")
+    for file in (typed, session):
+        if file.exists():
+            data = file.read_bytes()
+            if b"\r" in data or (data and not data.endswith(b"\n")):
+                result.fail("rules", f"{file.name} must use \\n line endings (no \\r) and end with a newline.")
 
 
 def check_one(

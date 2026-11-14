@@ -134,6 +134,52 @@ def test_a_stray_out_file_is_reported():
     assert "02-orphan.out has no matching program" in run.output
 
 
+# ------------------------------------------------------------ console sessions --
+
+
+@needs_compiler
+def test_sessions_of_files_and_projects_are_proved_against_the_input_and_the_output():
+    run = run_checker("good-session")
+    assert run.returncode == 0, run.output
+    assert "3 of 3 examples passed." in run.output
+    assert "good-session/ch01/02-sum/" in run.output
+
+
+@needs_compiler
+def test_a_session_with_a_wrong_output_line_is_reported():
+    run = run_checker("session-wrong-output")
+    assert run.returncode == 1, run.output
+    assert "line 2 of 01-twice.session reads 'Twice that is 15'" in run.output
+    assert "Twice that is 14" in run.output
+
+
+@needs_compiler
+def test_a_session_that_is_missing_a_typed_line_is_reported():
+    run = run_checker("session-missing-typed-line")
+    assert run.returncode == 1, run.output
+    assert "the reader types '7' (typed line 1 of 01-twice.in)" in run.output
+
+
+@needs_compiler
+def test_an_input_line_that_the_session_never_shows_is_reported():
+    run = run_checker("session-unused-input")
+    assert run.returncode == 1, run.output
+    assert "typed line 2 of 01-twice.in ('9') does not appear in 01-twice.session" in run.output
+
+
+def test_a_program_cannot_have_both_an_out_file_and_a_session():
+    run = run_checker("session-and-out")
+    assert run.returncode == 1, run.output
+    assert "01-twice.out and 01-twice.session cannot both exist" in run.output
+
+
+def test_an_input_file_needs_a_session_instead_of_an_out_file():
+    run = run_checker("session-in-without-session")
+    assert run.returncode == 1, run.output
+    assert "01-twice.in needs 01-twice.session" in run.output
+    assert "replace 01-twice.out by 01-twice.session" in run.output
+
+
 # ------------------------------------------------- the folder rules (no compiler) --
 
 
@@ -204,6 +250,29 @@ def test_a_failing_program_must_say_why_and_never_has_companion_files(tmp_path):
     problems = check_rules(tmp_path, {"ch01/01-a.fail.cpp": MINIMAL, "ch01/01-a.fail.out": ""})
     assert any("must start the file with the line '// expect-fail" in p for p in problems), problems
     assert any("a failing program never runs" in p for p in problems), problems
+
+
+def test_a_session_needs_its_input_file(tmp_path):
+    problems = check_rules(tmp_path, {"ch01/01-a.cpp": MINIMAL, "ch01/01-a.session": "x\n"})
+    assert any("01-a.session needs 01-a.in" in p for p in problems), problems
+
+
+def test_a_failing_program_has_no_session_either(tmp_path):
+    problems = check_rules(
+        tmp_path,
+        {"ch01/01-a.fail.cpp": "// expect-fail: x\n" + MINIMAL, "ch01/01-a.fail.in": "1\n", "ch01/01-a.fail.session": "1\n"},
+    )
+    assert sum("a failing program never runs" in p for p in problems) == 2, problems
+
+
+@pytest.mark.parametrize("data", ["7\r\n", "7"])
+def test_typed_lines_use_unix_line_endings_and_end_with_a_newline(tmp_path, data):
+    problems = check_rules(tmp_path, {"ch01/01-a.cpp": MINIMAL, "ch01/01-a.in": data, "ch01/01-a.session": "7\n"})
+    assert any("must use \\n line endings (no \\r) and end with a newline" in p for p in problems), problems
+
+
+def test_a_program_with_a_proper_session_has_no_rule_problems(tmp_path):
+    assert check_rules(tmp_path, {"ch01/01-a.cpp": MINIMAL, "ch01/01-a.in": "7\n", "ch01/01-a.session": "x: 7\n"}) == []
 
 
 def test_the_expect_fail_comment_is_for_failing_programs_only(tmp_path):
