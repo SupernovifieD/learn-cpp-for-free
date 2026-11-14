@@ -145,8 +145,9 @@ jobs:
         id: deployment
         uses: actions/deploy-pages@v5
 
-      # Ask the published address for the home page and a lesson, and make sure
-      # the answers are mdBook's pages. Pages can take a moment to serve a new deployment.
+      # Ask the published address for the home page and two lessons, one of Chapter 0 and one
+      # of Chapter 2 (a program of several files), and make sure the answers are mdBook's pages.
+      # Pages can take a moment to serve a new deployment.
       - name: Verify the published book
         env:
           PAGE_URL: ${{ steps.deployment.outputs.page_url }}
@@ -154,4 +155,5 @@ jobs:
           fetch() { curl --fail --silent --show-error --location --retry 6 --retry-delay 10 --retry-all-errors "$1"; }
           fetch "$PAGE_URL" | grep -q 'id="mdbook-content"'
           fetch "${PAGE_URL}ch00-getting-started/07-compiling-your-first-program.html" | grep -q 'Filename: hello-world.cpp'
+          fetch "${PAGE_URL}ch02-functions-and-files/11-header-files.html" | grep -q 'Filename: add.h'
           echo "The published book at $PAGE_URL is the mdBook build."
