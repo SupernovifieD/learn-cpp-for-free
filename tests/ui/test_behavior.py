@@ -178,21 +178,26 @@ def test_u7_the_theme_follows_the_system_color_scheme(tabs, scheme):
 # ----------------------------------------------------------------- search --
 
 
+LESSON_2_12 = "ch02-functions-and-files/12-header-guards.html"
+SEARCHES = [("linker", LESSON_0_5), ("header guard", LESSON_2_12)]
+
+
 @pytest.mark.parametrize("width", [375, 1280])
-def test_u9_searching_for_linker_lists_lesson_0_5(private_tab, base_url, width):
-    """U9: typing 'linker' into the search box lists lesson 0.5 among the results, and a result opens it."""
+@pytest.mark.parametrize("query, lesson", SEARCHES, ids=[query.replace(" ", "-") for query, _ in SEARCHES])
+def test_u9_searching_lists_the_lesson_that_explains_the_word(private_tab, base_url, width, query, lesson):
+    """U9: typing 'linker' lists lesson 0.5 and 'header guard' lists lesson 2.12 among the results, and a result opens it."""
     tab = private_tab(width)
     tab.visit("index.html")
     page = tab.page
     page.locator("#mdbook-search-toggle").click()
     # Type like a reader does. An instant fill() can fire before the search index has loaded.
-    page.locator("#mdbook-searchbar").press_sequentially("linker", delay=60)
+    page.locator("#mdbook-searchbar").press_sequentially(query, delay=60)
     page.wait_for_selector("#mdbook-searchresults li a", timeout=15_000)
     links = page.eval_on_selector_all("#mdbook-searchresults li a", "links => links.map(a => a.getAttribute('href'))")
-    matching = [href for href in links if LESSON_0_5 in href]
-    assert matching, f"Searching for 'linker' did not list lesson 0.5. The results were: {links}"
+    matching = [href for href in links if lesson in href]
+    assert matching, f"Searching for '{query}' did not list {lesson}. The results were: {links}"
     page.locator(f'#mdbook-searchresults li a[href="{matching[0]}"]').first.click()
-    page.wait_for_url(lambda url: url.startswith(base_url + LESSON_0_5))
+    page.wait_for_url(lambda url: url.startswith(base_url + lesson))
     assert not tab.events, f"Opening a search result reported problems: {tab.events}"
 
 

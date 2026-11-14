@@ -22,3 +22,6 @@ A program of any size is built from pieces. This chapter shows you how to write 
 - [2.7 Forward declarations and definitions](07-forward-declarations-and-definitions.md): calling a function before its definition, and the one-definition rule.
 - [2.8 Programs with multiple code files](08-programs-with-multiple-code-files.md): building one program from several source files.
 - [2.9 Naming collisions and an introduction to namespaces](09-naming-collisions-and-an-introduction-to-namespaces.md): keeping names apart, and why the book writes `std::`.
+- [2.10 Introduction to the preprocessor](10-introduction-to-the-preprocessor.md): what happens before the compiler, macros and conditional compilation.
+- [2.11 Header files](11-header-files.md): sharing declarations between files.
+- [2.12 Header guards](12-header-guards.md): keeping a header from being used twice, and what guards cannot fix.

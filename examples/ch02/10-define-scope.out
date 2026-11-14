@@ -1,0 +1,2 @@
+first.cpp: SHOW_MARKER is defined
+second.cpp: SHOW_MARKER is not defined

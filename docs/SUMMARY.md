@@ -40,3 +40,6 @@
   - [2.7 Forward declarations and definitions](ch02-functions-and-files/07-forward-declarations-and-definitions.md)
   - [2.8 Programs with multiple code files](ch02-functions-and-files/08-programs-with-multiple-code-files.md)
   - [2.9 Naming collisions and an introduction to namespaces](ch02-functions-and-files/09-naming-collisions-and-an-introduction-to-namespaces.md)
+  - [2.10 Introduction to the preprocessor](ch02-functions-and-files/10-introduction-to-the-preprocessor.md)
+  - [2.11 Header files](ch02-functions-and-files/11-header-files.md)
+  - [2.12 Header guards](ch02-functions-and-files/12-header-guards.md)
