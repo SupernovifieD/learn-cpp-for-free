@@ -360,3 +360,32 @@ def test_the_expect_fail_comment_is_for_failing_programs_only(tmp_path):
 def test_the_expect_fail_line_of_a_failing_project_goes_into_main_cpp(tmp_path):
     problems = check_rules(tmp_path, {"ch01/01-a.fail/main.cpp": MINIMAL, "ch01/01-a.fail/other.cpp": "// expect-fail: here\n" + MINIMAL})
     assert any("main.cpp of the project" in p for p in problems), problems
+
+
+# ------------------------------------------------------------------ run time --
+
+
+@needs_compiler
+def test_a_program_that_is_really_too_slow_fails_even_after_the_second_try(tmp_path):
+    """The limit is not loosened: a program that exceeds it on both tries is reported."""
+    source = tmp_path / "ch01" / "01-slow.cpp"
+    source.parent.mkdir()
+    source.write_text('#include <chrono>\n#include <thread>\nint main()\n{\n    std::this_thread::sleep_for(std::chrono::seconds(3));\n    return 0;\n}\n')
+    program = check_examples.Program(source, False, (source,), ())
+    compiler = COMPILERS[0]
+    exe = tmp_path / "slow"
+    built = check_examples.build(compiler, ["-std=c++20"], program.sources, exe, tmp_path)
+    assert built.returncode == 0, built.stderr
+    message = check_examples.run_and_judge(exe, program, 1, tmp_path)
+    assert message is not None and "more than 1 seconds (in both of two tries)" in message
+
+
+@needs_compiler
+def test_a_program_that_is_fast_enough_passes_the_run_time_check(tmp_path):
+    source = tmp_path / "ch01" / "01-fast.cpp"
+    source.parent.mkdir()
+    source.write_text("int main()\n{\n    return 0;\n}\n")
+    program = check_examples.Program(source, False, (source,), ())
+    exe = tmp_path / "fast"
+    assert check_examples.build(COMPILERS[0], ["-std=c++20"], program.sources, exe, tmp_path).returncode == 0
+    assert check_examples.run_and_judge(exe, program, 5, tmp_path) is None

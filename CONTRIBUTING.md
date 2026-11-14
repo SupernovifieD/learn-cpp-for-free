@@ -48,7 +48,7 @@ py -3 -m venv .venv
 
 Two details of `mdbook build`: it prints a note that mdbook-mermaid was built against an earlier 0.5 release, which is expected, and it exits successfully even when an include names a missing file, so `make build` also fails when its log contains a `WARN` or `ERROR` line.
 
-**A note about GCC on macOS.** The `g++` command on macOS is Apple's Clang. The example checker detects this, does not count it as GCC and prints a warning. To check with real GCC, install it (for example with Homebrew) and point the checker at it: `GXX=g++-15 make examples`. CI always checks with real GCC.
+**A note about GCC on macOS.** The `g++` command on macOS is Apple's Clang. The example checker detects this, does not count it as GCC and prints a warning. To check with real GCC, install it (for example with Homebrew) and point the checker at it: `GXX=g++-15 make examples`. CI always checks with real GCC. Also on macOS, the system scans every newly built program, so its first start can take a few seconds. The checker therefore starts a program that exceeds the time limit once more, and reports it only when it is too slow both times.
 
 ## Daily workflow
 

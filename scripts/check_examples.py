@@ -395,16 +395,17 @@ def directive(source: Path, name: str) -> str | None:
 def run_and_judge(exe: Path, program: Program, timeout: int, cwd: Path) -> str | None:
     """Run a built program with X.in on stdin; None when it exits 0 and prints what the book promises."""
     stdin_file = program.companion(".in")
-    try:
-        run = subprocess.run(
-            [str(exe)],
-            input=stdin_file.read_bytes() if stdin_file.exists() else b"",
-            capture_output=True,
-            timeout=timeout,
-            cwd=cwd,
-        )
-    except subprocess.TimeoutExpired:
-        return f"the program ran for more than {timeout} seconds."
+    stdin = stdin_file.read_bytes() if stdin_file.exists() else b""
+    # The first start of a freshly built program can take seconds on macOS, which scans every new
+    # executable, and that time would count against the program. So a program that times out is started
+    # once more: a program that is really too slow is too slow both times.
+    for attempt in (1, 2):
+        try:
+            run = subprocess.run([str(exe)], input=stdin, capture_output=True, timeout=timeout, cwd=cwd)
+            break
+        except subprocess.TimeoutExpired:
+            if attempt == 2:
+                return f"the program ran for more than {timeout} seconds (in both of two tries)."
     if run.returncode != 0:
         return f"the program exited with code {run.returncode}, expected 0.\n{indent(run.stderr.decode(errors='replace'))}".rstrip()
     return judge_stdout(program, run.stdout)
