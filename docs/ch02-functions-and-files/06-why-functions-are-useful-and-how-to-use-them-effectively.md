@@ -38,7 +38,9 @@ The second version moves the repeated statements into a function, `printCost`, a
 {{#include ../../examples/ch02/06-after.out}}
 ```
 
-The two programs print exactly the same output. What changed is the program. The second version is shorter, and `main` reads like a list of items. The calculation of the cost is written once, so if the rule changes, for example because the prices include a fee, there is a single line to edit. The first version has three copies of the rule, and a change to one of them can be forgotten in the others.
+The two programs print exactly the same output. What changed is the program.
+
+The second version is shorter, and `main` reads like a list of items. The calculation of the cost is written once, so if the rule changes, for example because the prices include a fee, there is a single line to edit. The first version has three copies of the rule, and a change to one of them can be forgotten in the others.
 
 > [!KEY-INSIGHT]
 > When you copy a group of statements and change a few values, you are looking at a function whose parameters are the values that you changed.
@@ -76,6 +78,19 @@ The calculation of the cost is written once, so a change to the rule needs a sin
 <summary>Answer</summary>
 
 It has two jobs, which the "and" shows. You could write one function that reads a number and returns it, one that adds two numbers and returns the sum, and let `main` print the result.
+
+</details>
+
+**Question 3.** What does this call print, when `printCost` is the function of the second program above?
+
+```cpp
+printCost(4, 5);
+```
+
+<details>
+<summary>Answer</summary>
+
+It prints `  amount: 4` on one line and `  cost: 20 euros` on the next, because 4 times 5 is 20.
 
 </details>
 

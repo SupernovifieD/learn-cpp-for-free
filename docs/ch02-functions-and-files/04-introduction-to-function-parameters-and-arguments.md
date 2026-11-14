@@ -20,7 +20,7 @@ Type 3 and press <kbd>Enter</kbd>, then type 12 and press <kbd>Enter</kbd>:
 {{#include ../../examples/ch02/04-ticket-total.session}}
 ```
 
-The call `totalPrice(ticketCount, price)` has two arguments, the values of the variables `ticketCount` and `price`. In the function, `tickets` starts as 3 and `pricePerTicket` starts as 12, and the function returns their product. The names of the arguments in `main` and the names of the parameters in the function do not have to match. What matters is the position.
+The call `totalPrice(ticketCount, price)` has two arguments, the values of the variables `ticketCount` and `price`. In the function, `tickets` starts as 3 and `pricePerTicket` starts as 12, and the function returns their product. The names of the variables that you pass in `main` and the names of the parameters in the function do not have to match. What matters is the position.
 
 ## Passing by value
 
@@ -75,16 +75,22 @@ The two reads could happen in either order, so the reader's first number could b
 
 ## Parameters that the function does not use
 
-A parameter that a function never uses is probably a mistake, and the options of lesson 0.11 turn it into an error. If a parameter has to be there, for example because callers expect a function of that shape, there are two ways to say that its absence of use is on purpose. You can leave out its name, which is the usual choice:
+A parameter that a function never uses is probably a mistake, and the options of lesson 0.11 turn it into an error. If a parameter has to be there, for example because callers expect a function of that shape, there are two ways to say that leaving it unused is on purpose. You can leave out its name, which is the usual choice:
 
 ```cpp
 void greet(int)
+{
+    std::cout << "Hello\n";
+}
 ```
 
 Or you can mark the parameter with the attribute from lesson 1.4, placed directly in front of the parameter:
 
 ```cpp
 void greet([[maybe_unused]] int times)
+{
+    std::cout << "Hello\n";
+}
 ```
 
 In most cases, the better fix is to delete a parameter that nothing uses.

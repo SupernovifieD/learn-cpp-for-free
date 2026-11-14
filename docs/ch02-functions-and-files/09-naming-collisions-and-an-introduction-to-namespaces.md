@@ -28,7 +28,7 @@ In a program that you write alone, you can fix this by renaming one of the funct
 
 C++ solves the problem with **namespaces**. A namespace is a named region that holds names. Two things with the same name can live in two different namespaces without clashing, in the same way that two people with the same first name are told apart by their family names.
 
-You have been using a namespace since your first program: `std`. The Standard Library puts all of its names, such as `cout` and `cin`, into the namespace `std`, so that they cannot clash with the names that you choose.
+You have been using a namespace since your first program: `std`. The Standard Library puts its functions, objects and types, such as `cout` and `cin`, into the namespace `std`, so that they cannot clash with the names that you choose. Macros, such as `EXIT_SUCCESS` from lesson 2.2, are the exception: they belong to no namespace, so you write them without `std::`.
 
 Names that you define yourself, outside of any namespace, belong to the **global namespace**. When you write the function `printGreeting` at the top level of a file, as in lesson 2.1, it goes into the global namespace, together with `main` and every other function in your examples.
 
@@ -40,7 +40,7 @@ To use a name from a namespace, you write the name of the namespace, two colons 
 std::cout << "Hello\n";
 ```
 
-The name `std::cout` says "the `cout` that lives in `std`". If you define a function or a variable of your own with the name `cout`, it is a different thing, and the two do not clash, because the one in the library is always written with its namespace. This is why every example in this book has `std::` in front of the library's names.
+The name `std::cout` says "the `cout` that lives in `std`". If you define a function or a variable of your own with the name `cout`, it is a different thing, and the two do not clash, because the one in the library is always written with its namespace. This is why every example in this book has `std::` in front of the names of the library's objects, functions and types.
 
 A name with `::` and nothing in front of it, as in `::pick`, refers to the global namespace explicitly. You will rarely need that form, but it shows that the global namespace is a namespace like any other.
 
@@ -58,7 +58,7 @@ After this line, you can write `cout` instead of `std::cout`. Many tutorials and
 {{#include ../../examples/ch02/09-using-directive.fail.cpp}}
 ```
 
-The compiler refuses to build it. In `main`, the name `cout` now means two different things, the variable and the library's stream, and the compiler reports that the reference is ambiguous. The program would have worked without the using directive, because `std::cout` would not have clashed with the variable.
+The compiler refuses to build it. In `main`, the name `cout` now means two different things, the variable and the library's stream, and the compiler reports that the reference is ambiguous. If the program wrote `std::cout` and had no using directive, it would work, because the library's `cout` is in `std` and does not clash with the variable.
 
 The Standard Library has thousands of names, and new versions of the language add more. A program that compiles today with a using directive can fail tomorrow, when a new name in `std` happens to match one of yours. The collision appears in a program that you have not changed, and that makes it hard to explain.
 

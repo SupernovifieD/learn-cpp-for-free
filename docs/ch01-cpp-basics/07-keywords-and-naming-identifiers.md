@@ -6,7 +6,9 @@ Every variable needs a name, and later in this book so will every function. C++ 
 
 A name that you choose for a variable, a function or another thing in your program is called an **identifier**. In `int bookCount{42};`, the word `bookCount` is an identifier, and so is `main`.
 
-Some words are not yours to choose. A **keyword** is a word that has a fixed meaning in the language, and you cannot use it as an identifier. You have already met two of them, `int` and `return`, and others such as `if` and `class` are coming in later chapters. C++ has a long list of keywords, and you do not need to learn it by heart. The compiler tells you when you use one by mistake, and cppreference keeps a [complete list of the keywords](https://en.cppreference.com/w/cpp/keyword).
+Some words are not yours to choose. A **keyword** is a word that has a fixed meaning in the language, and you cannot use it as an identifier.
+
+You have already met two of them, `int` and `return`, and others such as `if` and `class` are coming in later chapters. C++ has a long list of keywords, and you do not need to learn it by heart. The compiler tells you when you use one by mistake, and cppreference keeps a [complete list of the keywords](https://en.cppreference.com/w/cpp/keyword).
 
 A few words are only special in certain places. The words `override` and `final`, for example, have a meaning in the middle of a class definition, and anywhere else they are ordinary identifiers. These are called identifiers with special meaning, and you will meet them much later.
 
@@ -14,7 +16,7 @@ A few words are only special in certain places. The words `override` and `final`
 
 An identifier follows these rules:
 
-- It may contain letters, digits and the underscore character `_`, and nothing else. In particular, it cannot contain spaces.
+- It is made of letters, digits and the underscore character `_`. In particular, it cannot contain spaces or hyphens. (C++ also allows letters from other alphabets, and some compilers accept `$`, but this book sticks to the plain set.)
 - It cannot start with a digit.
 - It cannot be a keyword.
 - It is case-sensitive, so `total`, `Total` and `TOTAL` are three different names.
@@ -41,13 +43,15 @@ The standard reserves some names for the compiler and the Standard Library, so t
 
 - contains two underscores in a row, anywhere in the name, or
 - starts with an underscore followed by an uppercase letter, or
-- starts with an underscore at the top level of a program, outside of any function.
+- starts with an underscore and is defined outside every function and namespace.
 
-Your compiler may accept such a name today. But if you use it, your program can clash with a name that the compiler or the library uses, and the result is an error that is difficult to explain. The simplest rule is to avoid underscores at the beginning of a name, and to avoid double underscores altogether.
+Your compiler may accept such a name today. But if you use it, your program can clash with a name that the compiler or the library uses, and it can break in ways that are hard to explain. The simplest rule is to avoid underscores at the beginning of a name, and to avoid double underscores altogether.
 
 ## Choosing good names
 
-Two styles are common among C++ programmers. In **camelCase**, words are joined and each new word starts with a capital letter: `bookCount`. In **snake_case**, words are separated by underscores: `book_count`. Both are legal, and both are used in large projects. This book uses camelCase for variables and functions.
+Two styles are common among C++ programmers. In **camelCase**, words are joined and each new word starts with a capital letter: `bookCount`.
+
+In **snake_case**, words are separated by underscores: `book_count`. Both are legal, and both are used in large projects. This book uses camelCase for variables and functions.
 
 The important thing is to pick one style and stick with it, because a program in which `bookCount` and `seat_total` appear together is harder to read than one that uses a single style. When you work on someone else's code, follow the style that is already there.
 
@@ -56,7 +60,7 @@ Beyond the style, a name should say what the variable holds. The table shows how
 | Poor name | Better name | Why |
 | --- | --- | --- |
 | `x` | `freeSeats` | A letter says nothing about the content |
-| `n2` | `reservedSeats` | A number says how it was made, not what it is |
+| `n2` | `reservedSeats` | A number at the end tells nothing about the content |
 | `data` | `bookCount` | A vague word could mean anything |
 
 A name should be as long as it needs to be, and no longer. A variable that lives for three lines can have a short name, while one that is used all over a long program deserves a name that tells the reader what it is without a search. Avoid abbreviations that only you understand, because the next reader, which may be you, will not remember them.

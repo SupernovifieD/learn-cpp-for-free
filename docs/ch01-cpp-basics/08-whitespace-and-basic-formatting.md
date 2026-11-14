@@ -20,13 +20,13 @@ The second line is ugly, but it is legal, and it is another reason why you want 
 Whitespace is not completely ignored. It matters in four places:
 
 - **Between tokens that would run together.** `int bookCount` needs a space, because `intbookCount` would be read as one made-up name. Between a name and a symbol, such as `bookCount{42}`, a space is optional.
-- **Inside a string literal.** Everything between the quotation marks is printed exactly as written, including spaces. The text `"a   b"` has three spaces between the letters, and the output has them too.
+- **Inside a string literal.** A string literal is text between quotation marks, such as `"Hello"`, and lesson 1.9 explains literals in general. Everything between the quotation marks is printed exactly as written, including spaces. The text `"a   b"` has three spaces between the letters, and the output has them too.
 - **At the end of a `//` comment.** A line comment continues until the end of the line, so the line break is what ends it, as lesson 1.2 explained.
 - **Around a preprocessor directive.** A directive such as `#include <iostream>` must stay on a line of its own, and the line break ends it.
 
 ## Splitting a long string
 
-A string literal cannot continue on the next line. If you press <kbd>Enter</kbd> inside the quotation marks, the compiler reports an error. When a message is too long for one line of your editor, you split it into two literals instead, and the compiler joins neighboring literals into one:
+A string literal cannot contain a line break. If you press <kbd>Enter</kbd> inside the quotation marks, the compiler reports an error. When a message is too long for one line of your editor, you split it into two literals instead, and the compiler joins neighboring literals into one:
 
 ```cpp title="joined-literals.cpp"
 {{#include ../../examples/ch01/08-joined-literals.cpp}}
@@ -42,7 +42,7 @@ The first output statement has two literals, one on each line, and the output sh
 
 Most layout questions are matters of taste, and every programming team settles them in its own way. Three of them come up in every program.
 
-**Where the braces go.** The two common styles differ in the place of the opening brace. This book puts it on a line of its own, which is called the Allman style:
+**Where the braces go.** The two common styles differ in the place of the opening brace. This book puts it on a line of its own, which is called the **Allman style**:
 
 ```cpp
 int main()
@@ -84,10 +84,12 @@ You do not have to apply a layout by hand. A formatter reads your code and rewri
 
 **Format:** Press <kbd>Shift</kbd>+<kbd>Alt</kbd>+<kbd>F</kbd> on Windows, <kbd>Shift</kbd>+<kbd>Option</kbd>+<kbd>F</kbd> on macOS or <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>I</kbd> on Linux. You can also open the Command Palette and choose **Format Document**.
 
-**Style:** The formatter belongs to the extension for the language, so install the C/C++ extension from lesson 0.7 first. The extension's documentation explains how to choose a style.
+**Style:** The formatter belongs to the extension for the language, so install the C/C++ extension from lesson 0.7 first. It follows the `.clang-format` file of your project when there is one, as the **Command line** tab describes, and a built-in style when there is not. The extension's documentation lists its settings.
 
 {{#endtab}}
 {{#tab Command line}}
+
+**Install:** clang-format is a separate tool, and a compiler installation does not always include it. It is part of LLVM, and package managers offer it, for example `brew install clang-format` on macOS, `sudo apt install clang-format` on Debian and Ubuntu, and `pip install clang-format` on any system that has Python.
 
 **Format:** Run `clang-format -i` followed by the name of your file. The `-i` option makes the tool change the file in place. Without it, the tool prints the formatted code and leaves the file alone.
 
@@ -95,7 +97,16 @@ You do not have to apply a layout by hand. A formatter reads your code and rewri
 clang-format -i hello-world.cpp
 ```
 
-**Style:** The tool looks for a file named `.clang-format` in the folder of your source file and in the folders above it. That file holds the rules, and a project that has one gets the same layout from every contributor.
+**Style:** The tool looks for a file named `.clang-format` in the folder of your source file and in the folders above it, and that file holds the rules. When it finds none, it uses the LLVM style, which indents by two spaces and keeps the opening brace on the line of the code that comes before it. To get the layout of this book, create a `.clang-format` file in your project folder with these four lines:
+
+```text title=".clang-format"
+BasedOnStyle: LLVM
+IndentWidth: 4
+BreakBeforeBraces: Allman
+ColumnLimit: 80
+```
+
+A project that has such a file gets the same layout from every contributor.
 
 {{#endtab}}
 {{#endtabs}}

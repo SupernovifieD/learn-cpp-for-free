@@ -37,7 +37,7 @@ The `*/` after "the second one" ends the outer comment as well. That makes `retu
 
 ## What good comments say
 
-The most useful comment explains **why** the code is the way it is, not **what** it does. A reader can see what a statement does by reading it. What the reader cannot see is the reason behind it: a rule from somewhere else, a choice between two options, a trap that you found the hard way.
+The most useful comment explains *why* the code is the way it is, not *what* it does. A reader can see what a statement does by reading it. What the reader cannot see is the reason behind it: a rule from somewhere else, a choice between two options, a trap that you found the hard way.
 
 A comment that repeats the code is clutter:
 

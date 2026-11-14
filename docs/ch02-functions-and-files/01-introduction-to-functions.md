@@ -45,7 +45,9 @@ Look at the definition of `printGreeting` one part at a time:
 - The empty parentheses are the **parameter list**. A function can take values from its caller through its parameters, and this one takes none. Lesson 2.4 explains parameters.
 - The statements between the braces are the **body**. They are what runs when the function is called.
 
-Notice that `main` is built in exactly the same way: a return type, a name, a parameter list and a body. It is an ordinary function, with the single difference that the program starts in it. Notice also that the definition of `printGreeting` comes before `main`. The compiler reads a file from top to bottom, and it has to know about a function before the first call. Lesson 2.7 explains this rule and what to do when you cannot follow it.
+Notice that `main` is built in exactly the same way: a return type, a name, a parameter list and a body. It is an ordinary function, with the single difference that the program starts in it.
+
+Notice also that the definition of `printGreeting` comes before `main`. The compiler reads a file from top to bottom, and it has to know about a function before the first call. Lesson 2.7 explains this rule and what to do when you cannot follow it.
 
 ## Calling a function several times
 
@@ -59,7 +61,9 @@ The same function can be called as often as you like, and a function can call ot
 {{#include ../../examples/ch02/01-calls-in-order.out}}
 ```
 
-The output shows the order in which the program ran. It starts with the first statement of `main`, prints "start of main", and then calls `printTitle`. That function calls `printLine`, which prints a row of dashes. When `printLine` ends, the program returns into `printTitle`, which prints the title and calls `printLine` again. When `printTitle` ends, the program returns into `main`, which prints "middle of main" and calls `printTitle` a second time.
+The output shows the order in which the program ran. It starts with the first statement of `main`, prints "start of main", and then calls `printTitle`. That function calls `printLine`, which prints a row of dashes.
+
+When `printLine` ends, the program returns into `printTitle`, which prints the title and calls `printLine` again. When `printTitle` ends, the program returns into `main`, which prints "middle of main" and calls `printTitle` a second time.
 
 > [!KEY-INSIGHT]
 > A function call is a detour. The computer leaves the current statement, runs the whole called function, and then returns to exactly the place it left. A function that calls other functions makes longer detours, but every detour ends where it began.

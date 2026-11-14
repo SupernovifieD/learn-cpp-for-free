@@ -41,19 +41,19 @@ flowchart TD
 
 Here is the routine applied to a small problem.
 
-**Goal.** The program asks for the length and the width of a room, in whole meters. It prints the area of the floor and the length of the skirting board that goes along the walls.
+**Goal.** The program asks for the length and the width of a room, in whole meters. It prints the area of the floor and the length of the baseboard that goes along the walls.
 
-**Requirements.** The program reads two whole numbers and prints two whole numbers. It ignores the doors, so the skirting board runs along all four walls. Numbers that are not sensible, such as negative lengths, are not handled yet, because that needs decisions that the toolbox does not have.
+**Requirements, for this program.** The program reads two whole numbers and prints two whole numbers. It ignores the doors, so the baseboard runs along all four walls. Numbers that are not sensible, such as negative lengths, are not handled yet, because that needs decisions that the toolbox does not have.
 
 **Tasks, in order.**
 
 1. Read the length.
 2. Read the width.
 3. Calculate the floor area.
-4. Calculate the length of the skirting board.
+4. Calculate the length of the baseboard.
 5. Print both results.
 
-The tasks suggest the functions. Reading a number is a job of its own that happens twice, so it becomes the function `readNumber`. The two calculations become `floorArea` and `skirtingLength`, each with the length and the width as parameters. The function `main` ties the pieces together and prints.
+The tasks suggest the functions. Reading a number is a job of its own that happens twice, so it becomes the function `readNumber`. The two calculations become `floorArea` and `baseboardLength`, each with the length and the width as parameters. The function `main` ties the pieces together and prints.
 
 ## The first version: the calculations
 
@@ -67,7 +67,7 @@ The calculations are the part with the most arithmetic, so the first version bui
 {{#include ../../examples/ch02/13-room-step1.out}}
 ```
 
-Check the numbers by hand. A room of 5 by 4 meters has a floor of 20 square meters, and the walls have a total length of 2 times 5 plus 4, which is 18 meters. Both results are right, so the two functions are ready, and a mistake in the next step cannot be in them.
+Check the numbers by hand. A room of 5 by 4 meters has a floor of 20 square meters, and the walls have a total length of twice the sum of 5 and 4, which is 18 meters. Both results are right, so the two functions are ready, and a mistake in the next step cannot be in them.
 
 ## The final version: reading the numbers
 
@@ -87,9 +87,9 @@ The results are the same as in the first version, because the input is the same.
 
 ## What comes next
 
-The program is finished for the requirements that you set, and it is worth testing with other values. A room of 1 by 1 meter must give an area of 1 and a skirting board of 4. A mistake such as forgetting the factor of 2 shows up immediately with numbers like these.
+The program is finished for the requirements that you set, and it is worth testing with other values. A room of 1 by 1 meter must give an area of 1 and a baseboard of 4. A mistake such as forgetting the factor of 2 shows up immediately with numbers like these.
 
-It is also worth writing down what the program does not do. It does not check that the lengths are positive, and it cannot subtract the width of a door from the skirting board. Those are features for later versions, once you have the statements that make decisions. Keeping the first version small is what made it possible to finish it.
+It is also worth writing down what the program does not do. It does not check that the lengths are positive, and it cannot subtract the width of a door from the baseboard. Those are features for later versions, once you have the statements that make decisions. Keeping the first version small is what made it possible to finish it.
 
 <details>
 <summary>Check your understanding</summary>
@@ -99,7 +99,7 @@ It is also worth writing down what the program does not do. It does not check th
 <details>
 <summary>Answer</summary>
 
-Some tasks need the results of others. In the example, the two numbers are read first, then the area and the skirting board are calculated from them, and the results are printed last.
+Some tasks need the results of others. In the example, the two numbers are read first, then the area and the baseboard are calculated from them, and the results are printed last.
 
 </details>
 
@@ -108,7 +108,7 @@ Some tasks need the results of others. In the example, the two numbers are read 
 <details>
 <summary>Answer</summary>
 
-The floor area is 18 square meters, and the skirting board is 18 meters, because 2 times 6 plus 3 is 18.
+The floor area is 18 square meters, and the baseboard is 18 meters, because twice the sum of 6 and 3 is 18.
 
 </details>
 

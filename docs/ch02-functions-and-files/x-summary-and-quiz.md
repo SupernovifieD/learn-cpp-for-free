@@ -5,12 +5,12 @@ This page recaps the lessons of Chapter 2 and then tests what you remember. The 
 ## Summary
 
 - [2.1 Introduction to functions](01-introduction-to-functions.md): a function is a named group of statements, and a call runs it and returns to the caller. A definition has a return type, a name, a parameter list and a body, and a function cannot be defined inside another function.
-- [2.2 Function return values](02-function-return-values.md): a `return` statement hands a value back, and the call is an expression that you can use. A function with a return type must return a value on every route, and `main` returns a status code, where 0 or `EXIT_SUCCESS` means success.
+- [2.2 Function return values](02-function-return-values.md): a `return` statement hands a value back, and the call is an expression that you can use. A function whose return type is not `void` must return a value on every route, and `main` returns a status code, where 0 or `EXIT_SUCCESS` means success.
 - [2.3 Void functions (non-value returning functions)](03-void-functions.md): `void` means that a function returns no value, so its call cannot be used as a value. Return a value when the caller needs an answer, and use `void` when the work is the point.
 - [2.4 Introduction to function parameters and arguments](04-introduction-to-function-parameters-and-arguments.md): parameters are in the definition and arguments are in the call, and arguments are passed by value, so the function works with copies. The number of arguments must match, and an unused parameter is an error under the book's options.
 - [2.5 Introduction to local scope](05-introduction-to-local-scope.md): a local variable belongs to its function, its scope runs from the definition to the end of the block, and its lifetime is the time that it exists. Equal names in different functions are independent, and a variable should be defined close to its first use.
 - [2.6 Why functions are useful, and how to use them effectively](06-why-functions-are-useful-and-how-to-use-them-effectively.md): functions organize a program, allow reuse and testing, and make changes simpler. A function should have one job and a name that starts with a verb.
-- [2.7 Forward declarations and definitions](07-forward-declarations-and-definitions.md): the compiler reads a file from top to bottom, so a function must be declared before it is called. A forward declaration is a header with a semicolon, and the one-definition rule allows only one definition of each function.
+- [2.7 Forward declarations and definitions](07-forward-declarations-and-definitions.md): the compiler reads a file from top to bottom, so a function must be declared before it is called. A forward declaration is a function's return type, name and parameters followed by a semicolon, and the one-definition rule allows only one definition of each function.
 - [2.8 Programs with multiple code files](08-programs-with-multiple-code-files.md): each source file is compiled on its own and the linker joins the results. A file that calls a function from another file needs a declaration, and every source file must be part of the build.
 - [2.9 Naming collisions and an introduction to namespaces](09-naming-collisions-and-an-introduction-to-namespaces.md): a naming collision between files is found by the linker. Namespaces keep names apart, `::` selects a name from one, and the book writes `std::` instead of using `using namespace std;`.
 - [2.10 Introduction to the preprocessor](10-introduction-to-the-preprocessor.md): the preprocessor handles the `#` lines before the compiler and produces a translation unit. `#define` makes macros, which replace plain text, and `#ifdef`, `#ifndef`, `#if 0` and `#endif` keep or drop code.
@@ -54,7 +54,7 @@ void twice(int number)
 <details>
 <summary>Solution</summary>
 
-The declaration says that `twice` returns an `int`, and the definition says that it returns `void`. A declaration and its definition must agree on the return type, so the compiler reports conflicting declarations. Change one of them to match the other, for example by making the declaration `void twice(int number);`.
+The declaration says that `twice` returns an `int`, and the definition says that it returns `void`. A declaration and its definition must agree on the return type, so the compiler rejects the second declaration: the two differ only in their return type. Change one of them to match the other, for example by making the declaration `void twice(int number);`.
 
 </details>
 
@@ -90,7 +90,7 @@ The content of the header goes between the `#define` line and the `#endif` line.
 
 ### Question 5
 
-Write a program with a function `average` that takes two whole numbers and returns their average, rounded down. The `main` function reads two numbers and prints the result.
+Write a program with a function `average` that takes two whole numbers and returns their average, with the fraction dropped. The `main` function reads two numbers and prints the result.
 
 <details>
 <summary>Solution</summary>
@@ -133,7 +133,9 @@ Write a program of three files. A header with a header guard declares two functi
 <details>
 <summary>Solution</summary>
 
-The header declares the functions, and it has a guard with the name `SQUARE_H`. The source file includes its own header and defines the functions. The file `main.cpp` includes the header and uses them. Build the program by naming both source files on the command line, and leave the header out. Type 6 and press <kbd>Enter</kbd>:
+The header declares the functions, and it has a guard with the name `SQUARE_H`. The source file includes its own header and defines the functions. The file `main.cpp` includes the header and uses them.
+
+Build the program by naming both source files on the command line, and leave the header out. Type 6 and press <kbd>Enter</kbd>:
 
 ```cpp title="square.h"
 {{#include ../../examples/ch02/x-q7-square-project/square.h}}
@@ -155,7 +157,7 @@ The header declares the functions, and it has a guard with the name `SQUARE_H`. 
 
 ### Question 8
 
-Write a program that reads a number of minutes and prints it as hours and minutes, for example 135 minutes as 2 hours and 15 minutes. Use two functions, one for the whole hours and one for the minutes that are left over. Only whole-number division and subtraction are allowed.
+Write a program that reads a number of minutes and prints it as hours and minutes, for example 135 minutes as 2 hours and 15 minutes. Use two functions, one for the whole hours and one for the minutes that are left over. Use only the arithmetic you have met: whole-number division, multiplication and subtraction.
 
 <details>
 <summary>Solution</summary>

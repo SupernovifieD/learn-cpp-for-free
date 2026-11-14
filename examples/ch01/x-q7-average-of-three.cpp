@@ -10,6 +10,6 @@ int main()
     std::cin >> first >> second >> third;
 
     int average{(first + second + third) / 3};
-    std::cout << "Average (rounded down): " << average << "\n";
+    std::cout << "Average: " << average << "\n";
     return 0;
 }

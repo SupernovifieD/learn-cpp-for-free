@@ -4,13 +4,15 @@ In lesson 2.8, the file that called a function from another file had to repeat t
 
 ## The problem with repeated declarations
 
-Suppose that a program has a function `add`, defined in `add.cpp`, and that three other files call it. Each of the three files needs a forward declaration of `add`. If you later change the function, for example by adding a parameter, you have to find and change every declaration. A declaration that you miss makes its file call a function that no longer exists in that form, and the program usually fails to link, with an error that is hard to read. In some cases, such as a changed return type, the program may even link and then behave in unpredictable ways.
+Suppose that a program has a function `add`, defined in `add.cpp`, and that three other files call it. Each of the three files needs a forward declaration of `add`. If you later change the function, for example by adding a parameter, you have to find and change every declaration.
+
+A declaration that you miss makes its file call a function that no longer exists in that form, and the program usually fails to link, with an error that is hard to read. In some cases, such as a changed return type, the program may even link and then behave in unpredictable ways.
 
 It would be better to write the declaration once, in one place, and let every file that needs it pick it up from there.
 
 ## Header files
 
-A **header file** is a file that holds declarations, so that many source files can share them. By tradition its name ends in `.h`, and this book follows that tradition. You write the declarations of a function in the header once. Every file that wants to call the function includes the header with the directive `#include`, which, as lesson 2.10 explained, copies the content of the header into the file.
+A header file, as lesson 0.4 mentioned, is a file that holds declarations, so that many source files can share them. By tradition its name ends in `.h`, and this book follows that tradition. You write the declarations of a function in the header once. Every file that wants to call the function includes the header with the directive `#include`, which, as lesson 2.10 explained, copies the content of the header into the file.
 
 This project has a header, `add.h`, a source file that defines the function, and a `main.cpp` that calls it:
 
@@ -30,7 +32,9 @@ This project has a header, `add.h`, a source file that defines the function, and
 {{#include ../../examples/ch02/11-header.out}}
 ```
 
-The header holds the forward declaration of `add`. The file `main.cpp` no longer repeats it. It includes the header instead, and when the preprocessor does its work, the declaration appears in `main.cpp` as if you had typed it there. The header has no header guard yet, which is a deliberate simplification. Lesson 2.12 explains why a guard is needed, and adds one to every header from then on.
+The header holds the forward declaration of `add`. The file `main.cpp` no longer repeats it. It includes the header instead, and when the preprocessor does its work, the declaration appears in `main.cpp` as if you had typed it there.
+
+The header has no header guard yet, which is a deliberate simplification. Lesson 2.12 explains why a guard is needed, and adds one to every header from then on.
 
 The diagram shows what `#include` does to `main.cpp`.
 
@@ -71,6 +75,8 @@ A header is a new file in your project, and it is not compiled by itself. The st
 g++ -std=c++20 -o header main.cpp add.cpp
 ```
 
+The commands for `clang++` and Microsoft's compiler have the same shape, as in lesson 2.8.
+
 {{#endtab}}
 {{#endtabs}}
 
@@ -92,12 +98,12 @@ g++ -std=c++20 -o header main.cpp add.cpp
 <details>
 <summary>Check your understanding</summary>
 
-**Question 1.** Why does `add.cpp` include `add.h`, when it already defines the function?
+**Question 1.** The header `add.h` declares `int add(int left, int right);`, but `add.cpp`, which includes the header, defines `long add(int left, int right)`. What happens when you build the program, and what does this show about including your own header?
 
 <details>
 <summary>Answer</summary>
 
-Including the header lets the compiler see the declaration and the definition together and check that they agree. Some mismatches are then reported as errors right away.
+The compiler reports an error when it compiles `add.cpp`, because the declaration and the definition disagree about the return type. This is the reason why a source file includes its own header: the compiler sees the declaration and the definition together and checks that they agree.
 
 </details>
 

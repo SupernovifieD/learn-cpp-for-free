@@ -1,6 +1,6 @@
 # 2.10 Introduction to the preprocessor
 
-Your source code does not go straight to the compiler. Before the compiler reads a single statement, another tool goes through the file and carries out the lines that start with `#`. You have been using it since your first program, in `#include <iostream>`. This lesson explains what that tool does, introduces two of its features, macros and conditional compilation, and prepares the ground for header files in the next lesson.
+Your source code does not go straight to the compiler. Before the compiler reads a single statement, another step goes through the file and carries out the lines that start with `#`. You have been using it since your first program, in `#include <iostream>`. This lesson explains what that step does, introduces two of its features, macros and conditional compilation, and prepares the ground for header files in the next lesson.
 
 ## What the preprocessor does
 
@@ -22,13 +22,13 @@ A directive has to stand on its own line, as lesson 1.8 mentioned, and it ends a
 
 ## Macros
 
-A **macro** is a name that the preprocessor replaces by other text. You create one with the directive `#define`. There are two forms. The first gives the name a replacement:
+A macro, which lesson 0.13 mentioned, is a name that the preprocessor replaces by other text. You create one with the directive `#define`. There are two forms. The first gives the name a replacement:
 
 ```cpp
 #define PRICE 12
 ```
 
-From this line on, the preprocessor replaces every `PRICE` that it finds in the rest of the file with `12`, before the compiler sees the code. The second form gives the name no replacement text at all:
+From this line on, the preprocessor replaces every whole-word `PRICE` that it finds in the rest of the file, outside quotation marks, with `12`, before the compiler sees the code. The second form gives the name no replacement text at all:
 
 ```cpp
 #define SHOW_EXTRA

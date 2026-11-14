@@ -15,9 +15,9 @@ The `std::` in front of each name says that the name belongs to the Standard Lib
 
 ## Printing with std::cout
 
-You send something to `std::cout` with the **insertion operator**, written `<<`. Think of the two arrows as pointing in the direction in which the value travels: from the right, into the stream on the left.
+You send something to `std::cout` with the **insertion operator**, written `<<`. An operator is a symbol that does something with values, and lesson 1.9 explains them in general. Think of the two arrows as pointing in the direction in which the value travels: from the right, into the stream on the left.
 
-An output statement can insert several things in a row, which is called chaining. Each `<<` hands the next item to the stream. The pieces can be text in quotation marks, numbers, or the names of variables, and they can be mixed in any order:
+An output statement can insert several things in a row, and each `<<` hands the next item to the stream. The pieces can be text in quotation marks, numbers, or the names of variables, and they can be mixed in any order:
 
 ```cpp title="print-several.cpp"
 {{#include ../../examples/ch01/05-print-several.cpp}}
@@ -39,7 +39,9 @@ You end a line of output with `"\n"`, which is one character that means "start a
 std::cout << "Hello" << std::endl;
 ```
 
-The name comes from "end line". It does two things: it ends the line, and it also **flushes** the stream. To see what that means, you need to know that output does not always go to the screen the moment you insert it. A stream keeps the text it has received in a **buffer**, a small area of memory, and sends the whole buffer onward when it is convenient. Flushing forces the buffer to be sent right away.
+The name comes from "end line". It does two things: it ends the line, and it also **flushes** the stream.
+
+To see what that means, you need to know that output does not always go to the screen the moment you insert it. A stream keeps the text it has received in a **buffer**, a small area of memory, and sends the whole buffer onward when it is convenient. Flushing forces the buffer to be sent right away.
 
 Most programs never need that. The buffer is emptied anyway when the program ends, and also before the program waits for input, because `std::cin` and `std::cout` are tied together: any input operation on `std::cin` flushes `std::cout` first. Forcing a flush after every line only makes a program that prints a lot do extra work.
 
@@ -102,7 +104,7 @@ What happens if the reader types something that is not a number? The program bel
 {{#include ../../examples/ch01/05-bad-input.session}}
 ```
 
-The letters cannot be read as a number, so the extraction fails. The standard says that a failed extraction writes 0 into the variable and puts the stream into a failed state, and a stream in that state refuses every later read. That is why `first` holds 0 and `second` keeps the 9 it started with.
+The letters cannot be read as a number, so the extraction fails. It writes 0 into the variable and puts the stream into a failed state, and a stream in that state refuses every later read. A number that is too large for an `int` also fails the stream, and the variable then receives the largest value that an `int` can hold. That is why `first` holds 0 and `second` keeps the 9 it started with.
 
 The program does not stop, and the compiler cannot warn you, because the mistake is in what the reader typed. A later chapter shows how to notice a failed read and recover from it. For now, keep in mind that a program which reads input should be tried with input that is wrong, as well as input that is right.
 
@@ -148,7 +150,7 @@ Both end the line. `std::endl` also flushes the output buffer, which forces the 
 - `std::cin` reads from the keyboard with the extraction operator `>>`, and the program receives the input after the reader presses <kbd>Enter</kbd>.
 - Values that are read are separated by whitespace, and input that is not read stays in the stream.
 - `std::endl` ends a line and flushes the buffer, while `"\n"` only ends the line, so the book uses `"\n"`.
-- When an extraction fails, the variable becomes 0 and later reads do nothing, so programs must not trust their input.
+- When the text cannot be read as a number, the variable becomes 0 and the stream enters a failed state, in which later reads do nothing, so programs must not trust their input.
 
 ## Further reading
 

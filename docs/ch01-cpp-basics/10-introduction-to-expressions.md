@@ -37,7 +37,7 @@ For most operators, the standard does not say in which order the two operands ar
 
 ## Expression statements
 
-When you put a semicolon after an expression, you get an **expression statement**. You have written many of them already:
+When you put a semicolon after an expression, you get an expression statement, the kind of statement that lesson 1.1 named. You have written many of them already:
 
 ```cpp
 width = 7;
@@ -117,7 +117,7 @@ It prints `9`. The right side is evaluated first: `4 * 2` is 8, and adding 1 giv
 - An expression combines literals, variables and operators, and evaluating it produces a result and sometimes a side effect.
 - A subexpression is a part of an expression that is an expression itself, and the compiler evaluates the inner parts first.
 - An expression followed by a semicolon is an expression statement, which is useful for its side effects.
-- An expression statement whose result is thrown away has no effect, and the compilers warn about it.
+- An expression statement that throws its result away and has no side effect does nothing, and the compilers warn about it.
 - An initializer or the right side of an assignment can be any expression, and it is evaluated before the value is stored.
 
 ## Further reading

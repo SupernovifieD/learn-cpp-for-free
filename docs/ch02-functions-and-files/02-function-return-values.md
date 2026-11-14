@@ -69,7 +69,7 @@ A program that has to report a failure ends with the other name:
 return EXIT_FAILURE;
 ```
 
-The status code does not appear in the output of the program, so you cannot see it in a console. Programs and scripts that start your program can read it.
+The status code is not printed. Programs and scripts that start your program can read it, and a shell can show it, for example with `echo $?` on Linux and macOS.
 
 The function `main` has one special rule: it may leave out the `return` statement. When the program reaches the end of `main`, the effect is the same as executing `return 0;`. This is allowed only for `main`, and the book still writes the return statement in every program, because it makes the intention clear and because every other function needs one.
 

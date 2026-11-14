@@ -33,14 +33,16 @@ The minus sign shows that the same symbol can be a different operator in differe
 
 For whole numbers, C++ has the operators that you know from school:
 
-| Operator | Meaning | Example | Result |
-| --- | --- | --- | --- |
-| `+` | Addition | `7 + 2` | 9 |
-| `-` | Subtraction | `7 - 2` | 5 |
-| `*` | Multiplication | `7 * 2` | 14 |
-| `/` | Division | `7 / 2` | 3 |
+| Operator | Meaning | Example and result |
+| --- | --- | --- |
+| `+` | Addition | `7 + 2` is 9 |
+| `-` | Subtraction | `7 - 2` is 5 |
+| `*` | Multiplication | `7 * 2` is 14 |
+| `/` | Division | `7 / 2` is 3 |
 
-The last row needs an explanation. When both operands of `/` are whole numbers, the division is done on whole numbers, and the fraction is thrown away: `7 / 2` is 3, not 3.5. The result is cut off toward zero, so `-7 / 2` is -3. Chapter 6 comes back to division and to what to do when you need the fraction. Dividing a whole number by zero is undefined behavior, which lesson 1.6 described, so never do it.
+The last row needs an explanation. When both operands of `/` are whole numbers, the division is done on whole numbers, and the fraction is thrown away:
+
+`7 / 2` is 3, not 3.5. The result is cut off toward zero, so `-7 / 2` is -3. Chapter 6 comes back to division and to what to do when you need the fraction. Dividing a whole number by zero is undefined behavior, which lesson 1.6 described, so never do it.
 
 This program uses all of the operators, and prints the results:
 
@@ -52,7 +54,7 @@ This program uses all of the operators, and prints the results:
 {{#include ../../examples/ch01/09-operators.out}}
 ```
 
-Read the output statements one at a time. The first subtracts the reserved seats from the seats, the second multiplies, the third applies the unary minus, and the fourth divides 40 by 3. The result of the division is 13, because 3 goes into 40 thirteen times, and the remainder is dropped. In each statement the calculation is finished first, and the result is then inserted into the output.
+Read the output statements one at a time. The first subtracts the reserved seats from the seats, the second multiplies, the third applies the unary minus, and the fourth divides 40 by 3. The result of the division is 13, because 3 goes into 40 thirteen times, and the remainder is dropped. In each statement, the arithmetic is worked out before its result is inserted into the output.
 
 ## Operators produce values and side effects
 

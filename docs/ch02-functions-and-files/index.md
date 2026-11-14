@@ -8,7 +8,7 @@ A program of any size is built from pieces. This chapter shows you how to write 
 - Explain where a name can be used in a program, and where it cannot.
 - Split a program into several files and build them together.
 - Share declarations between files with header files, and protect a header with a header guard.
-- Use namespaces and the preprocessor's include and conditional directives.
+- Use the `std` namespace and `::`, and the preprocessor's include and conditional directives.
 - Plan a small program on paper before you write the first line.
 
 ## Lessons in this chapter

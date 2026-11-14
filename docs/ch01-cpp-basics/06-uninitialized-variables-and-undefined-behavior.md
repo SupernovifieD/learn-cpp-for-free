@@ -4,7 +4,7 @@ Lesson 1.4 listed a way of creating a variable that gives it no value at all. Th
 
 ## What an uninitialized variable holds
 
-When you define a variable without an initializer, as in `int visitors;`, the program sets aside a piece of memory for it and does nothing else. The memory is not cleared. It holds whatever earlier use left in that spot. The standard calls this an **indeterminate value**, which is a polite way of saying that there is no telling what the number is.
+When you define a variable inside a function without an initializer, as in `int visitors;`, the program sets aside a piece of memory for it and does nothing else. The memory is not cleared. It holds whatever earlier use left in that spot. The standard calls this an **indeterminate value**, which is a polite way of saying that there is no telling what the number is.
 
 Reading such a variable is a mistake. The program below does exactly that:
 
@@ -35,7 +35,7 @@ flowchart TD
 The second story is the most dangerous. A program with undefined behavior can work for months, and then fail after a new compiler version, a different optimization setting, or a change in some unrelated part of the code. The program was never correct, only lucky.
 
 > [!ADVANCED]
-> C++26 changes the rules for this particular mistake. Reading an uninitialized variable that has automatic storage, such as an ordinary local variable, becomes **erroneous behavior**: the program is still wrong, but its behavior is no longer undefined. A compiler may report the problem, stop the program with an error, or use a value that it documents. This book builds with C++20, where such a read is still undefined behavior.
+> C++26 changes the rules for this particular mistake. Reading an uninitialized variable that has automatic storage, such as an ordinary local variable, becomes **erroneous behavior**: the program is still wrong, but its behavior is no longer undefined. A compiler may report the problem, stop the program with an error, or substitute some value. This book builds with C++20, where such a read is still undefined behavior.
 
 ## Implementation-defined and unspecified behavior
 
@@ -45,7 +45,7 @@ Two other kinds of behavior are often mixed up with undefined behavior, and they
 
 **Unspecified behavior** also varies between implementations, but the implementation does not have to document its choice. The order in which a compiler evaluates the parts of an expression is often unspecified. If an expression calls two functions that each print something, the standard does not say which one prints first.
 
-A correct program must not depend on either one for its answer, and a good habit is to write code whose result is the same no matter how the compiler chooses.
+A portable program does not depend on either one for its answer, and a good habit is to write code whose result is the same no matter how the compiler chooses.
 
 ## The fix: initialize every variable
 
@@ -64,7 +64,7 @@ The output is the same on every compiler and every run, because every value in t
 > [!BEST-PRACTICE]
 > Initialize every variable when you define it. Use a real value when you have one, and empty braces when you do not.
 
-Every complete program in this book is also built with AddressSanitizer and UBSan, two tools that catch many kinds of undefined behavior while a program runs, so the examples stay free of the mistakes that this lesson describes.
+Every complete program in this book is also built with AddressSanitizer and UBSan, two tools that catch some kinds of undefined behavior while a program runs, such as signed overflow and memory errors. They do not catch every kind, and they do not report an uninitialized read. The examples in this book avoid that mistake because every variable has a value and the compiler's warnings are errors.
 
 <details>
 <summary>Check your understanding</summary>
@@ -108,7 +108,7 @@ With implementation-defined behavior, the program is correct and each compiler d
 - A variable without an initializer holds an indeterminate value, and reading it is undefined behavior in C++20.
 - Undefined behavior means that the standard places no requirements on the program, so it may crash, print nonsense, or look correct until a later day.
 - The compiler can warn about simple cases, and the book's options turn that warning into an error, but you must not rely on that.
-- Implementation-defined behavior is documented by each compiler, and unspecified behavior is not, and a correct program must not depend on either.
+- Implementation-defined behavior is documented by each compiler, and unspecified behavior is not, and a portable program does not depend on either.
 - The fix is to give every variable a value when you define it.
 
 ## Further reading

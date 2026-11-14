@@ -8,7 +8,9 @@ A **statement** is the smallest complete instruction in a C++ program. You can t
 
 Most statements end with a semicolon, the way most sentences end with a period. The semicolon tells the compiler that the instruction is finished and that the next one may begin.
 
-C++ has several kinds of statements, and you will learn them one at a time. Three of them appear in the next few lessons. An **expression statement** does some work, such as printing text. A **return statement** ends the function that it is in. A **declaration statement** creates a variable, which lesson 1.3 explains. Statements such as `if` and the loops, which make a program choose or repeat, wait until later chapters.
+C++ has several kinds of statements, and you will learn them one at a time. Three of them appear in the next few lessons.
+
+An **expression statement** does some work, such as printing text. A **return statement** ends the function that it is in. A **declaration statement** creates a variable, which lesson 1.3 explains. Statements such as `if` and the loops, which make a program choose or repeat, wait until later chapters.
 
 ## Functions
 
@@ -48,7 +50,7 @@ A missing semicolon is the most common syntax error of all. This program forgets
 
 The compiler refuses to build it. The report says that it expected a semicolon, and it names a file, a line and a column, in the same way that a spell checker underlines the place where it noticed a mistake.
 
-Look at what that location really means. A compiler can only tell that a semicolon is missing when it reaches the next token and finds that the statement does not end where it should. For this program, GCC and Clang both point at the end of the `return 0` line, but a compiler may also point at the beginning of the line after the missing semicolon, depending on the code. If the reported line looks fine, check the line before it.
+Look at what that location really means. A compiler can only tell that a semicolon is missing when it reaches the next piece of the program and finds that the statement does not end where it should. For this program, GCC and Clang both point at the end of the `return 0` line, but a compiler may also point at the beginning of the line after the missing semicolon, depending on the code. If the reported line looks fine, check the line before it.
 
 > [!BEST-PRACTICE]
 > Fix the first error in the list, then build again. Later errors are often only side effects of the first one: a single missing semicolon can make the compiler misread everything after it, and the whole list can disappear when you fix that one line.
@@ -72,7 +74,7 @@ return 0;
 <details>
 <summary>Answer</summary>
 
-The first line is a statement that does not end with a semicolon. Adding `;` after `"Good morning\n"` fixes it. The compiler may report the problem on the first line or on the `return` line, because it notices the problem only when it reaches the next token.
+The first line is a statement that does not end with a semicolon. Adding `;` after `"Good morning\n"` fixes it. The compiler may report the problem on the first line or on the `return` line, because it notices the problem only when it reaches the next piece of the program.
 
 </details>
 

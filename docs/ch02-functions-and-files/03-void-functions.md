@@ -42,7 +42,9 @@ This program tries to use the call `printBanner()` as the initial value of an `i
 
 When you write a function, you decide how its result reaches the caller. A simple rule helps with the decision. If the caller needs an answer, return it. If the work itself is the point, as in printing, use `void`.
 
-A function that calculates should usually return its result and leave the printing to the caller. Consider two ways of writing a function that works out the total of a bill. One of them prints the total, and the other returns it. The function that prints can only ever print. The function that returns can be printed, stored, compared or used in a further calculation, so it can be reused in many more places.
+A function that calculates should usually return its result and leave the printing to the caller.
+
+Consider two ways of writing a function that works out the total of a bill. One of them prints the total, and the other returns it. The function that prints can only ever print. The function that returns can be printed, stored, compared or used in a further calculation, so it can be reused in many more places.
 
 > [!BEST-PRACTICE]
 > Let a function do one job. A function that calculates a result returns it, and a function that shows something prints it. When a function does both, it is harder to reuse and harder to test.

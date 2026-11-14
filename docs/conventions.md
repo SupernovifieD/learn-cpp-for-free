@@ -50,6 +50,14 @@ Only the number after the question: the `42` on the first line. The program prin
 
 </details>
 
+## Programs that do not build
+
+Some programs in this book are written to fail, so that you can see the error. The first lines of such a program are comments for the book's own checks, and you can ignore them when you read. The line `// expect-fail:` says why the program does not build, and a line `// passes-without:` names compiler options that, once removed, make the program build, which shows that those options cause the error.
+
+```cpp title="missing-semicolon.cpp"
+{{#include ../examples/ch01/01-missing-semicolon.fail.cpp}}
+```
+
 ## Callouts
 
 A **callout** is a box that sets a piece of information apart from the main text. Each type has its own job, and a lesson uses them sparingly.
@@ -208,6 +216,7 @@ Links to other sites always use https. A long address never stretches the page, 
 
 - Complete programs have a titled code block, and their output follows in an Output block.
 - A program that reads input shows an Example session, with the lines you type included.
+- A program that is meant to fail starts with comment lines for the book's checks, and you can ignore them.
 - Callouts set side information apart, and each type has one job.
 - Tabs let you read only the instructions for your platform and tools, and your choice carries across the site.
 - Keys, diagrams and wide tables are built to work on any screen size, in light and dark mode.

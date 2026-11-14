@@ -5,7 +5,7 @@ int floorArea(int length, int width)
     return length * width;
 }
 
-int skirtingLength(int length, int width)
+int baseboardLength(int length, int width)
 {
     return 2 * (length + width);
 }
@@ -18,7 +18,6 @@ int main()
 
     std::cout << "Floor area: " << floorArea(length, width)
               << " square meters\n";
-    std::cout << "Skirting board: " << skirtingLength(length, width)
-              << " meters\n";
+    std::cout << "Baseboard: " << baseboardLength(length, width) << " meters\n";
     return 0;
 }

@@ -17,7 +17,7 @@ The equals sign makes the two hard to tell apart, because it also appears in one
 
 ## Forms of initialization
 
-C++ has several ways to initialize a variable, and each has a name. The table shows all of them for an `int`.
+C++ has several ways to initialize a variable, and each has a name. The value that a variable starts with, such as the 5 in `int b = 5;`, is called its **initializer**. The table shows the main forms for an `int`.
 
 | Form | Example | What the variable holds |
 | --- | --- | --- |
@@ -51,9 +51,9 @@ All of the forms with an initial value do the same job for an `int` and a value 
 {{#include ../../examples/ch01/04-narrowing.fail.cpp}}
 ```
 
-The number 4.5 has a fraction, and an `int` cannot hold a fraction. The standard makes a narrowing conversion in a brace initializer ill-formed, so this program is not valid C++. GCC and Clang both refuse to build it with their default settings, with or without the options from lesson 0.11.
+The number 4.5 has a fraction, and an `int` cannot hold a fraction. The standard does not allow a narrowing conversion in a brace initializer, so this program is not valid C++. GCC and Clang both refuse to build it with their default settings, with or without the options from lesson 0.11.
 
-The other forms are more relaxed. An initializer such as `int x = 4.5;` is accepted and quietly stores 4, although the strict warnings of lesson 0.11 report it. Writing braces makes the compiler catch the mistake in every case, so the book writes braces for every variable.
+The other forms are more relaxed. A line such as `int x = 4.5;` is allowed. It stores 4, and whether you hear about the lost fraction depends on the compiler and its options: GCC builds it without a word by default, Clang warns, and the strict options of lesson 0.11 turn the warning into an error on both. Braces make every compiler refuse a conversion that loses information, so the book writes braces for every variable.
 
 > [!BEST-PRACTICE]
 > Initialize every variable with braces. Give the variable its real value when you know it, and use empty braces, as in `int total{};`, when the real value will arrive a moment later, for example from the keyboard in the next lesson.
@@ -66,7 +66,7 @@ A variable that is initialized in one step is also simpler to reason about than 
 
 ## Variables that you never use
 
-The options of lesson 0.11 turn an unused variable into an error. This keeps a program free of leftovers, but you sometimes need a variable that the program does not use, for example while you are experimenting. In that case you can mark the variable with the attribute `[[maybe_unused]]`, which has been part of C++ since C++17:
+The options of lesson 0.11 turn an unused variable into an error. This keeps a program free of leftovers, but you sometimes need a variable that the program does not use, for example while you are experimenting. In that case you can mark the variable with `[[maybe_unused]]`. This is an **attribute**, extra information for the compiler that is written in double square brackets, and this one has been part of C++ since C++17:
 
 ```cpp
 [[maybe_unused]] int spare{3};

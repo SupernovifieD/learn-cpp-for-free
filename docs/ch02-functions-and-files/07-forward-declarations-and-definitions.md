@@ -18,7 +18,7 @@ The simplest cure is to reorder the file. If you move the definition of `add` ab
 
 Reordering does not always work. In a larger program, you may want `main` at the top of the file, where a reader looks first, with the details below it. Two functions can also call each other, and then neither one can come first. For these cases, C++ lets you tell the compiler about a function before you define it.
 
-A **forward declaration**, also called a **function prototype**, is the header of a function followed by a semicolon, with no body. It states the return type, the name and the parameters, which is everything that the compiler needs in order to check a call:
+A **forward declaration**, also called a **function prototype**, is the first part of a function definition, the return type, the name and the parameters, followed by a semicolon instead of a body. It is everything that the compiler needs in order to check a call:
 
 ```cpp title="forward-declaration.cpp"
 {{#include ../../examples/ch02/07-forward-declaration.cpp}}
@@ -107,7 +107,7 @@ The one-definition rule allows only one definition of each function in a program
 ## Summary
 
 - The compiler reads a file from top to bottom, so a function must be declared or defined before its first call.
-- A forward declaration, or function prototype, is a function header followed by a semicolon, and it lets you call a function that is defined further down or in another file.
+- A forward declaration, or function prototype, is a function's return type, name and parameters followed by a semicolon, and it lets you call a function that is defined further down or in another file.
 - A declaration tells the compiler how to call a function, and a definition supplies the body.
 - A function that is declared and called but never defined compiles, and then fails to link.
 - The one-definition rule allows a function to be declared many times but defined only once.

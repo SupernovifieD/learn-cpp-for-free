@@ -16,7 +16,7 @@ The **scope** of a name is the part of the program in which the name can be used
 
 The **lifetime** of a variable is the time during which it exists while the program runs. A local variable exists from the moment its definition is reached until the end of its block. Lifetime belongs to the running program, not to its text.
 
-For a local variable, the two ideas nearly coincide, but they are not the same thing. The diagram shows the lifetime of two variables while `main` calls a function that has a parameter, as in the program of lesson 2.4.
+For a local variable, the two ideas nearly coincide, but they are not the same thing: while a function that `main` calls is running, the variable of `main` is alive, but its name is out of scope in the called function. The diagram shows the lifetime of two variables while `main` calls a function that has a parameter, as in the program of lesson 2.4.
 
 ```mermaid
 flowchart TD

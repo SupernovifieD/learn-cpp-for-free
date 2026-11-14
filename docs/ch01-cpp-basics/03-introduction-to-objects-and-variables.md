@@ -27,7 +27,7 @@ flowchart TD
 
 ## Defining a variable
 
-You create a variable with a **definition**. It names the type of the variable and then its name:
+You create a variable with a definition, the same word that lesson 0.5 used for functions. A definition names the type of the variable and then its name:
 
 ```cpp
 int width;

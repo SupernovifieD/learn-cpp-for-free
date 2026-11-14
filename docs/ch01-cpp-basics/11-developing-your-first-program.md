@@ -108,7 +108,7 @@ With a fixed value, nothing has to be typed, and the same result appears on ever
 <details>
 <summary>Answer</summary>
 
-The line that calculates `seconds`. It must multiply the minutes by 60, so the correct line is `int seconds{minutes * 60};`. The output shows the mistake because 300 minutes are 18000 seconds.
+The seconds are wrong, so look at the line that calculates them and at the output statement that prints them. The correct calculation is `int seconds{minutes * 60};`, because 300 minutes are 18000 seconds. The printed 300 suggests that the program calculated `seconds` wrongly, or printed `minutes` where it should print `seconds`.
 
 </details>
 
