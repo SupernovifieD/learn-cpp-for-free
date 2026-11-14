@@ -377,7 +377,9 @@ def test_a_program_that_is_really_too_slow_fails_even_after_the_second_try(tmp_p
     built = check_examples.build(compiler, ["-std=c++20"], program.sources, exe, tmp_path)
     assert built.returncode == 0, built.stderr
     message = check_examples.run_and_judge(exe, program, 1, tmp_path)
-    assert message is not None and "more than 1 seconds (in both of two tries)" in message
+    assert message is not None and "more than 1 seconds" in message
+    if sys.platform == "darwin":
+        assert "in both of two tries" in message  # macOS starts a timed-out program once more
 
 
 @needs_compiler
@@ -389,3 +391,101 @@ def test_a_program_that_is_fast_enough_passes_the_run_time_check(tmp_path):
     exe = tmp_path / "fast"
     assert check_examples.build(COMPILERS[0], ["-std=c++20"], program.sources, exe, tmp_path).returncode == 0
     assert check_examples.run_and_judge(exe, program, 5, tmp_path) is None
+
+
+@needs_compiler
+@pytest.mark.skipif(sys.platform != "darwin", reason="only macOS starts a timed-out program a second time")
+def test_a_program_that_is_slow_only_on_its_first_start_passes(tmp_path):
+    """The first start of a new program can be slow on macOS: the second try is the one that counts."""
+    marker = tmp_path / "started-before"
+    source = tmp_path / "ch01" / "01-slow-once.cpp"
+    source.parent.mkdir()
+    source.write_text(
+        '#include <chrono>\n#include <filesystem>\n#include <fstream>\n#include <thread>\nint main()\n{\n'
+        f'    if (!std::filesystem::exists("{marker.name}"))\n    {{\n        std::ofstream("{marker.name}");\n'
+        "        std::this_thread::sleep_for(std::chrono::seconds(3));\n    }\n    return 0;\n}\n"
+    )
+    program = check_examples.Program(source, False, (source,), ())
+    exe = tmp_path / "slow-once"
+    assert check_examples.build(COMPILERS[0], ["-std=c++20"], program.sources, exe, tmp_path).returncode == 0
+    assert check_examples.run_and_judge(exe, program, 1, tmp_path) is None
+
+
+# ---------------------------------------------------- messages and command line --
+
+
+def test_passes_without_must_name_flags_of_the_flags_file(tmp_path):
+    files = {"ch01/01-a.fail.cpp": "// expect-fail: x\n// passes-without: -Wnot-a-real-flag\nint main()\n{\n    return missing;\n}\n"}
+    examples = make_tree(tmp_path, files)
+    run = subprocess.run(
+        [sys.executable, str(SCRIPTS / "check_examples.py"), "--root", str(examples), "--flags-file", str(FIXTURES / "flags.txt"), "--skip-sanitizers", "--skip-format"],
+        capture_output=True,
+        text=True,
+    )
+    if COMPILERS:
+        assert run.returncode == 1, run.stdout + run.stderr
+        assert "'passes-without' names flags that are not in flags.txt" in run.stdout
+
+
+@needs_compiler
+def test_passes_without_must_really_make_the_program_build(tmp_path):
+    files = {"ch01/01-a.fail.cpp": "// expect-fail: x\n// passes-without: -Werror\nint main()\n{\n    return missing;\n}\n"}
+    examples = make_tree(tmp_path, files)
+    run = subprocess.run(
+        [sys.executable, str(SCRIPTS / "check_examples.py"), "--root", str(examples), "--flags-file", str(FIXTURES / "flags.txt"), "--skip-sanitizers", "--skip-format"],
+        capture_output=True,
+        text=True,
+    )
+    assert run.returncode == 1, run.stdout + run.stderr
+    assert "without -Werror it should build, but" in run.stdout
+
+
+@needs_clang
+def test_require_all_fails_when_a_compiler_is_missing():
+    run = run_checker("good", "--require-all", env={"GXX": "no-such-compiler-xyz"}, sanitizers=True)
+    assert run.returncode == 1, run.output
+    assert "--require-all: gcc:" in run.output
+
+
+def test_require_all_cannot_be_combined_with_skipping_a_check():
+    for skip in ("--skip-sanitizers", "--skip-format"):
+        run = run_checker("good", "--require-all", skip)
+        assert run.returncode == 2, run.output
+        assert "would silently drop a check" in run.output
+
+
+def test_a_missing_flags_file_is_a_clear_message_not_a_traceback():
+    run = subprocess.run(
+        [sys.executable, str(SCRIPTS / "check_examples.py"), "--root", str(FIXTURES / "good"), "--flags-file", str(FIXTURES / "no-such-flags.txt")],
+        capture_output=True,
+        text=True,
+    )
+    assert run.returncode == 1
+    assert "does not exist" in run.stderr and "Traceback" not in run.stderr
+
+
+def test_a_tree_without_programs_shows_why(tmp_path):
+    examples = make_tree(tmp_path, {"ch01/05-sub/inner/main.cpp": MINIMAL, "ch01/stray.h": ""})
+    run = subprocess.run(
+        [sys.executable, str(SCRIPTS / "check_examples.py"), "--root", str(examples), "--flags-file", str(FIXTURES / "flags.txt")],
+        capture_output=True,
+        text=True,
+    )
+    assert run.returncode == 1
+    assert "No examples found." in run.stderr and "stray.h" in run.stderr
+
+
+def test_a_targeted_run_of_a_broken_project_shows_the_cause(tmp_path):
+    examples = make_tree(tmp_path, {"ch01/03-nomain/helper.cpp": MINIMAL, "ch01/01-ok.cpp": MINIMAL})
+    run = subprocess.run(
+        [sys.executable, str(SCRIPTS / "check_examples.py"), "--root", str(examples), "--flags-file", str(FIXTURES / "flags.txt"), str(examples / "ch01" / "03-nomain")],
+        capture_output=True,
+        text=True,
+    )
+    assert run.returncode == 1
+    assert "needs a main.cpp" in run.stderr
+
+
+def test_files_the_system_adds_beside_programs_are_ignored(tmp_path):
+    programs, problems = discover(tmp_path, {"ch01/01-a.cpp": MINIMAL, "ch01/._01-a.cpp": "binary junk"})
+    assert problems == [] and len(programs) == 1

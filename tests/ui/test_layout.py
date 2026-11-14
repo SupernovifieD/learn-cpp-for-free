@@ -115,7 +115,9 @@ def test_u18_opening_the_answers_causes_no_errors_and_leaves_no_diagram_without_
 def test_u18_the_pages_with_answers_are_found_in_the_built_book():
     """U18: the list of pages with a <details> comes from the built HTML; an empty list would test nothing."""
     assert "conventions.html" in DETAILS_PAGES, f"The Conventions page has questions but is not in {DETAILS_PAGES}."
-    assert len(OPENED_CASES) == len(DETAILS_PAGES) * len(OPENED_WIDTHS) * len(SCHEMES)
+    quiz_pages = [path for path in PAGES if path.endswith("x-summary-and-quiz.html")]
+    missing = [path for path in quiz_pages if path not in DETAILS_PAGES]
+    assert not missing, f"These quiz pages have solutions in <details> but are not measured with them opened: {missing}"
 
 
 @pytest.mark.parametrize(

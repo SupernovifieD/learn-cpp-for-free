@@ -1,0 +1,2 @@
+# Keep the examples on LF line endings, so the checked output and sessions match on every system.
+examples/** text eol=lf

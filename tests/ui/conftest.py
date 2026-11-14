@@ -322,6 +322,9 @@ class Tab:
 # ------------------------------------------------------- parallel scheduling --
 
 _VIEWPORT_ID = re.compile(r"[-\[](\d{3,4})-(light|dark)\]$")
+# The id of a test that measures a page with every answer opened ("...-open-375-light]"), as opposed to a
+# page whose own name contains "-open-" (a lesson called "open-a-file" would not match).
+_OPENED_ID = re.compile(r"-open-\d{3,4}-(light|dark)\]?$")
 _SCHEME_ONLY_ID = re.compile(r"\[(light|dark)\]$")
 
 
@@ -338,7 +341,7 @@ def _scope_of(nodeid: str) -> str:
     if viewport:
         # The pass with every answer opened is as large as the closed one, so it gets its own groups
         # and the two can run on different workers.
-        opened = "open-" if "-open-" in nodeid else ""
+        opened = "open-" if _OPENED_ID.search(nodeid) else ""
         return f"{opened}{viewport.group(1)}-{viewport.group(2)}"
     scheme_only = _SCHEME_ONLY_ID.search(nodeid)
     if scheme_only:  # the checks that are made at 320px and named only by color scheme
@@ -409,7 +412,7 @@ def pytest_runtest_makereport(item, call):
     try:
         tab = tabs(params["width"], params["scheme"])
         if "path" in params:
-            tab.visit(params["path"], open_details="-open-" in item.callspec.id)
+            tab.visit(params["path"], open_details=bool(_OPENED_ID.search(item.callspec.id)))
         FAILURE_SHOTS.mkdir(parents=True, exist_ok=True)
         name = re.sub(r"[^A-Za-z0-9_.-]+", "_", item.name)
         tab.page.screenshot(path=str(FAILURE_SHOTS / f"{name}.png"), full_page=True)

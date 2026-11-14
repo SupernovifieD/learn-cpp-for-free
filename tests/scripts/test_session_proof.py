@@ -6,6 +6,7 @@ These tests need no compiler. The tests in test_check_examples.py run the whole 
 from __future__ import annotations
 
 import sys
+import time
 from pathlib import Path
 
 SCRIPTS = Path(__file__).resolve().parents[2] / "scripts"
@@ -79,9 +80,20 @@ def test_the_names_of_the_files_appear_in_messages():
 
 
 def test_a_long_session_is_proved_quickly():
-    # 2,000 prompts: the proof must stay fast (it is linear in the session length).
+    # 2,000 prompts. The proof is not linear in the worst case, but a realistic session must stay quick.
     count = 2000
     stdout = "q: \n" * count
     typed = "1\n" * count
     session = "q: 1\n\n" * count
+    started = time.perf_counter()
     assert check_examples.prove_session(session.encode(), typed.encode(), stdout.encode()) is None
+    assert time.perf_counter() - started < 20, "proving a 2,000-prompt session took far too long"
+
+
+def test_the_proof_checks_the_order_of_the_typed_lines_but_not_where_they_sit():
+    # Documented limits (CONTRIBUTING.md): a typed line before its prompt, or after all the output, is accepted.
+    # The author must place the lines as the program would show them.
+    assert prove("7\nEnter a number: Twice that is 14\n", "7\n", "Enter a number: Twice that is 14\n") is None
+    assert prove("Enter a number: Twice that is 14\n7\n", "7\n", "Enter a number: Twice that is 14\n") is None
+    # But two typed lines in the wrong order are caught.
+    assert prove("a: 2\nb: 1\n", "1\n2\n", "a: b: \n") is not None

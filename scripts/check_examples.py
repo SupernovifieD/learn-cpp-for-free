@@ -20,6 +20,10 @@ How each program is judged, with the strict flags from examples/flags-gcc-clang.
                        X.session  what a reader SEES in a console when typing the lines of X.in:
                                   removing each X.in line, in order, from where it appears in
                                   X.session must leave exactly the program's standard output.
+                                  This proves the order of the typed lines and that the rest is the
+                                  program's output. It does not prove WHERE each typed line sits (after
+                                  the prompt that asks for it), and it cannot tell that the program
+                                  really read every typed line: the author must place them honestly.
                      A program has X.out or X.session, never both, and X.in goes with X.session.
                      Then the same program is built again with the strict flags plus AddressSanitizer
                      and UBSan and run again: any sanitizer report is a failure ("san" column).
@@ -38,6 +42,8 @@ is written to the repository: builds happen in a temporary directory.
 Compilers: "g++" must really be GCC and "clang++" must really be Clang. Apple's g++ is a copy of
 Clang, so it is not counted as GCC; set GXX to a real GCC (for example GXX=g++-15) to test it.
 Without --require-all a missing compiler (or a compiler without sanitizer runtime) is only a warning.
+On macOS a program that exceeds its time limit is started once more, because the system scans every newly
+built program and its first start can take seconds; a program that is really too slow fails both times.
 The script needs nothing but Python 3 and the compilers (clang-format is found through the
 clang-format package or PATH).
 """
@@ -65,6 +71,11 @@ COMPILE_TIMEOUT_SECONDS = 120
 SANITIZER_FLAGS = ["-fsanitize=address,undefined", "-fno-sanitize-recover=all", "-g"]
 COMPANION_SUFFIXES = (".out", ".in", ".session")
 IGNORED_NAMES = {".DS_Store"}
+
+
+def ignored(name: str) -> bool:
+    """Files that the operating system adds (.DS_Store, AppleDouble ._ files)."""
+    return name in IGNORED_NAMES or name.startswith("._")
 
 # Two tiny programs that tell "this machine has no sanitizer runtime" and "this machine's sanitizers
 # crash at start-up" apart from "an example has a real finding". The first allocates and frees; the
@@ -177,6 +188,8 @@ def find_clang_format() -> str | None:
 
 def read_flags(flags_file: Path) -> list[str]:
     """The strict flags: the one line of the flags file."""
+    if not flags_file.is_file():
+        sys.exit(f"The flags file {flags_file} does not exist. Pass --flags-file, or put {FLAGS_NAME} in the root folder.")
     lines = [line for line in flags_file.read_text().splitlines() if line.strip()]
     if len(lines) != 1:
         sys.exit(f"{flags_file} must contain exactly one line, but has {len(lines)}.")
@@ -221,7 +234,7 @@ def discover(root: Path) -> tuple[list[Program], list[str]]:
         return display(path, root)
 
     for top in sorted(root.iterdir()):
-        if top.name in IGNORED_NAMES:
+        if ignored(top.name):
             continue
         if top.is_file():
             if top.suffix != ".txt":
@@ -231,7 +244,7 @@ def discover(root: Path) -> tuple[list[Program], list[str]]:
                 )
             continue
         for entry in sorted(top.iterdir()):
-            if entry.name in IGNORED_NAMES:
+            if ignored(entry.name):
                 continue
             if entry.is_dir():
                 project = discover_project(entry, shown, problems)
@@ -272,7 +285,7 @@ def discover_project(folder: Path, shown, problems: list[str]) -> Program | None
     sources: list[Path] = []
     headers: list[Path] = []
     for item in sorted(folder.iterdir()):
-        if item.name in IGNORED_NAMES:
+        if ignored(item.name):
             continue
         if item.is_dir():
             problems.append(f"{shown(item)}/ is a folder inside a project; a project folder is flat, so move its files up.")
@@ -291,7 +304,7 @@ def discover_project(folder: Path, shown, problems: list[str]) -> Program | None
     return Program(folder, True, tuple(sources), tuple(headers))
 
 
-def select_programs(targets: list[Path], programs: list[Program], root: Path) -> list[Program]:
+def select_programs(targets: list[Path], programs: list[Program], root: Path, structure_problems: list[str]) -> list[Program]:
     """Map command-line arguments (a file, a project folder or a file inside one) to programs."""
     if not targets:
         return programs
@@ -300,7 +313,13 @@ def select_programs(targets: list[Path], programs: list[Program], root: Path) ->
         resolved = target.resolve()
         match = next((p for p in programs if resolved == p.base or resolved in p.files), None)
         if match is None:
-            sys.exit(f"{target} is not a program, a project folder or a file of a project inside {root}.")
+            related = [problem for problem in structure_problems if target.name in problem]
+            hint = "".join(f"\n  {problem}" for problem in related)
+            sys.exit(
+                f"{target} is not a program, a project folder or a file of a project inside {root}. "
+                f"Name a .cpp file, a project folder or a file inside one (the .out, .in and .session files are not programs)."
+                + (f" Problems found with it:{hint}" if hint else "")
+            )
         if match not in chosen:
             chosen.append(match)
     return chosen
@@ -380,7 +399,10 @@ def judge_stdout(program: Program, stdout: bytes) -> str | None:
 def build(compiler: Compiler, flags: list[str], sources: tuple[Path, ...], exe: Path, cwd: Path) -> subprocess.CompletedProcess:
     """Compile and link all `sources` into `exe`, merging all diagnostics into one text."""
     command = [compiler.command, *flags, *(str(source) for source in sorted(sources)), "-o", str(exe)]
-    return subprocess.run(command, capture_output=True, text=True, timeout=COMPILE_TIMEOUT_SECONDS, cwd=cwd)
+    try:
+        return subprocess.run(command, capture_output=True, text=True, timeout=COMPILE_TIMEOUT_SECONDS, cwd=cwd)
+    except subprocess.TimeoutExpired:
+        return subprocess.CompletedProcess(command, 124, "", f"the build took more than {COMPILE_TIMEOUT_SECONDS} seconds and was stopped.")
 
 
 def directive(source: Path, name: str) -> str | None:
@@ -397,15 +419,16 @@ def run_and_judge(exe: Path, program: Program, timeout: int, cwd: Path) -> str |
     stdin_file = program.companion(".in")
     stdin = stdin_file.read_bytes() if stdin_file.exists() else b""
     # The first start of a freshly built program can take seconds on macOS, which scans every new
-    # executable, and that time would count against the program. So a program that times out is started
-    # once more: a program that is really too slow is too slow both times.
-    for attempt in (1, 2):
+    # executable, and that time would count against the program. So on macOS a program that times out is
+    # started once more: a program that is really too slow is too slow both times.
+    tries = 2 if sys.platform == "darwin" else 1
+    for attempt in range(1, tries + 1):
         try:
             run = subprocess.run([str(exe)], input=stdin, capture_output=True, timeout=timeout, cwd=cwd)
             break
         except subprocess.TimeoutExpired:
-            if attempt == 2:
-                return f"the program ran for more than {timeout} seconds (in both of two tries)."
+            if attempt == tries:
+                return f"the program ran for more than {timeout} seconds" + (" (in both of two tries)." if tries == 2 else ".")
     if run.returncode != 0:
         return f"the program exited with code {run.returncode}, expected 0.\n{indent(run.stderr.decode(errors='replace'))}".rstrip()
     return judge_stdout(program, run.stdout)
@@ -444,6 +467,8 @@ def check_sanitized(compiler: Compiler, flags: list[str], program: Program, scra
         return False
     problem = run_and_judge(exe, program, SANITIZER_RUN_TIMEOUT_SECONDS, scratch)
     if problem:
+        if "DEADLYSIGNAL" in problem or "unexpected memory mapping" in problem:
+            problem += "\n      This looks like AddressSanitizer failing to start (high ASLR entropy on Linux): `sudo sysctl -w vm.mmap_rnd_bits=28` is the documented fix."
         result.fail("san", f"{compiler.command} with AddressSanitizer and UBSan: {problem}")
         return False
     return True
@@ -500,7 +525,10 @@ def probe_sanitizers(compiler: Compiler, scratch: Path) -> str | None:
     overflow = build(compiler, flags, (overflow_source,), scratch / f"probe-overflow-{compiler.kind}", scratch)
     if overflow.returncode != 0:
         return f"{compiler.command} could not build the UBSan probe:\n{indent(overflow.stdout + overflow.stderr)}"
-    found = subprocess.run([str(scratch / f"probe-overflow-{compiler.kind}")], capture_output=True, timeout=SANITIZER_RUN_TIMEOUT_SECONDS, cwd=scratch)
+    try:
+        found = subprocess.run([str(scratch / f"probe-overflow-{compiler.kind}")], capture_output=True, timeout=SANITIZER_RUN_TIMEOUT_SECONDS, cwd=scratch)
+    except subprocess.TimeoutExpired:
+        return "the UBSan probe did not finish."
     if found.returncode == 0:
         return f"{compiler.command} did not report a signed integer overflow with -fsanitize=undefined, so UBSan does not work here."
     return None
@@ -572,7 +600,7 @@ def check_rules(program: Program, result: Result) -> None:
         if file.exists():
             data = file.read_bytes()
             if b"\r" in data or (data and not data.endswith(b"\n")):
-                result.fail("rules", f"{file.name} must use \\n line endings (no \\r) and end with a newline.")
+                result.fail("rules", f"{file.name} must use \\n line endings (no \\r) and end with a newline (the .gitattributes file of the repository keeps the examples on \\n line endings in Git).")
 
 
 def check_one(
@@ -617,10 +645,13 @@ def main(argv: list[str] | None = None) -> int:
     if not root.is_dir():
         sys.exit(f"{args.root} is not a folder.")
     flags_file = (args.flags_file or root / FLAGS_NAME).resolve()
+    if args.require_all and (args.skip_sanitizers or args.skip_format):
+        parser.error("--require-all cannot be combined with --skip-sanitizers or --skip-format: it would silently drop a check.")
+    flags = read_flags(flags_file)
     programs, structure_problems = discover(root)
     if not programs:
-        sys.exit("No examples found.")
-    selected = select_programs(args.targets, programs, root)
+        sys.exit("No examples found." + "".join(f"\n  {problem}" for problem in structure_problems))
+    selected = select_programs(args.targets, programs, root, structure_problems)
 
     notes: list[str] = []
     found = find_compilers(notes)
@@ -643,7 +674,6 @@ def main(argv: list[str] | None = None) -> int:
     problems: list[str] = []
     if args.require_all:
         problems += [f"--require-all: {note}" for note in notes]
-    flags = read_flags(flags_file)
     print("Flags     :", " ".join(flags))
     for compiler in compilers:
         print(f"{compiler.kind.upper():<10}: {compiler.version} ({compiler.command})")
