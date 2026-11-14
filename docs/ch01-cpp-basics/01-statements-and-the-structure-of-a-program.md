@@ -57,7 +57,7 @@ Lesson 0.8 lists other common problems, and it explains what to do when a build 
 
 ## Two things the compiler ignores
 
-You can add notes for human readers anywhere in a program, and the compiler skips them. These notes are called comments, and lesson 1.2 shows how to write them. The compiler also pays little attention to spaces and line breaks, and lesson 1.8 explains where they matter and how to use them to make code easy to read.
+You can add notes for human readers anywhere in a program, and the compiler skips them. These notes are called comments, and lesson 1.2 shows how to write them. The compiler also pays little attention to spaces and line breaks, and lesson 1.8 explains where they matter and how to use them to make code readable.
 
 <details>
 <summary>Check your understanding</summary>

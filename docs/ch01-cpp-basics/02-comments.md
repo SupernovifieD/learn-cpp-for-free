@@ -12,7 +12,7 @@ This program uses both, and it uses a line comment in two different ways:
 {{#include ../../examples/ch01/02-comments.cpp}}
 ```
 
-The first two lines say what the file is and what it does, a habit that makes a folder full of programs easy to browse. The block comment before `main` shows the second form. The comment at the end of the first output statement shares its line with code, which is fine as long as the line stays short. The program prints:
+The first two lines say what the file is and what it does, a habit that helps when you browse a folder full of programs. The block comment before `main` shows the second form. The comment at the end of the first output statement shares its line with code, which is fine as long as the line stays short. The program prints:
 
 ```text title="Output"
 {{#include ../../examples/ch01/02-comments.out}}

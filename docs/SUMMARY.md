@@ -21,3 +21,6 @@
   - [1.1 Statements and the structure of a program](ch01-cpp-basics/01-statements-and-the-structure-of-a-program.md)
   - [1.2 Comments](ch01-cpp-basics/02-comments.md)
   - [1.3 Introduction to objects and variables](ch01-cpp-basics/03-introduction-to-objects-and-variables.md)
+  - [1.4 Variable assignment and initialization](ch01-cpp-basics/04-variable-assignment-and-initialization.md)
+  - [1.5 Introduction to iostream: cout, cin, and endl](ch01-cpp-basics/05-introduction-to-iostream-cout-cin-and-endl.md)
+  - [1.6 Uninitialized variables and undefined behavior](ch01-cpp-basics/06-uninitialized-variables-and-undefined-behavior.md)

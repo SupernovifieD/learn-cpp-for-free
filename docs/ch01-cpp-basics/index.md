@@ -16,3 +16,6 @@ This chapter teaches the smallest building blocks of a C++ program: statements, 
 - [1.1 Statements and the structure of a program](01-statements-and-the-structure-of-a-program.md): what a statement is, what `main` does, and what a syntax error looks like.
 - [1.2 Comments](02-comments.md): notes for readers, and what they should say.
 - [1.3 Introduction to objects and variables](03-introduction-to-objects-and-variables.md): where a program keeps its values.
+- [1.4 Variable assignment and initialization](04-variable-assignment-and-initialization.md): giving variables their first value, and replacing it later.
+- [1.5 Introduction to iostream: cout, cin, and endl](05-introduction-to-iostream-cout-cin-and-endl.md): printing, reading from the keyboard, and what `std::endl` adds.
+- [1.6 Uninitialized variables and undefined behavior](06-uninitialized-variables-and-undefined-behavior.md): why every variable needs a value.

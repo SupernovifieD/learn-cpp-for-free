@@ -24,6 +24,32 @@ std::cout << "This single line is deliberately much wider than a phone screen, s
 
 Short pieces of code inside a sentence look like `std::cout`. Identifiers, file names and commands always use this style.
 
+## Programs that read input
+
+Some programs wait for you to type something. Their output depends on what you type, so the book shows an **Example session** instead of an Output block: the console as you would see it, with the lines you type included. The text before it says what to type, for example "Type 42 and press <kbd>Enter</kbd>."
+
+```cpp title="read-number.cpp"
+{{#include ../examples/ch01/05-read-number.cpp}}
+```
+
+```text title="Example session"
+{{#include ../examples/ch01/05-read-number.session}}
+```
+
+<details>
+<summary>Check your understanding</summary>
+
+In the example session above, which part of the text did you type?
+
+<details>
+<summary>Answer</summary>
+
+Only the number after the question: the `42` on the first line. The program printed everything else.
+
+</details>
+
+</details>
+
 ## Callouts
 
 A **callout** is a box that sets a piece of information apart from the main text. Each type has its own job, and a lesson uses them sparingly.
@@ -181,6 +207,7 @@ Links to other sites always use https. A long address never stretches the page, 
 ## Summary
 
 - Complete programs have a titled code block, and their output follows in an Output block.
+- A program that reads input shows an Example session, with the lines you type included.
 - Callouts set side information apart, and each type has one job.
 - Tabs let you read only the instructions for your platform and tools, and your choice carries across the site.
 - Keys, diagrams and wide tables are built to work on any screen size, in light and dark mode.
