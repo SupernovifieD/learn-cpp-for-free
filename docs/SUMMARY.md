@@ -43,3 +43,5 @@
   - [2.10 Introduction to the preprocessor](ch02-functions-and-files/10-introduction-to-the-preprocessor.md)
   - [2.11 Header files](ch02-functions-and-files/11-header-files.md)
   - [2.12 Header guards](ch02-functions-and-files/12-header-guards.md)
+  - [2.13 How to design your first programs](ch02-functions-and-files/13-how-to-design-your-first-programs.md)
+  - [2.x Chapter 2 summary and quiz](ch02-functions-and-files/x-summary-and-quiz.md)

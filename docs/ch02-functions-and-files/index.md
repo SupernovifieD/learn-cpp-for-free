@@ -25,3 +25,5 @@ A program of any size is built from pieces. This chapter shows you how to write 
 - [2.10 Introduction to the preprocessor](10-introduction-to-the-preprocessor.md): what happens before the compiler, macros and conditional compilation.
 - [2.11 Header files](11-header-files.md): sharing declarations between files.
 - [2.12 Header guards](12-header-guards.md): keeping a header from being used twice, and what guards cannot fix.
+- [2.13 How to design your first programs](13-how-to-design-your-first-programs.md): planning a program, and building it one task at a time.
+- [2.x Chapter 2 summary and quiz](x-summary-and-quiz.md): a recap of the chapter, and eight questions to test yourself.
