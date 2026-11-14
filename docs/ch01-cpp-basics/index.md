@@ -22,3 +22,5 @@ This chapter teaches the smallest building blocks of a C++ program: statements, 
 - [1.7 Keywords and naming identifiers](07-keywords-and-naming-identifiers.md): which names are allowed, which to avoid, and how to choose good ones.
 - [1.8 Whitespace and basic formatting](08-whitespace-and-basic-formatting.md): where layout matters, and how to let a tool format your code.
 - [1.9 Introduction to literals and operators](09-introduction-to-literals-and-operators.md): values in the code, and the arithmetic you can do with them.
+- [1.10 Introduction to expressions](10-introduction-to-expressions.md): how the compiler works out a value, and what a statement without an effect is.
+- [1.11 Developing your first program](11-developing-your-first-program.md): a plan, three small steps, and the habits that keep programs correct.

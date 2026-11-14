@@ -27,3 +27,5 @@
   - [1.7 Keywords and naming identifiers](ch01-cpp-basics/07-keywords-and-naming-identifiers.md)
   - [1.8 Whitespace and basic formatting](ch01-cpp-basics/08-whitespace-and-basic-formatting.md)
   - [1.9 Introduction to literals and operators](ch01-cpp-basics/09-introduction-to-literals-and-operators.md)
+  - [1.10 Introduction to expressions](ch01-cpp-basics/10-introduction-to-expressions.md)
+  - [1.11 Developing your first program](ch01-cpp-basics/11-developing-your-first-program.md)
