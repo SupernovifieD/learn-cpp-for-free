@@ -242,6 +242,86 @@ def test_a_program_with_an_err_file_also_passes_the_sanitizer_run(working_saniti
     assert cells_of(run.output, "01-trace.cpp")[2] == "PASS"
 
 
+# ------------------------------------------------------------ undefined behavior --
+
+
+def test_a_program_with_undefined_behavior_passes_when_the_sanitizers_detect_it(working_sanitizers):
+    run = run_checker("ub-good", sanitizers=True)
+    assert run.returncode == 0, run.output
+    assert "2 of 2 examples passed." in run.output  # a file and a project folder
+    for name in ("01-overflow.ub.cpp", "03-divide.ub/"):
+        cells = cells_of(run.output, name)
+        assert cells[2] == "ub", cells
+        for compiler in working_sanitizers:
+            assert cells[["gcc", "clang"].index(compiler.kind)] == "PASS", (compiler.kind, cells)
+
+
+@needs_compiler
+def test_a_program_with_undefined_behavior_is_never_run_without_the_sanitizers():
+    run = run_checker("ub-good")  # this run skips the sanitizers
+    assert run.returncode == 0, run.output
+    for compiler in COMPILERS:
+        assert cells_of(run.output, "01-overflow.ub.cpp")[["gcc", "clang"].index(compiler.kind)] == "SKIP"
+
+
+@needs_clang
+def test_a_missing_sanitizer_runtime_skips_a_ub_program_unless_everything_is_required():
+    nosan = str(FIXTURES / "bin" / "clang++-nosan")
+    lenient = run_checker("ub-good", sanitizers=True, env={"CLANGXX": nosan})
+    assert lenient.returncode == 0, lenient.output
+    assert "WARNING clang sanitizers:" in lenient.output
+    assert cells_of(lenient.output, "01-overflow.ub.cpp")[1] == "SKIP"
+    strict = run_checker("ub-good", "--require-all", sanitizers=True, env={"CLANGXX": nosan})
+    assert strict.returncode == 1, strict.output
+    assert "--require-all: clang sanitizers:" in strict.output
+
+
+def test_a_ub_program_without_undefined_behavior_is_reported_with_advice(working_sanitizers):
+    run = run_checker("ub-clean", sanitizers=True)
+    assert run.returncode == 1, run.output
+    assert "ran to the end without a report" in run.output
+    assert "Choose an example that they detect" in run.output
+    assert "fragment of at most 5 lines" in run.output
+
+
+def test_a_ub_program_with_an_out_file_is_reported():
+    run = run_checker("ub-with-out")
+    assert run.returncode == 1, run.output
+    assert "01-overflow.ub.out: an undefined-behavior program is only run under the sanitizers" in run.output
+
+
+def test_a_ub_program_without_the_comment_line_is_reported():
+    run = run_checker("ub-no-directive")
+    assert run.returncode == 1, run.output
+    assert "must start the file with the line '// undefined-behavior: <one-line reason>'" in run.output
+
+
+def test_a_ub_program_may_have_only_typed_lines_next_to_it(tmp_path):
+    ub = "// undefined-behavior: x\n" + MINIMAL
+    assert check_rules(tmp_path / "one", {"ch01/01-a.ub.cpp": ub, "ch01/01-a.ub.in": "7\n"}) == []
+    problems = check_rules(tmp_path / "two", {"ch01/01-a.ub.cpp": ub, "ch01/01-a.ub.session": "x\n", "ch01/01-a.ub.err": "x\n"})
+    assert sum("an undefined-behavior program is only run under the sanitizers" in p for p in problems) == 2, problems
+
+
+def test_the_undefined_behavior_comment_must_be_the_first_line_and_give_a_reason(tmp_path):
+    late = check_rules(tmp_path / "late", {"ch01/01-a.ub.cpp": "#include <iostream>\n// undefined-behavior: late\n" + MINIMAL})
+    assert any("must start the file with the line" in p for p in late), late
+    empty = check_rules(tmp_path / "empty", {"ch01/01-a.ub.cpp": "// undefined-behavior:\n" + MINIMAL})
+    assert any("must start the file with the line" in p for p in empty), empty
+    project = check_rules(tmp_path / "project", {"ch01/01-a.ub/main.cpp": MINIMAL})
+    assert any("must start main.cpp of the project with the line" in p for p in project), project
+
+
+def test_only_ub_programs_use_the_undefined_behavior_comment(tmp_path):
+    problems = check_rules(tmp_path, {"ch01/01-a.cpp": "// undefined-behavior: x\n" + MINIMAL})
+    assert any("only programs named X.ub.cpp or X.ub/ may use '// undefined-behavior'" in p for p in problems), problems
+
+
+def test_a_ub_program_cannot_also_be_a_failing_program(tmp_path):
+    problems = check_rules(tmp_path, {"ch01/01-a.ub.cpp": "// undefined-behavior: x\n// expect-fail: y\n" + MINIMAL})
+    assert any("only failing programs" in p for p in problems), problems
+
+
 # ------------------------------------------------------------------ sanitizers --
 
 

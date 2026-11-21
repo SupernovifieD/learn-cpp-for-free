@@ -41,6 +41,16 @@ How each program is judged, with the strict flags from examples/flags-gcc-clang.
                      which also makes the checker prove the program builds once those flags are
                      removed, which shows the failure really comes from the flags the book teaches.
                      A failing program never runs, so it has no X.out, X.in or X.session.
+  X.ub.cpp or        shows undefined behavior that COMPILES, and the sanitizers must catch it. The first
+  X.ub/              line of the file (of main.cpp for a project) must be
+                         // undefined-behavior: <one-line reason>
+                     The program never runs without the sanitizers: it is built with the strict flags
+                     minus -Werror (compilers often warn about exactly this) plus AddressSanitizer and
+                     UBSan, run with X.ub.in on stdin when that exists, and must exit with a non-zero
+                     code AND print a sanitizer report ("runtime error:" or "ERROR: AddressSanitizer")
+                     on standard error. A clean run fails. Its only companion is X.ub.in. Without a
+                     sanitizer runtime it is SKIP (a failure with --require-all); the "san" column of
+                     its row reads "ub" and the gcc and clang columns say what each compiler found.
 
 Every .cpp and .h file must also have lines of at most 80 columns and be clang-format clean. Nothing
 is written to the repository: builds happen in a temporary directory.
@@ -77,6 +87,9 @@ COMPILE_TIMEOUT_SECONDS = 120
 SANITIZER_FLAGS = ["-fsanitize=address,undefined", "-fno-sanitize-recover=all", "-g"]
 COMPANION_SUFFIXES = (".out", ".in", ".session", ".err")
 IGNORED_NAMES = {".DS_Store"}
+# What the sanitizers print when they find the undefined behavior of an X.ub program (UBSan, AddressSanitizer).
+UB_REPORTS = ("runtime error:", "ERROR: AddressSanitizer")
+UB_DIRECTIVE = "undefined-behavior"
 
 
 def ignored(name: str) -> bool:
@@ -131,6 +144,10 @@ class Program:
     @property
     def expects_failure(self) -> bool:
         return self.stem.endswith(".fail")
+
+    @property
+    def expects_undefined_behavior(self) -> bool:
+        return self.stem.endswith(".ub")
 
     @property
     def main_file(self) -> Path:
@@ -548,6 +565,40 @@ def check_failing_program(compiler: Compiler, flags: list[str], flags_name: str,
     result.cells[column] = "PASS"
 
 
+def check_undefined_behavior(compiler: Compiler, flags: list[str], program: Program, scratch: Path, result: Result, sanitizers_work: bool) -> None:
+    """X.ub.cpp or X.ub/: shows undefined behavior that compiles, so the sanitizers must catch it when it runs.
+
+    Compilers often warn about exactly this kind of bug, which is fine, so -Werror is dropped (every
+    other flag stays). The program is never run without the sanitizers, and it must fail with a report.
+    """
+    column = compiler.kind
+    if not sanitizers_work:
+        result.cells[column] = "SKIP"  # --require-all already turns the missing runtime into a failure
+        return
+    relaxed = [flag for flag in flags if flag != "-Werror"]
+    exe = scratch / f"{program.stem}-{compiler.kind}-ub"
+    built = build(compiler, [*relaxed, *SANITIZER_FLAGS], program.sources, exe, scratch)
+    if built.returncode != 0:
+        result.fail(column, f"{compiler.command} could not build this program (warnings are allowed, errors are not):\n{indent(built.stdout + built.stderr)}")
+        return
+    stdin_file = program.companion(".in")
+    run, problem = start(exe, stdin_file.read_bytes() if stdin_file.exists() else b"", SANITIZER_RUN_TIMEOUT_SECONDS, scratch)
+    if problem:
+        result.fail(column, problem)
+        return
+    report = run.stderr.decode(errors="replace")
+    if run.returncode != 0 and any(marker in report for marker in UB_REPORTS):
+        result.cells[column] = "PASS"
+        return
+    what = "ran to the end without a report" if run.returncode == 0 else f"exited with code {run.returncode} but printed no sanitizer report:\n{indent(report)}"
+    result.fail(
+        column,
+        f"with AddressSanitizer and UBSan, {compiler.command} built this program and it {what}. The sanitizers must detect the undefined "
+        f"behavior of an X.ub program. Choose an example that they detect (signed overflow, a division by zero, a view that outlives its "
+        f"string), or show the code as a fragment of at most 5 lines or describe it in the text instead.",
+    )
+
+
 def probe_sanitizers(compiler: Compiler, scratch: Path) -> str | None:
     """None when this compiler can build and run programs with the sanitizers, else the reason it cannot."""
     flags = ["-std=c++20", *SANITIZER_FLAGS]
@@ -616,9 +667,38 @@ def check_style(program: Program, clang_format: str | None, result: Result) -> N
         result.cells["format"] = "PASS"
 
 
+def check_ub_rules(program: Program, result: Result, never: tuple[Path, ...], typed: Path) -> None:
+    """X.ub.cpp or X.ub/: the first line says why it is undefined, and only X.ub.in may sit next to it."""
+    main = program.main_file
+    first = main.read_text().splitlines()[:1]
+    prefix = f"// {UB_DIRECTIVE}:"
+    if not first or not first[0].startswith(prefix) or not first[0][len(prefix) :].strip():
+        where = "main.cpp of the project" if program.is_project else "the file"
+        result.fail("rules", f"a program that shows undefined behavior must start {where} with the line '{prefix} <one-line reason>' (it is visible to readers, so write a sensible comment).")
+    for extra in never:
+        if extra.exists():
+            result.fail(
+                "rules",
+                f"{extra.name}: an undefined-behavior program is only run under the sanitizers and the book never shows its output, so it cannot have "
+                f"an {extra.suffix} file; delete it. (Only {typed.name}, the typed lines, is allowed.)",
+            )
+    if typed.exists():
+        data = typed.read_bytes()
+        if b"\r" in data or (data and not data.endswith(b"\n")):
+            result.fail("rules", f"{typed.name} must use \\n line endings (no \\r) and end with a newline (the .gitattributes file of the repository keeps the examples on \\n line endings in Git).")
+
+
 def check_rules(program: Program, result: Result) -> None:
     """The naming and companion-file rules that do not need a compiler."""
     main = program.main_file
+    if not program.expects_undefined_behavior:
+        for path in program.files:
+            if directive(path, UB_DIRECTIVE) is not None:
+                result.fail(
+                    "rules",
+                    f"{path.name}: only programs named X.ub.cpp or X.ub/ may use '// {UB_DIRECTIVE}'; if this program shows undefined behavior, rename it.",
+                )
+                break
     if program.expects_failure:
         if directive(main, "expect-fail") is None:
             where = "main.cpp of the project" if program.is_project else "the file"
@@ -638,6 +718,9 @@ def check_rules(program: Program, result: Result) -> None:
         for extra in (out, typed, session, err):
             if extra.exists():
                 result.fail("rules", f"{extra.name}: a failing program never runs, so it cannot have an {extra.suffix} file; delete it.")
+        return
+    if program.expects_undefined_behavior:
+        check_ub_rules(program, result, (out, session, err), typed)
         return
     if out.exists() and session.exists():
         result.fail("rules", f"{out.name} and {session.name} cannot both exist: a program that reads input shows its session, any other program its output; delete one.")
@@ -678,11 +761,15 @@ def check_one(
         for compiler in compilers:
             if program.expects_failure:
                 check_failing_program(compiler, flags, flags_name, program, scratch, result)
+            elif program.expects_undefined_behavior:
+                check_undefined_behavior(compiler, flags, program, scratch, result, compiler.kind in sanitizers)
             elif check_program(compiler, flags, program, scratch, result) and compiler.kind in sanitizers:
                 ran_sanitized = True
                 check_sanitized(compiler, flags, program, scratch, result)
     if program.expects_failure:
         result.cells["san"] = "-"
+    elif program.expects_undefined_behavior:
+        result.cells["san"] = "ub"  # its gcc and clang cells already say whether each compiler's sanitizers found it
     elif ran_sanitized and "san" not in result.cells:
         result.cells["san"] = "PASS"
     check_style(program, clang_format, result)

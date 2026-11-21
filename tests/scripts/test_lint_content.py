@@ -80,6 +80,19 @@ def test_a_standard_error_file_without_a_program_is_reported(examples):
     assert len(problems) == 1 and "09-orphan.err" in problems[0] and "standard error file has no program next to it" in problems[0]
 
 
+def test_an_undefined_behavior_program_must_be_included_but_its_input_file_need_not_be(examples):
+    examples(["ch04/04-overflow.ub.cpp", "ch04/04-overflow.ub.in", "ch04/05-divide.ub/main.cpp", "ch04/05-divide.ub.in"])
+    assert problems_for({"examples/ch04/04-overflow.ub.cpp", "examples/ch04/05-divide.ub/main.cpp"}) == []
+    problems = problems_for({"examples/ch04/05-divide.ub/main.cpp"})
+    assert len(problems) == 1 and "04-overflow.ub.cpp" in problems[0] and "is not used by any page" in problems[0]
+
+
+def test_an_input_file_of_an_undefined_behavior_program_without_a_program_is_reported(examples):
+    examples(["ch04/04-overflow.ub.cpp", "ch04/09-gone.ub.in"])
+    problems = problems_for({"examples/ch04/04-overflow.ub.cpp"})
+    assert len(problems) == 1 and "09-gone.ub.in" in problems[0] and "no program next to it" in problems[0]
+
+
 def test_files_the_operating_system_adds_are_not_examples(examples):
     examples(["ch01/01-a.cpp", "ch01/.DS_Store"])
     assert problems_for({"examples/ch01/01-a.cpp"}) == []
