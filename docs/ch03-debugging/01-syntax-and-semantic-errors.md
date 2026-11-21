@@ -27,7 +27,7 @@ flowchart TD
 
 ## Syntax errors
 
-A **syntax error** breaks the grammar of C++. The classic example is a missing semicolon, which lesson 1.1 showed: the compiler cannot tell where one statement ends and the next begins, so it reports an error and produces no program. Other examples are a brace that is never closed or a keyword that is misspelled.
+A **syntax error** breaks the grammar of C++. The classic example is a missing semicolon, which [lesson 1.1](../ch01-cpp-basics/01-statements-and-the-structure-of-a-program.md) showed: the compiler cannot tell where one statement ends and the next begins, so it reports an error and produces no program. Other examples are a brace that is never closed or a keyword that is misspelled.
 
 The compiler usually names the line, but the line it names is where it *noticed* the problem, which can be one line after the mistake. When a message points at a line that looks perfectly fine, read the line above it. Fix the first error in the list before you look at the others, because a single missing character can cause a whole cascade of messages.
 
@@ -39,7 +39,7 @@ A **semantic error** is code with a valid grammar and an invalid meaning. The se
 {{#include ../../examples/ch03/01-undeclared-name.fail.cpp}}
 ```
 
-The program defines `total` but asks for `totl`. Every statement is well formed, yet the second one refers to something that does not exist, so the compiler refuses to build. GCC and Clang word the message differently, and both name `totl` and the line. Calling a function with the wrong number of arguments, as in lesson 2.4, is another semantic error that the compiler finds.
+The program defines `total` but asks for `totl`. Every statement is well formed, yet the second one refers to something that does not exist, so the compiler refuses to build. GCC and Clang word the message differently, and both name `totl` and the line. Calling a function with the wrong number of arguments, as in [lesson 2.4](../ch02-functions-and-files/04-introduction-to-function-parameters-and-arguments.md), is another semantic error that the compiler finds.
 
 These two kinds are the easy ones. The compiler is a tireless proofreader, and it points at the place. Your job is only to read what it says.
 
@@ -74,9 +74,9 @@ The ticket costs 40 and the voucher is worth 5, so the right output is `You pay 
 
 ## Undefined behavior: the hardest kind
 
-Lesson 1.6 introduced undefined behavior, where the standard places no requirements on what a program does. It is the hardest kind of mistake to find, because the program may behave differently from one run to the next, or work for months and then fail after you change something unrelated. A bug that comes and goes is a hint, though not a proof, that undefined behavior is involved.
+[Lesson 1.6](../ch01-cpp-basics/06-uninitialized-variables-and-undefined-behavior.md) introduced undefined behavior, where the standard places no requirements on what a program does. It is the hardest kind of mistake to find, because the program may behave differently from one run to the next, or work for months and then fail after you change something unrelated. A bug that comes and goes is a hint, though not a proof, that undefined behavior is involved.
 
-You cannot catch it by reading the output, since the output may look right. Lesson 3.10 shows tools that detect some of it while a program runs, and lesson 4.4 shows a program that triggers it on purpose. For now, remember the habit from lesson 0.11: turn on the compiler's warnings and treat them as errors, because the compiler can spot many of the simple cases before they ever run.
+You cannot catch it by reading the output, since the output may look right. Lesson 3.10 shows tools that detect some of it while a program runs, and lesson 4.4 shows a program that triggers it on purpose. For now, remember the habit from [lesson 0.11](../ch00-getting-started/11-warning-and-error-levels.md): turn on the compiler's warnings and treat them as errors, because the compiler can spot many of the simple cases before they ever run.
 
 <details>
 <summary>Check your understanding</summary>

@@ -15,3 +15,5 @@ Sooner or later every program does something its author did not intend, and the 
 - [3.1 Syntax and semantic errors](01-syntax-and-semantic-errors.md): the kinds of mistakes, and which of them the compiler can find.
 - [3.2 The debugging process](02-the-debugging-process.md): six steps from the first failure to a repaired program.
 - [3.3 A strategy for debugging](03-a-strategy-for-debugging.md): reading, gathering evidence, and narrowing a bug down by halves.
+- [3.4 Basic debugging tactics](04-basic-debugging-tactics.md): switching code off, tracing calls and printing values to the error stream.
+- [3.5 More debugging tactics](05-more-debugging-tactics.md): debug output that a macro switches on and off, and logging.

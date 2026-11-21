@@ -1,6 +1,6 @@
 # 3.3 A strategy for debugging
 
-Lesson 3.2 listed the steps of debugging and said that finding the root cause takes most of the effort. This lesson is about that step. A good strategy turns a program of fifty functions into a search that takes a handful of questions, instead of a hunt through every line.
+[Lesson 3.2](02-the-debugging-process.md) listed the steps of debugging and said that finding the root cause takes most of the effort. This lesson is about that step. A good strategy turns a program of fifty functions into a search that takes a handful of questions, instead of a hunt through every line.
 
 ## Read first, then run
 
@@ -41,7 +41,7 @@ Searching by halves works like this. First, work out by hand what each step must
 
 The second half has two functions left. The fee from `serviceFee` is 10, which is correct, so the last function, `totalCost`, receives two correct values and returns the wrong one. That function is the root cause: it subtracts the fee where it should add it.
 
-Two checks found it, and the other functions never needed a closer look. Lesson 3.4 shows how to make the program report these values itself, instead of working them out on paper.
+Two checks found it, and the other functions never needed a closer look. [Lesson 3.4](04-basic-debugging-tactics.md) shows how to make the program report these values itself, instead of working them out on paper.
 
 The repaired function adds the fee:
 

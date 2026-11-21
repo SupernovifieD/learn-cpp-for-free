@@ -1,6 +1,6 @@
 # 3.2 The debugging process
 
-Lesson 3.1 showed that the compiler cannot find a logic error, so finding one falls to you. Beginners often treat that as a talent: some people have a nose for bugs, and others do not. In practice, finding a bug is a procedure with a few steps, and following it is faster than staring at the code and hoping.
+[Lesson 3.1](01-syntax-and-semantic-errors.md) showed that the compiler cannot find a logic error, so finding one falls to you. Beginners often treat that as a talent: some people have a nose for bugs, and others do not. In practice, finding a bug is a procedure with a few steps, and following it is faster than staring at the code and hoping.
 
 ## The six steps
 
@@ -18,7 +18,7 @@ flowchart TD
 ```
 
 1. **Reproduce the problem.** Find the exact steps and inputs that make the bug appear, every time. A bug you cannot repeat is a bug you cannot test a fix for.
-2. **Find the root cause.** Locate the statement or function that is actually wrong, not just where the wrong value shows up. Most of the effort goes into this step, and lesson 3.3 gives you a strategy for it.
+2. **Find the root cause.** Locate the statement or function that is actually wrong, not just where the wrong value shows up. Most of the effort goes into this step, and [lesson 3.3](03-a-strategy-for-debugging.md) gives you a strategy for it.
 3. **Understand the problem.** Explain, in words, why that code produces the wrong result. If you cannot, you have not found the cause yet.
 4. **Decide how to fix it.** There is often more than one way, and the quickest one is not always the best one.
 5. **Repair the code.** Make the change you decided on, and nothing else.

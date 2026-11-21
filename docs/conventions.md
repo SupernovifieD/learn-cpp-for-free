@@ -50,6 +50,32 @@ Only the number after the question: the `42` on the first line. The program prin
 
 </details>
 
+## Programs that write to the error stream
+
+Some programs print messages to a second output, the error stream, next to their normal output. Chapter 3 explains it. For such a program the book shows the **console view** in an Output block: the text of both streams, in the order in which a terminal shows it. The text around the block names the lines that came from `std::cerr`. The book's checks run the program twice, once to compare each stream by itself and once to compare the combined view.
+
+```cpp title="print-values.cpp"
+{{#include ../examples/ch03/04-print-values.cpp}}
+```
+
+```text title="Output"
+{{#include ../examples/ch03/04-print-values.out}}
+```
+
+<details>
+<summary>Check your understanding</summary>
+
+In the output above, which line did `std::cerr` write?
+
+<details>
+<summary>Answer</summary>
+
+The first line, the one that starts with `[debug]`. The program printed it with `std::cerr`, and it printed the second line with `std::cout`.
+
+</details>
+
+</details>
+
 ## Programs that do not build
 
 Some programs in this book are written to fail, so that you can see the error. The first lines of such a program are comments for the book's own checks, and you can ignore them when you read. The line `// expect-fail:` says why the program does not build, and a line `// passes-without:` names compiler options that, once removed, make the program build, which shows that those options cause the error.
@@ -216,6 +242,7 @@ Links to other sites always use https. A long address never stretches the page, 
 
 - Complete programs have a titled code block, and their output follows in an Output block.
 - A program that reads input shows an Example session, with the lines you type included.
+- A program that writes to the error stream shows both streams in one Output block, and the text names the lines that `std::cerr` wrote.
 - A program that is meant to fail starts with comment lines for the book's checks, and you can ignore them.
 - Callouts set side information apart, and each type has one job.
 - Tabs let you read only the instructions for your platform and tools, and your choice carries across the site.

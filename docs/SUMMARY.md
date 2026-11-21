@@ -49,3 +49,5 @@
   - [3.1 Syntax and semantic errors](ch03-debugging/01-syntax-and-semantic-errors.md)
   - [3.2 The debugging process](ch03-debugging/02-the-debugging-process.md)
   - [3.3 A strategy for debugging](ch03-debugging/03-a-strategy-for-debugging.md)
+  - [3.4 Basic debugging tactics](ch03-debugging/04-basic-debugging-tactics.md)
+  - [3.5 More debugging tactics](ch03-debugging/05-more-debugging-tactics.md)
