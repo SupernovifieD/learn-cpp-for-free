@@ -9,14 +9,19 @@
 A program is either one file, examples/chNN/X.cpp, or a project: a folder examples/chNN/X/ that holds
 .cpp files and the .h headers they include. Every .cpp file of a project is compiled and linked in
 ONE command (the folder is flat, and one of the files is main.cpp). The files that belong to a program
-sit NEXT TO it, whether it is a file or a folder: X.out, X.in and X.session.
+sit NEXT TO it, whether it is a file or a folder: X.out, X.in, X.session and X.err.
 
 How each program is judged, with the strict flags from examples/flags-gcc-clang.txt:
 
   X.cpp or X/        must compile and link with ZERO diagnostics on every compiler, run for at most
                      5 seconds (stdin comes from X.in when it exists) and exit with code 0, and
-                     print what the book promises:
-                       X.out      standard output must match it byte for byte;
+                     print what the book promises. A running program writes NOTHING to standard
+                     error, unless X.err holds exactly what it writes there; then X.out or X.session
+                     shows the CONSOLE VIEW instead: standard output and standard error captured
+                     through one pipe, in the order the program wrote them, which is what a reader
+                     sees in a terminal (std::cerr is tied to std::cout, so the order is kept):
+                       X.out      standard output (the console view, with X.err) must match it
+                                  byte for byte;
                        X.session  what a reader SEES in a console when typing the lines of X.in:
                                   removing each X.in line, in order, from where it appears in
                                   X.session must leave exactly the program's standard output.
@@ -25,6 +30,7 @@ How each program is judged, with the strict flags from examples/flags-gcc-clang.
                                   the prompt that asks for it), and it cannot tell that the program
                                   really read every typed line: the author must place them honestly.
                      A program has X.out or X.session, never both, and X.in goes with X.session.
+                     X.err goes with a program that has one of them, and is never empty.
                      Then the same program is built again with the strict flags plus AddressSanitizer
                      and UBSan and run again: any sanitizer report is a failure ("san" column).
   X.fail.cpp or      must FAIL to build on every compiler. The first lines of the file (of main.cpp
@@ -69,7 +75,7 @@ RUN_TIMEOUT_SECONDS = 5
 SANITIZER_RUN_TIMEOUT_SECONDS = 10
 COMPILE_TIMEOUT_SECONDS = 120
 SANITIZER_FLAGS = ["-fsanitize=address,undefined", "-fno-sanitize-recover=all", "-g"]
-COMPANION_SUFFIXES = (".out", ".in", ".session")
+COMPANION_SUFFIXES = (".out", ".in", ".session", ".err")
 IGNORED_NAMES = {".DS_Store"}
 
 
@@ -135,7 +141,7 @@ class Program:
         return (*self.sources, *self.headers)
 
     def companion(self, suffix: str) -> Path:
-        """X.out, X.in or X.session next to the program (not inside a project folder)."""
+        """X.out, X.in, X.session or X.err next to the program (not inside a project folder)."""
         return self.base.with_name(self.stem + suffix)
 
 
@@ -262,7 +268,7 @@ def discover(root: Path) -> tuple[list[Program], list[str]]:
             else:
                 problems.append(
                     f"{shown(entry)} has an unexpected file type (a chapter folder holds .cpp files, project folders "
-                    f"and the .out, .in and .session files of programs)."
+                    f"and the .out, .in, .session and .err files of programs)."
                 )
 
     seen: dict[tuple[Path, str], Program] = {}
@@ -296,7 +302,7 @@ def discover_project(folder: Path, shown, problems: list[str]) -> Program | None
         else:
             problems.append(
                 f"{shown(item)} has an unexpected file type inside a project folder (only .cpp and .h files; "
-                f"put {folder.name}.out, {folder.name}.in and {folder.name}.session NEXT TO the folder)."
+                f"put {folder.name}.out, {folder.name}.in, {folder.name}.session and {folder.name}.err NEXT TO the folder)."
             )
     if folder / "main.cpp" not in sources:
         problems.append(f"{shown(folder)}/ needs a main.cpp (the project's entry point), but has none.")
@@ -414,24 +420,67 @@ def directive(source: Path, name: str) -> str | None:
     return None
 
 
-def run_and_judge(exe: Path, program: Program, timeout: int, cwd: Path) -> str | None:
-    """Run a built program with X.in on stdin; None when it exits 0 and prints what the book promises."""
-    stdin_file = program.companion(".in")
-    stdin = stdin_file.read_bytes() if stdin_file.exists() else b""
+def start(exe: Path, stdin: bytes, timeout: int, cwd: Path, merge_stderr: bool = False) -> tuple[subprocess.CompletedProcess | None, str | None]:
+    """Run a built program once: (the finished process, None), or (None, why it took too long).
+
+    With merge_stderr, standard error goes into the same pipe as standard output, which is what a
+    reader sees in a terminal (the console view); the process then has no separate stderr.
+    """
     # The first start of a freshly built program can take seconds on macOS, which scans every new
     # executable, and that time would count against the program. So on macOS a program that times out is
     # started once more: a program that is really too slow is too slow both times.
     tries = 2 if sys.platform == "darwin" else 1
     for attempt in range(1, tries + 1):
         try:
-            run = subprocess.run([str(exe)], input=stdin, capture_output=True, timeout=timeout, cwd=cwd)
-            break
+            run = subprocess.run(
+                [str(exe)], input=stdin, stdout=subprocess.PIPE, stderr=subprocess.STDOUT if merge_stderr else subprocess.PIPE, timeout=timeout, cwd=cwd
+            )
+            return run, None
         except subprocess.TimeoutExpired:
             if attempt == tries:
-                return f"the program ran for more than {timeout} seconds" + (" (in both of two tries)." if tries == 2 else ".")
+                return None, f"the program ran for more than {timeout} seconds" + (" (in both of two tries)." if tries == 2 else ".")
+    raise AssertionError("unreachable: the loop returns on its last try")
+
+
+def judge_stderr(program: Program, stderr: bytes) -> str | None:
+    """None when standard error is what the book promises: nothing, or exactly X.err."""
+    expected_file = program.companion(".err")
+    if expected_file.exists():
+        expected = expected_file.read_bytes()
+        if stderr != expected:
+            return f"standard error differs from {expected_file.name}.\n      expected: {expected[:200]!r}\n      actual:   {stderr[:200]!r}"
+        return None
+    if stderr:
+        return (
+            f"the program wrote this to standard error: {stderr[:200]!r}. A running program must write nothing there. "
+            f"Write it to std::cout, or add {expected_file.name} with exactly this text (the program's .out or .session then "
+            f"shows the console view: standard output and standard error in the order they appear in a terminal)."
+        )
+    return None
+
+
+def run_and_judge(exe: Path, program: Program, timeout: int, cwd: Path) -> str | None:
+    """Run a built program with X.in on stdin; None when it exits 0 and prints what the book promises."""
+    stdin_file = program.companion(".in")
+    stdin = stdin_file.read_bytes() if stdin_file.exists() else b""
+    run, problem = start(exe, stdin, timeout, cwd)
+    if problem:
+        return problem
     if run.returncode != 0:
         return f"the program exited with code {run.returncode}, expected 0.\n{indent(run.stderr.decode(errors='replace'))}".rstrip()
-    return judge_stdout(program, run.stdout)
+    problem = judge_stderr(program, run.stderr)
+    if problem:
+        return problem
+    shown = run.stdout
+    if program.companion(".err").exists():
+        # The same program once more, with both streams in one pipe: X.out or X.session shows that view.
+        merged, problem = start(exe, stdin, timeout, cwd, merge_stderr=True)
+        if problem:
+            return problem
+        if merged.returncode != 0:
+            return f"the program exited with code {merged.returncode} when its streams were merged, expected 0."
+        shown = merged.stdout
+    return judge_stdout(program, shown)
 
 
 def check_program(compiler: Compiler, flags: list[str], program: Program, scratch: Path, result: Result) -> bool:
@@ -584,9 +633,9 @@ def check_rules(program: Program, result: Result) -> None:
                 )
                 break
 
-    out, typed, session = (program.companion(suffix) for suffix in COMPANION_SUFFIXES)
+    out, typed, session, err = (program.companion(suffix) for suffix in COMPANION_SUFFIXES)
     if program.expects_failure:
-        for extra in (out, typed, session):
+        for extra in (out, typed, session, err):
             if extra.exists():
                 result.fail("rules", f"{extra.name}: a failing program never runs, so it cannot have an {extra.suffix} file; delete it.")
         return
@@ -596,7 +645,16 @@ def check_rules(program: Program, result: Result) -> None:
         result.fail("rules", f"{session.name} needs {typed.name}, the lines the reader types, one per Enter press.")
     if typed.exists() and not session.exists():
         result.fail("rules", f"{typed.name} needs {session.name}: a program that reads input shows what the reader sees in the console, so replace {out.name} by {session.name}.")
-    for file in (typed, session):
+    if err.exists():
+        if not (out.exists() or session.exists()):
+            result.fail(
+                "rules",
+                f"{err.name} needs {out.name} or {session.name}: with an {err.suffix} file they show the console view "
+                f"(standard output and standard error in the order they appear in a terminal), so add one of them.",
+            )
+        if not err.read_bytes():
+            result.fail("rules", f"{err.name} is empty: a program that writes nothing to standard error has no {err.suffix} file, so delete it.")
+    for file in (typed, session, err):
         if file.exists():
             data = file.read_bytes()
             if b"\r" in data or (data and not data.endswith(b"\n")):

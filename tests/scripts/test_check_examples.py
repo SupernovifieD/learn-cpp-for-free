@@ -36,7 +36,6 @@ needs_clang = pytest.mark.skipif(CLANG is None, reason="no real clang++ was foun
 
 
 
-
 @pytest.fixture(scope="session")
 def sanitizer_compilers() -> list:
     """The compilers on this machine that can build and run programs with the sanitizers (probing is slow, so once)."""
@@ -204,6 +203,45 @@ def test_an_input_file_needs_a_session_instead_of_an_out_file():
     assert "replace 01-twice.out by 01-twice.session" in run.output
 
 
+# ---------------------------------------------------------------- error stream --
+
+
+@needs_compiler
+def test_a_program_that_writes_to_standard_error_is_judged_by_its_console_view_and_err_file():
+    run = run_checker("good-err")
+    assert run.returncode == 0, run.output
+    assert "2 of 2 examples passed." in run.output  # 01-trace (a .out) and 02-ask (a .session that reads input)
+
+
+@needs_compiler
+def test_standard_error_output_without_an_err_file_is_reported_with_a_fix():
+    run = run_checker("err-without-file")
+    assert run.returncode == 1, run.output
+    assert "the program wrote this to standard error: b'[debug] step 1" in run.output
+    assert "Write it to std::cout, or add 01-trace.err with exactly this text" in run.output
+
+
+@needs_compiler
+def test_a_wrong_err_file_is_reported():
+    run = run_checker("err-wrong")
+    assert run.returncode == 1, run.output
+    assert "standard error differs from 01-trace.err" in run.output
+    assert "[debug] step 3" in run.output  # the expected text, next to the actual one
+
+
+@needs_compiler
+def test_a_console_view_in_the_wrong_order_is_reported():
+    run = run_checker("err-wrong-order")
+    assert run.returncode == 1, run.output
+    assert "output differs from 01-trace.out" in run.output
+
+
+def test_a_program_with_an_err_file_also_passes_the_sanitizer_run(working_sanitizers):
+    run = run_checker("good-err", sanitizers=True)
+    assert run.returncode == 0, run.output
+    assert cells_of(run.output, "01-trace.cpp")[2] == "PASS"
+
+
 # ------------------------------------------------------------------ sanitizers --
 
 
@@ -327,6 +365,31 @@ def test_a_failing_program_must_say_why_and_never_has_companion_files(tmp_path):
     problems = check_rules(tmp_path, {"ch01/01-a.fail.cpp": MINIMAL, "ch01/01-a.fail.out": ""})
     assert any("must start the file with the line '// expect-fail" in p for p in problems), problems
     assert any("a failing program never runs" in p for p in problems), problems
+
+
+def test_an_err_file_needs_the_console_view_in_an_out_file_or_a_session(tmp_path):
+    problems = check_rules(tmp_path, {"ch01/01-a.cpp": MINIMAL, "ch01/01-a.err": "x\n"})
+    assert any("01-a.err needs 01-a.out or 01-a.session" in p and "console view" in p for p in problems), problems
+
+
+def test_an_empty_err_file_is_reported_with_a_fix(tmp_path):
+    problems = check_rules(tmp_path, {"ch01/01-a.cpp": MINIMAL, "ch01/01-a.out": "", "ch01/01-a.err": ""})
+    assert any("01-a.err is empty" in p and "delete it" in p for p in problems), problems
+
+
+def test_a_failing_program_has_no_err_file(tmp_path):
+    problems = check_rules(tmp_path, {"ch01/01-a.fail.cpp": "// expect-fail: x\n" + MINIMAL, "ch01/01-a.fail.err": "x\n"})
+    assert any("01-a.fail.err: a failing program never runs" in p for p in problems), problems
+
+
+@pytest.mark.parametrize("data", ["x\r\n", "x"])
+def test_an_err_file_uses_unix_line_endings_and_ends_with_a_newline(tmp_path, data):
+    problems = check_rules(tmp_path, {"ch01/01-a.cpp": MINIMAL, "ch01/01-a.out": "x\n", "ch01/01-a.err": data})
+    assert any("01-a.err must use \\n line endings" in p for p in problems), problems
+
+
+def test_a_program_with_a_console_view_and_an_err_file_has_no_rule_problems(tmp_path):
+    assert check_rules(tmp_path, {"ch01/01-a.cpp": MINIMAL, "ch01/01-a.out": "[debug] x\n", "ch01/01-a.err": "[debug] x\n"}) == []
 
 
 def test_a_session_needs_its_input_file(tmp_path):

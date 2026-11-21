@@ -68,6 +68,18 @@ def test_a_session_must_be_included_by_a_page(examples):
     assert problems_for({"examples/ch01/01-read.cpp", "examples/ch01/01-read.session"}) == []
 
 
+def test_a_standard_error_file_belongs_to_its_program_and_needs_no_include(examples):
+    examples(["ch01/01-trace.cpp", "ch01/01-trace.out", "ch01/01-trace.err", "ch01/02-proj/main.cpp", "ch01/02-proj.out", "ch01/02-proj.err"])
+    used = {"examples/ch01/01-trace.cpp", "examples/ch01/01-trace.out", "examples/ch01/02-proj/main.cpp", "examples/ch01/02-proj.out"}
+    assert problems_for(used) == []
+
+
+def test_a_standard_error_file_without_a_program_is_reported(examples):
+    examples(["ch01/01-a.cpp", "ch01/09-orphan.err"])
+    problems = problems_for({"examples/ch01/01-a.cpp"})
+    assert len(problems) == 1 and "09-orphan.err" in problems[0] and "standard error file has no program next to it" in problems[0]
+
+
 def test_files_the_operating_system_adds_are_not_examples(examples):
     examples(["ch01/01-a.cpp", "ch01/.DS_Store"])
     assert problems_for({"examples/ch01/01-a.cpp"}) == []
