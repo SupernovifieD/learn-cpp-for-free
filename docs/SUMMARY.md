@@ -45,3 +45,7 @@
   - [2.12 Header guards](ch02-functions-and-files/12-header-guards.md)
   - [2.13 How to design your first programs](ch02-functions-and-files/13-how-to-design-your-first-programs.md)
   - [2.x Chapter 2 summary and quiz](ch02-functions-and-files/x-summary-and-quiz.md)
+- [3. Debugging C++ Programs](ch03-debugging/index.md)
+  - [3.1 Syntax and semantic errors](ch03-debugging/01-syntax-and-semantic-errors.md)
+  - [3.2 The debugging process](ch03-debugging/02-the-debugging-process.md)
+  - [3.3 A strategy for debugging](ch03-debugging/03-a-strategy-for-debugging.md)
