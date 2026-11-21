@@ -218,9 +218,10 @@ DIAGRAM_JS = """(content) => {
       if (!svg) return null;
       const r = svg.getBoundingClientRect();
       const scale = r.width / svg.viewBox.baseVal.width;
+      const broken = svg.textContent.includes('Unsupported markdown');
       const fonts = [...svg.querySelectorAll('text, span, p, div')].map(e => parseFloat(getComputedStyle(e).fontSize)).filter(n => n > 0);
       const label = svg.querySelector('.nodeLabel');
-      return { left: Math.round(r.left), right: Math.round(r.right), columnLeft: Math.round(left), columnRight: Math.round(right),
+      return { broken, left: Math.round(r.left), right: Math.round(r.right), columnLeft: Math.round(left), columnRight: Math.round(right),
                smallestTextPx: fonts.length ? +(Math.min(...fonts) * scale).toFixed(1) : null,
                textColor: label ? getComputedStyle(label).color : null };
     }),
@@ -252,6 +253,10 @@ def test_u10_every_diagram_renders_and_fits_at_320(tabs, path, width, scheme):
     assert found["drawn"] == found["hosts"], f"{found['hosts'] - found['drawn']} diagram(s) did not render an <svg>."
     assert found["pageFits"], "The diagram makes the page scroll sideways at 320px."
     for diagram in found["diagrams"]:
+        assert not diagram["broken"], (
+            "A node label was read as Markdown and replaced by 'Unsupported markdown'. "
+            "Do not start a label with a number and a dot (1.), a dash or a star; write it as plain words."
+        )
         assert diagram["left"] >= diagram["columnLeft"] - 1 and diagram["right"] <= diagram["columnRight"] + 1, (
             f"The diagram spans {diagram['left']}-{diagram['right']}px but the text column is {diagram['columnLeft']}-{diagram['columnRight']}px."
         )
