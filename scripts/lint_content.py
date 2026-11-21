@@ -20,7 +20,8 @@ Rules, each reported as  docs/page.md:LINE: message
     (their instructions and placeholders)
   * callouts use only the documented kinds, and tabs are well formed and use only the documented label sets
   * every file in examples/ is used by at least one page (.in and .err files belong to the program next to
-    them, a .cpp file or a project folder), so every .cpp and .h file of a project needs its own include
+    them, a .cpp file or a project folder; a .gdb-expect file to the .gdb walkthrough next to it), so every
+    .cpp and .h file of a project, and every .gdb file, needs its own include
 
 Fenced code and `inline code` are never checked for HTML, links or forbidden words, because the book
 legitimately shows such text there. The script needs only Python 3.11 or newer.
@@ -47,6 +48,7 @@ FLAGS_EXAMPLE = "examples/flags-gcc-clang.txt"
 FLAGS_LESSON = "ch00-getting-started/11-warning-and-error-levels.md"
 # Companion files that no page includes: the file belongs to the program next to it. Suffix -> what it holds.
 BELONGS_TO_PROGRAM = {".in": "input", ".err": "standard error"}
+EXPECT_SUFFIX = ".gdb-expect"  # belongs to an X.gdb walkthrough, not to a program: X.gdb itself must be included by a page
 
 CALLOUT_KINDS = NATIVE_CALLOUTS | set(CUSTOM_CALLOUTS)
 TAB_SETS = [{"Windows", "macOS", "Linux"}, {"Visual Studio", "VS Code", "Command line"}]
@@ -309,6 +311,11 @@ def lint_examples_used(included_by_page: dict[str, set[str]], final: bool) -> li
     problems = []
     for file in sorted(p for p in EXAMPLES.rglob("*") if p.is_file() and p.name != ".DS_Store"):
         rel = file.relative_to(REPO).as_posix()
+        if file.suffix == EXPECT_SUFFIX:
+            # What GDB must print for the walkthrough X.gdb next to it; the page shows X.gdb, never this file.
+            if not file.with_name(file.name[: -len(EXPECT_SUFFIX)] + ".gdb").exists():
+                problems.append(Problem(rel, 0, f"walkthrough expectations file has no {file.name[: -len(EXPECT_SUFFIX)]}.gdb next to it (the debugger commands whose output it checks)."))
+            continue
         if file.suffix in BELONGS_TO_PROGRAM:
             # The typed lines (X.in) and the standard error text (X.err) of a program are never shown on a page
             # of their own: they belong to X.cpp or to the project folder X/ next to them.

@@ -93,6 +93,20 @@ def test_an_input_file_of_an_undefined_behavior_program_without_a_program_is_rep
     assert len(problems) == 1 and "09-gone.ub.in" in problems[0] and "no program next to it" in problems[0]
 
 
+def test_a_walkthrough_must_be_included_but_its_expectations_need_not_be(examples):
+    examples(["ch03/06-steps.cpp", "ch03/06-steps.out", "ch03/06-steps.gdb", "ch03/06-steps.gdb-expect"])
+    used = {"examples/ch03/06-steps.cpp", "examples/ch03/06-steps.out", "examples/ch03/06-steps.gdb"}
+    assert problems_for(used) == []
+    problems = problems_for(used - {"examples/ch03/06-steps.gdb"})
+    assert len(problems) == 1 and "06-steps.gdb:" in problems[0] and "is not used by any page" in problems[0]
+
+
+def test_walkthrough_expectations_without_a_walkthrough_are_reported(examples):
+    examples(["ch03/06-steps.cpp", "ch03/09-gone.gdb-expect"])
+    problems = problems_for({"examples/ch03/06-steps.cpp"})
+    assert len(problems) == 1 and "09-gone.gdb-expect" in problems[0] and "has no 09-gone.gdb next to it" in problems[0]
+
+
 def test_files_the_operating_system_adds_are_not_examples(examples):
     examples(["ch01/01-a.cpp", "ch01/.DS_Store"])
     assert problems_for({"examples/ch01/01-a.cpp"}) == []

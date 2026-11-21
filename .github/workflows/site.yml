@@ -75,6 +75,16 @@ jobs:
           g++ --version | head -n 1
           clang++ --version | head -n 1
 
+      # The checked debugger walkthroughs (the X.gdb files) run under gdb. Install it if the
+      # image lacks it, and print the version for the log.
+      - name: Make sure gdb is installed
+        run: |
+          if ! command -v gdb > /dev/null; then
+            sudo apt-get update
+            sudo apt-get install --yes gdb
+          fi
+          gdb --version | head -n 1
+
       # Headless Chromium for the browser tests, plus the system libraries it needs.
       - name: Install the browser for the UI tests
         run: python -m playwright install --with-deps chromium

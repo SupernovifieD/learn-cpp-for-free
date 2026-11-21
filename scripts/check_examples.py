@@ -9,7 +9,7 @@
 A program is either one file, examples/chNN/X.cpp, or a project: a folder examples/chNN/X/ that holds
 .cpp files and the .h headers they include. Every .cpp file of a project is compiled and linked in
 ONE command (the folder is flat, and one of the files is main.cpp). The files that belong to a program
-sit NEXT TO it, whether it is a file or a folder: X.out, X.in, X.session and X.err.
+sit NEXT TO it, whether it is a file or a folder: X.out, X.in, X.session, X.err, X.gdb and X.gdb-expect.
 
 How each program is judged, with the strict flags from examples/flags-gcc-clang.txt:
 
@@ -51,6 +51,14 @@ How each program is judged, with the strict flags from examples/flags-gcc-clang.
                      on standard error. A clean run fails. Its only companion is X.ub.in. Without a
                      sanitizer runtime it is SKIP (a failure with --require-all); the "san" column of
                      its row reads "ub" and the gcc and clang columns say what each compiler found.
+  X.cpp or X/ with   a checked debugger walkthrough. X.gdb holds the GDB commands exactly as a reader types
+  X.gdb and          them at the (gdb) prompt (no comments or blank lines, breakpoints on function names,
+  X.gdb-expect       never line numbers) and X.gdb-expect the texts that GDB's output must contain, one per
+                     line, in order (each found after the previous one). GCC builds the program with the
+                     strict flags plus -O0 -g, and  gdb -q -batch -nx -x X.gdb <program>  must exit with 0
+                     and print every expectation, within 30 seconds (the "gdb" column). It is for running
+                     programs that read no input. Without gdb it is SKIP (a failure with --require-all
+                     when an X.gdb exists).
 
 Every .cpp and .h file must also have lines of at most 80 columns and be clang-format clean. Nothing
 is written to the repository: builds happen in a temporary directory.
@@ -68,6 +76,7 @@ from __future__ import annotations
 
 import argparse
 import os
+import re
 import shlex
 import shutil
 import subprocess
@@ -83,13 +92,17 @@ FLAGS_NAME = "flags-gcc-clang.txt"
 MAX_COLUMNS = 80
 RUN_TIMEOUT_SECONDS = 5
 SANITIZER_RUN_TIMEOUT_SECONDS = 10
+GDB_TIMEOUT_SECONDS = 30
 COMPILE_TIMEOUT_SECONDS = 120
 SANITIZER_FLAGS = ["-fsanitize=address,undefined", "-fno-sanitize-recover=all", "-g"]
-COMPANION_SUFFIXES = (".out", ".in", ".session", ".err")
+COMPANION_SUFFIXES = (".out", ".in", ".session", ".err", ".gdb", ".gdb-expect")
 IGNORED_NAMES = {".DS_Store"}
 # What the sanitizers print when they find the undefined behavior of an X.ub program (UBSan, AddressSanitizer).
 UB_REPORTS = ("runtime error:", "ERROR: AddressSanitizer")
 UB_DIRECTIVE = "undefined-behavior"
+# GDB commands that take a place to stop at: a walkthrough names functions, never line numbers (the book shows none).
+GDB_PLACE_COMMANDS = {"break", "br", "b", "tbreak", "tb", "until", "u", "advance"}
+GDB_LINE_NUMBER = re.compile(r"^(\S+:)?\d+$")
 
 
 def ignored(name: str) -> bool:
@@ -207,6 +220,18 @@ def find_clang_format() -> str | None:
         return clang_format.get_executable("clang-format")
     except ImportError:
         return shutil.which("clang-format")
+
+
+def find_gdb() -> tuple[str, str] | None:
+    """(path, first version line) of GDB, from the GDB variable or PATH; None when it is not installed."""
+    path = shutil.which(os.environ.get("GDB", "gdb"))
+    if path is None:
+        return None
+    try:
+        out = subprocess.run([path, "--version"], capture_output=True, text=True, timeout=30).stdout
+    except (OSError, subprocess.TimeoutExpired):
+        return None
+    return path, (out.splitlines()[0] if out else "gdb")
 
 
 def read_flags(flags_file: Path) -> list[str]:
@@ -599,6 +624,48 @@ def check_undefined_behavior(compiler: Compiler, flags: list[str], program: Prog
     )
 
 
+def check_gdb(compiler: Compiler, flags: list[str], program: Program, scratch: Path, result: Result, gdb: str) -> None:
+    """X.gdb with X.gdb-expect: the debugger commands run against the program, and GDB's text has every expectation, in order.
+
+    The program is a debug build (-O0 -g) of the compiler that is really GCC. GDB runs in batch mode without
+    init files, with stdin closed, and with debuginfod switched off, so it never asks or downloads anything.
+    """
+    exe = scratch / f"{program.stem}-gdb"
+    built = build(compiler, [*flags, "-O0", "-g"], program.sources, exe, scratch)
+    if built.returncode != 0:
+        result.fail("gdb", f"{compiler.command} could not build this program with -O0 -g:\n{indent(built.stdout + built.stderr)}")
+        return
+    script, expected_file = program.companion(".gdb"), program.companion(".gdb-expect")
+    command = [gdb, "-q", "-batch", "-nx", "-x", str(script), str(exe)]
+    try:
+        run = subprocess.run(
+            command, stdin=subprocess.DEVNULL, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, timeout=GDB_TIMEOUT_SECONDS, cwd=scratch, env={**os.environ, "DEBUGINFOD_URLS": ""}
+        )
+    except subprocess.TimeoutExpired:
+        result.fail("gdb", f"gdb ran for more than {GDB_TIMEOUT_SECONDS} seconds on {script.name}; check that no command waits for input and that the program ends or the script quits.")
+        return
+    transcript = run.stdout.decode(errors="replace")
+    if run.returncode != 0:
+        tail = "\n".join(transcript.strip().splitlines()[-12:])
+        result.fail("gdb", f"gdb exited with code {run.returncode} while running {script.name}, so a command failed (the last lines of its text are below):\n{indent(tail)}")
+        return
+    position = 0
+    for number, line in enumerate(expected_file.read_text().splitlines(), start=1):
+        if not line.strip():
+            continue
+        found = transcript.find(line, position)
+        if found == -1:
+            tail = "\n".join(transcript.strip().splitlines()[-20:])
+            result.fail(
+                "gdb",
+                f"line {number} of {expected_file.name} ({line!r}) was not found in gdb's text after the previous expectation "
+                f"(expectations must appear in the order that GDB prints them; the last lines of its text are below):\n{indent(tail)}",
+            )
+            return
+        position = found + len(line)
+    result.cells["gdb"] = "PASS"
+
+
 def probe_sanitizers(compiler: Compiler, scratch: Path) -> str | None:
     """None when this compiler can build and run programs with the sanitizers, else the reason it cannot."""
     flags = ["-std=c++20", *SANITIZER_FLAGS]
@@ -688,6 +755,29 @@ def check_ub_rules(program: Program, result: Result, never: tuple[Path, ...], ty
             result.fail("rules", f"{typed.name} must use \\n line endings (no \\r) and end with a newline (the .gitattributes file of the repository keeps the examples on \\n line endings in Git).")
 
 
+def check_walkthrough_rules(program: Program, result: Result, gdb: Path, expect: Path, typed: Path) -> None:
+    """X.gdb (the commands a reader types) and X.gdb-expect (what GDB must print, in order) go together."""
+    if gdb.exists() and not expect.exists():
+        result.fail("rules", f"{gdb.name} needs {expect.name}: the texts that GDB's output must contain, in order, one per line, so that the walkthrough is checked.")
+    if expect.exists() and not gdb.exists():
+        result.fail("rules", f"{expect.name} needs {gdb.name}, the debugger commands whose output it checks; delete it if the program has no walkthrough.")
+    if gdb.exists() and typed.exists():
+        result.fail("rules", f"{gdb.name} cannot go with {typed.name}: a walkthrough runs the program under the debugger without typed input; use a program that reads nothing.")
+    if expect.exists() and not any(line.strip() for line in expect.read_text().splitlines()):
+        result.fail("rules", f"{expect.name} is empty: it must hold at least one text that GDB's output has to contain.")
+    if not gdb.exists():
+        return
+    commands = gdb.read_text().splitlines()
+    if not any(command.strip() for command in commands):
+        result.fail("rules", f"{gdb.name} is empty: it must hold the GDB commands, one per line.")
+    for number, command in enumerate(commands, start=1):
+        words = command.split()
+        if not words or command.lstrip().startswith("#"):
+            result.fail("rules", f"{gdb.name} line {number} is empty or a comment: the file holds exactly the commands a reader types at the (gdb) prompt, so remove it.")
+        elif words[0] in GDB_PLACE_COMMANDS and len(words) > 1 and GDB_LINE_NUMBER.match(words[1]):
+            result.fail("rules", f"{gdb.name} line {number} ('{command.strip()}') names a line number: the book shows none, so name a function instead ('{words[0]} main').")
+
+
 def check_rules(program: Program, result: Result) -> None:
     """The naming and companion-file rules that do not need a compiler."""
     main = program.main_file
@@ -713,14 +803,14 @@ def check_rules(program: Program, result: Result) -> None:
                 )
                 break
 
-    out, typed, session, err = (program.companion(suffix) for suffix in COMPANION_SUFFIXES)
+    out, typed, session, err, gdb, expect = (program.companion(suffix) for suffix in COMPANION_SUFFIXES)
     if program.expects_failure:
-        for extra in (out, typed, session, err):
+        for extra in (out, typed, session, err, gdb, expect):
             if extra.exists():
                 result.fail("rules", f"{extra.name}: a failing program never runs, so it cannot have an {extra.suffix} file; delete it.")
         return
     if program.expects_undefined_behavior:
-        check_ub_rules(program, result, (out, session, err), typed)
+        check_ub_rules(program, result, (out, session, err, gdb, expect), typed)
         return
     if out.exists() and session.exists():
         result.fail("rules", f"{out.name} and {session.name} cannot both exist: a program that reads input shows its session, any other program its output; delete one.")
@@ -737,7 +827,8 @@ def check_rules(program: Program, result: Result) -> None:
             )
         if not err.read_bytes():
             result.fail("rules", f"{err.name} is empty: a program that writes nothing to standard error has no {err.suffix} file, so delete it.")
-    for file in (typed, session, err):
+    check_walkthrough_rules(program, result, gdb, expect, typed)
+    for file in (typed, session, err, gdb, expect):
         if file.exists():
             data = file.read_bytes()
             if b"\r" in data or (data and not data.endswith(b"\n")):
@@ -752,6 +843,7 @@ def check_one(
     clang_format: str | None,
     sanitizers: set[str],
     root: Path,
+    gdb: str | None = None,
 ) -> Result:
     result = Result(display(program.base, root) + ("/" if program.is_project else ""))
     check_rules(program, result)
@@ -772,6 +864,14 @@ def check_one(
         result.cells["san"] = "ub"  # its gcc and clang cells already say whether each compiler's sanitizers found it
     elif ran_sanitized and "san" not in result.cells:
         result.cells["san"] = "PASS"
+    result.cells["gdb"] = "-"
+    if program.companion(".gdb").exists() and not program.expects_failure and not program.expects_undefined_behavior:
+        gcc = next((compiler for compiler in compilers if compiler.kind == "gcc"), None)
+        if gdb is None or gcc is None:
+            result.cells["gdb"] = "SKIP"  # --require-all already turns the missing GDB or GCC into a failure
+        elif result.cells.get("gcc") == "PASS":
+            with tempfile.TemporaryDirectory(prefix="cppbook-gdb-") as tmp:
+                check_gdb(gcc, flags, program, Path(tmp), result, gdb)
     check_style(program, clang_format, result)
     return result
 
@@ -781,7 +881,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("targets", nargs="*", type=Path, metavar="PROGRAM", help="check only these programs: a .cpp file, a project folder or a file inside one (default: every program under the root)")
     parser.add_argument("--root", type=Path, default=DEFAULT_ROOT, help="the folder that holds the chapter folders (default: examples/)")
     parser.add_argument("--flags-file", type=Path, default=None, help=f"the file with the strict flags (default: <root>/{FLAGS_NAME})")
-    parser.add_argument("--require-all", action="store_true", help="fail when GCC, Clang, a sanitizer runtime or clang-format is missing (used in CI)")
+    parser.add_argument("--require-all", action="store_true", help="fail when GCC, Clang, a sanitizer runtime, clang-format or (with X.gdb walkthroughs) gdb is missing (used in CI)")
     parser.add_argument("--skip-format", action="store_true", help="do not run clang-format (only for machines that cannot install it)")
     parser.add_argument("--skip-sanitizers", action="store_true", help="do not build and run the programs with AddressSanitizer and UBSan")
     args = parser.parse_args(argv)
@@ -806,6 +906,13 @@ def main(argv: list[str] | None = None) -> int:
     if clang_format is None and not args.skip_format:
         notes.append("clang-format was not found (install requirements-dev.txt).")
 
+    gdb = find_gdb()
+    if gdb is None and any(program.companion(".gdb").exists() for program in selected):
+        notes.append(
+            "gdb was not found, so the walkthroughs (the X.gdb files) are not checked. Install gdb "
+            "(Linux: your package manager; macOS has no maintained gdb, so CI checks them there)."
+        )
+
     sanitizers: set[str] = set()
     if not args.skip_sanitizers:
         with tempfile.TemporaryDirectory(prefix="cppbook-probe-") as tmp:
@@ -822,14 +929,16 @@ def main(argv: list[str] | None = None) -> int:
     print("Flags     :", " ".join(flags))
     for compiler in compilers:
         print(f"{compiler.kind.upper():<10}: {compiler.version} ({compiler.command})")
+    if gdb is not None:
+        print(f"{'GDB':<10}: {gdb[1]} ({gdb[0]})")
     for note in notes:
         print(("ERROR   " if args.require_all else "WARNING ") + note)
     print()
 
     with ThreadPoolExecutor(max_workers=4) as pool:
-        results = list(pool.map(lambda p: check_one(p, compilers, flags, flags_file.name, clang_format, sanitizers, root), selected))
+        results = list(pool.map(lambda p: check_one(p, compilers, flags, flags_file.name, clang_format, sanitizers, root, gdb[0] if gdb else None), selected))
 
-    columns = ["gcc", "clang", "san", "80col", "format"]
+    columns = ["gcc", "clang", "san", "gdb", "80col", "format"]
     width = max(len(r.name) for r in results)
     print(f"{'example':<{width}}  " + "  ".join(f"{c:<6}" for c in columns))
     for r in results:

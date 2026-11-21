@@ -33,6 +33,10 @@ needs_compiler = pytest.mark.skipif(not COMPILERS, reason="no real g++ or clang+
 needs_clang_format = pytest.mark.skipif(CLANG_FORMAT is None, reason="clang-format was not found (install requirements-dev.txt)")
 CLANG = next((compiler for compiler in COMPILERS if compiler.kind == "clang"), None)
 needs_clang = pytest.mark.skipif(CLANG is None, reason="no real clang++ was found, which the stand-in compilers in fixtures/bin wrap")
+GCC = next((compiler for compiler in COMPILERS if compiler.kind == "gcc"), None)
+GDB = check_examples.find_gdb()
+needs_gdb = pytest.mark.skipif(GCC is None or GDB is None, reason="the walkthrough checks need a real g++ and gdb (CI has both; on macOS gdb is not available)")
+
 
 
 
@@ -80,6 +84,7 @@ def test_ci_has_a_compiler_and_clang_format(sanitizer_compilers):
     assert COMPILERS, "CI must have a real g++ or clang++, or every build test would be skipped."
     assert CLANG_FORMAT, "CI must have clang-format, or every format test would be skipped."
     assert sanitizer_compilers, "CI must have a working AddressSanitizer and UBSan, or the sanitizer tests would be skipped."
+    assert GDB, "CI must have gdb, or the walkthrough tests would be skipped."
 
 
 # --------------------------------------------------------------- the whole checker --
@@ -322,11 +327,93 @@ def test_a_ub_program_cannot_also_be_a_failing_program(tmp_path):
     assert any("only failing programs" in p for p in problems), problems
 
 
+# ------------------------------------------------------------ GDB walkthroughs --
+
+
+@needs_gdb
+def test_a_walkthrough_passes_when_gdb_prints_every_expectation_in_order():
+    run = run_checker("gdb-good")
+    assert run.returncode == 0, run.output
+    assert "1 of 1 examples passed." in run.output
+    assert cells_of(run.output, "01-steps.cpp")[3] == "PASS"
+    assert "GDB       :" in run.output  # the version line is printed
+
+
+@needs_gdb
+def test_expectations_in_the_wrong_order_are_reported_with_gdbs_text():
+    run = run_checker("gdb-out-of-order")
+    assert run.returncode == 1, run.output
+    assert "line 2 of 01-steps.gdb-expect ('addPoints (current=40, bonus=2)') was not found" in run.output
+    assert "after the previous expectation" in run.output
+
+
+@needs_gdb
+def test_a_gdb_command_that_fails_is_reported_with_the_end_of_gdbs_text():
+    run = run_checker("gdb-failing-command")
+    assert run.returncode == 1, run.output
+    assert "gdb exited with code 1 while running 01-steps.gdb, so a command failed" in run.output
+    assert 'No symbol "nosuchvariable" in current context.' in run.output
+
+
+def test_a_walkthrough_next_to_a_program_that_reads_input_is_reported():
+    run = run_checker("gdb-with-input")
+    assert run.returncode == 1, run.output
+    assert "01-twice.gdb cannot go with 01-twice.in" in run.output
+
+
+@needs_compiler
+def test_a_walkthrough_is_skipped_without_gdb_unless_everything_is_required():
+    lenient = run_checker("gdb-good", env={"GDB": "no-such-gdb-xyz"})
+    assert "WARNING gdb was not found, so the walkthroughs (the X.gdb files) are not checked" in lenient.output
+    assert cells_of(lenient.output, "01-steps.cpp")[3] == "SKIP"
+    if GCC is not None:  # the only problem on a machine with GCC is the missing gdb, which is a warning
+        assert lenient.returncode == 0, lenient.output
+    strict = run_checker("gdb-good", "--require-all", sanitizers=True, env={"GDB": "no-such-gdb-xyz"})
+    assert strict.returncode == 1, strict.output
+    assert "--require-all: gdb was not found" in strict.output
+
+
+def test_a_tree_without_walkthroughs_does_not_need_gdb():
+    run = run_checker("good", env={"GDB": "no-such-gdb-xyz"})
+    assert "gdb was not found" not in run.output
+
+
+def test_the_walkthrough_files_go_together(tmp_path):
+    only_script = check_rules(tmp_path / "a", {"ch01/01-a.cpp": MINIMAL, "ch01/01-a.out": "", "ch01/01-a.gdb": "start\n"})
+    assert any("01-a.gdb needs 01-a.gdb-expect" in p for p in only_script), only_script
+    only_expect = check_rules(tmp_path / "b", {"ch01/01-a.cpp": MINIMAL, "ch01/01-a.out": "", "ch01/01-a.gdb-expect": "main ()\n"})
+    assert any("01-a.gdb-expect needs 01-a.gdb" in p for p in only_expect), only_expect
+    assert check_rules(tmp_path / "c", {"ch01/01-a.cpp": MINIMAL, "ch01/01-a.out": "", "ch01/01-a.gdb": "start\n", "ch01/01-a.gdb-expect": "main ()\n"}) == []
+
+
+def test_empty_walkthrough_files_are_reported(tmp_path):
+    problems = check_rules(tmp_path, {"ch01/01-a.cpp": MINIMAL, "ch01/01-a.out": "", "ch01/01-a.gdb": "\n", "ch01/01-a.gdb-expect": "\n"})
+    assert any("01-a.gdb is empty" in p for p in problems), problems
+    assert any("01-a.gdb-expect is empty" in p for p in problems), problems
+
+
+def test_a_walkthrough_holds_only_commands_and_names_functions_not_line_numbers(tmp_path):
+    script = "start\n# step into it\n\nbreak 12\ntbreak main.cpp:7\nbreak addPoints\n"
+    problems = check_rules(tmp_path, {"ch01/01-a.cpp": MINIMAL, "ch01/01-a.out": "", "ch01/01-a.gdb": script, "ch01/01-a.gdb-expect": "main ()\n"})
+    assert any("01-a.gdb line 2 is empty or a comment" in p for p in problems), problems
+    assert any("line 3 is empty or a comment" in p for p in problems), problems
+    assert any("line 4 ('break 12') names a line number" in p and "'break main'" in p for p in problems), problems
+    assert any("line 5 ('tbreak main.cpp:7') names a line number" in p for p in problems), problems
+    assert not any("line 6" in p for p in problems), problems
+
+
+def test_failing_and_undefined_behavior_programs_have_no_walkthrough(tmp_path):
+    failing = check_rules(tmp_path / "a", {"ch01/01-a.fail.cpp": "// expect-fail: x\n" + MINIMAL, "ch01/01-a.fail.gdb": "start\n", "ch01/01-a.fail.gdb-expect": "x\n"})
+    assert sum("a failing program never runs" in p for p in failing) == 2, failing
+    ub = check_rules(tmp_path / "b", {"ch01/01-a.ub.cpp": "// undefined-behavior: x\n" + MINIMAL, "ch01/01-a.ub.gdb": "start\n"})
+    assert any("01-a.ub.gdb: an undefined-behavior program" in p for p in ub), ub
+
+
 # ------------------------------------------------------------------ sanitizers --
 
 
 def cells_of(output: str, name: str) -> list[str]:
-    """The result cells (gcc, clang, san, 80col, format) of the table row that names `name`."""
+    """The result cells (gcc, clang, san, gdb, 80col, format) of the table row that names `name`."""
     row = next(line for line in output.splitlines() if name in line)
     return row.split()[1:]
 
