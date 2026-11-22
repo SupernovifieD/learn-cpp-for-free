@@ -10,7 +10,7 @@ Most statements end with a semicolon, the way most sentences end with a period. 
 
 C++ has several kinds of statements, and you will learn them one at a time. Three of them appear in the next few lessons.
 
-An **expression statement** does some work, such as printing text. A **return statement** ends the function that it is in. A **declaration statement** creates a variable, which lesson 1.3 explains. Statements such as `if` and the loops, which make a program choose or repeat, wait until later chapters.
+An **expression statement** does some work, such as printing text. A **return statement** ends the function that it is in. A **declaration statement** creates a variable, which lesson 1.3 explains. Statements such as [`if`](../ch04-fundamental-data-types/10-introduction-to-if-statements.md) and the loops, which make a program choose or repeat, wait until later chapters.
 
 ## Functions
 

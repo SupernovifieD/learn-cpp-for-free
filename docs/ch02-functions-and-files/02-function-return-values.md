@@ -44,7 +44,7 @@ The function `getFive` prints a message and then ends without returning anything
 
 Both GCC and Clang warn about this mistake, and the options of lesson 0.11 turn the warning into an error, so the program above does not build. Without `-Werror` it builds with the warning, and its behavior is undefined.
 
-In a function this short, you can see the mistake. In a longer function, the problem can hide in one of several routes through the function, and you will need to check that every route ends in a `return`. A later chapter introduces the statements that create such routes.
+In a function this short, you can see the mistake. In a longer function, the problem can hide in one of several routes through the function, and you will need to check that every route ends in a `return`. [Lesson 4.10](../ch04-fundamental-data-types/10-introduction-to-if-statements.md) introduces the statements that create such routes.
 
 > [!WARNING]
 > A function with a return type other than `void` must return a value on every route through it. Treat the warning about a missing return as a bug, and never switch it off.

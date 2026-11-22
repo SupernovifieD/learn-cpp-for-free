@@ -33,7 +33,7 @@ You create a variable with a definition, the same word that lesson 0.5 used for 
 int width;
 ```
 
-The word `int` is the **type**. A type tells the compiler how much memory the object needs and how to interpret the bits stored in it. The type `int` holds whole numbers, such as 4, 0 or -17, and it is the only type you need for now. Chapter 4 introduces the other fundamental types and explains them in detail.
+The word `int` is the **type**. A type tells the compiler how much memory the object needs and how to interpret the bits stored in it. The type `int` holds whole numbers, such as 4, 0 or -17, and it is the only type you need for now. Chapter 4 introduces the other fundamental types, starting with [lesson 4.1](../ch04-fundamental-data-types/01-introduction-to-fundamental-data-types.md), and explains them in detail.
 
 The word `width` is the name. Lesson 1.7 explains what names you may use and how to choose good ones.
 
@@ -117,7 +117,7 @@ It prints `shelves: 6`, and the second line stays the same. The variable `shelve
 - Data is the information a program works with, and a value is one piece of it.
 - An object is a piece of memory that holds a value, and a variable is an object with a name.
 - A definition such as `int width;` creates a variable: `int` is its type and `width` is its name.
-- The type `int` holds whole numbers, and Chapter 4 covers the other types.
+- The type `int` holds whole numbers, and [lesson 4.1](../ch04-fundamental-data-types/01-introduction-to-fundamental-data-types.md) introduces the other types.
 - Define one variable per statement, and give every variable a value, as the next lessons show.
 
 ## Further reading

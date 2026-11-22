@@ -62,7 +62,7 @@ Two other kinds of comments are worth writing. At the top of a file, a line or t
 
 Comments are also a quick way to try something out. If you are not sure whether a statement is the cause of a problem, comment it out, build the program and run it again. If the problem is gone, you know where to look, and you can remove the `//` to bring the statement back.
 
-This is fine for a short experiment. Do not leave stretches of commented-out code in a finished program, because readers cannot tell whether the old code matters. Chapter 3 shows better ways to find the cause of a problem, and it replaces most of this kind of guessing.
+This is fine for a short experiment. Do not leave stretches of commented-out code in a finished program, because readers cannot tell whether the old code matters. [Chapter 3](../ch03-debugging/index.md) shows better ways to find the cause of a problem, and it replaces most of this kind of guessing.
 
 <details>
 <summary>Check your understanding</summary>

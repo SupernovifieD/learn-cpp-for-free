@@ -39,7 +39,7 @@ This program prints the value of the macro and the name of the matching standard
 {{#include ../../examples/ch00/13-print-standard.cpp}}
 ```
 
-Lines that begin with `#`, such as `#if` and `#else`, are instructions for the compiler about which code to keep, as [lesson 2.10](../ch02-functions-and-files/10-introduction-to-the-preprocessor.md) explains. The program keeps one of the two definitions of `standard`, depending on the compiler. The chain of `if` and `else if` statements then picks the first name that fits, starting from the newest. You will learn how those statements work in later chapters.
+Lines that begin with `#`, such as `#if` and `#else`, are instructions for the compiler about which code to keep, as [lesson 2.10](../ch02-functions-and-files/10-introduction-to-the-preprocessor.md) explains. The program keeps one of the two definitions of `standard`, depending on the compiler. The chain of `if` and `else if` statements then picks the first name that fits, starting from the newest. [Lesson 4.10](../ch04-fundamental-data-types/10-introduction-to-if-statements.md) explains how those statements work.
 
 Build the program with the options from lesson 0.11. If you build it as C++20, it prints this:
 
