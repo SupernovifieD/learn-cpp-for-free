@@ -1,5 +1,5 @@
-// expect-fail: a signed value is silently converted to unsigned in a
-// calculation passes-without: -Werror
+// expect-fail: an int is silently converted to unsigned in the sum
+// passes-without: -Werror
 #include <iostream>
 
 int main()

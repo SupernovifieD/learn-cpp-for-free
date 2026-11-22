@@ -793,6 +793,16 @@ def check_rules(program: Program, result: Result) -> None:
         if directive(main, "expect-fail") is None:
             where = "main.cpp of the project" if program.is_project else "the file"
             result.fail("rules", f"a failing program must start {where} with the line '// expect-fail: <one-line reason>'.")
+        else:
+            lines = main.read_text().splitlines()
+            second = lines[1] if len(lines) > 1 else ""
+            if second.startswith("//") and not second.startswith("// passes-without:"):
+                result.fail(
+                    "rules",
+                    f"{main.name}: line 2 is a comment that is not '// passes-without: <flags>'. If the reason of "
+                    f"'// expect-fail:' ran over line 1 (clang-format wraps comments at 80 columns), shorten it to one line, "
+                    f"and put '// passes-without:' alone on line 2, because the checker only reads a directive at the start of a line.",
+                )
     else:
         for path in program.files:
             if directive(path, "expect-fail") is not None or directive(path, "passes-without") is not None:

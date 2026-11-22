@@ -1,5 +1,4 @@
-// expect-fail: a const variable that is set from input is not a constant
-// expression
+// expect-fail: a const set from input is not a constant expression
 #include <bitset>
 #include <cstddef>
 #include <iostream>

@@ -534,6 +534,14 @@ def test_a_failing_program_must_say_why_and_never_has_companion_files(tmp_path):
     assert any("a failing program never runs" in p for p in problems), problems
 
 
+def test_a_wrapped_expect_fail_reason_that_hides_passes_without_is_reported(tmp_path):
+    wrapped = "// expect-fail: a reason that was wrapped by the formatter and\n// carries on passes-without: -Werror\n" + MINIMAL
+    problems = check_rules(tmp_path / "a", {"ch01/01-a.fail.cpp": wrapped})
+    assert any("line 2 is a comment that is not '// passes-without" in p and "shorten it to one line" in p for p in problems), problems
+    fine = "// expect-fail: a short reason\n// passes-without: -Werror\n" + MINIMAL
+    assert not check_rules(tmp_path / "b", {"ch01/01-a.fail.cpp": fine})
+
+
 def test_an_err_file_needs_the_console_view_in_an_out_file_or_a_session(tmp_path):
     problems = check_rules(tmp_path, {"ch01/01-a.cpp": MINIMAL, "ch01/01-a.err": "x\n"})
     assert any("01-a.err needs 01-a.out or 01-a.session" in p and "console view" in p for p in problems), problems
