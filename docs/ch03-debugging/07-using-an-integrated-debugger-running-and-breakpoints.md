@@ -101,15 +101,15 @@ The breakpoint pauses the program *before* the marked line runs, so the line you
 
 The book's checks confirm that GDB stopped three times, with the arguments `price=200, percent=10`, then `price=80, percent=25`, then `price=50, percent=50`. They also confirm that the list reported that the breakpoint was hit 3 times, and that the program exited normally after the breakpoint was removed.
 
-In the table, `f` stands for the name of a function.
+In the table, `f` stands for the name of a function, and the last row deletes breakpoint number 1.
 
 | Action | GDB | LLDB |
 | --- | --- | --- |
-| Run to f | `advance f` | `b f` |
+| Run to | `advance f` | `b f` |
 | Go on | `continue` | `continue` |
-| Break at f | `break f` | `b f` |
+| Break | `break f` | `b f` |
 | List | `info break` | `br l` |
-| Delete 1 | `delete 1` | `br del 1` |
+| Delete | `delete 1` | `br del 1` |
 
 > [!KEY-INSIGHT]
 > A breakpoint is a question that you ask in advance: "show me the program whenever it gets here." Stepping answers where you are now, and a breakpoint gets you to the interesting place in a single move.
