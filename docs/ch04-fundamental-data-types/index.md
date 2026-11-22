@@ -16,3 +16,6 @@ Every value in a program has a type, and the type decides what the value can be,
 - [4.1 Introduction to fundamental data types](01-introduction-to-fundamental-data-types.md): bits, types and the map of the built-in types.
 - [4.2 Void](02-void.md): the type that stands for no value.
 - [4.3 Object sizes and the sizeof operator](03-object-sizes-and-the-sizeof-operator.md): how the size of a type limits its values, and how to ask for it.
+- [4.4 Signed integers](04-signed-integers.md): the signed types, their ranges, and what overflow does.
+- [4.5 Unsigned integers, and why to avoid them](05-unsigned-integers-and-why-to-avoid-them.md): wraparound, mixing signs, and a preference for signed types.
+- [4.6 Fixed-width integers and size_t](06-fixed-width-integers-and-size-t.md): types with an exact size, and the type that sizeof returns.

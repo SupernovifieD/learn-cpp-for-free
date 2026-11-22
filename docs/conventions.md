@@ -52,7 +52,7 @@ Only the number after the question: the `42` on the first line. The program prin
 
 ## Programs that write to the error stream
 
-Some programs print messages to a second output, the error stream, next to their normal output. Chapter 3 explains it. For such a program the book shows the **console view** in an Output block: the text of both streams, in the order in which a terminal shows it. The text around the block names the lines that came from `std::cerr`. The book's checks run the program twice, once to compare each stream by itself and once to compare the combined view.
+Some programs print messages to a second output, the error stream, next to their normal output, and Chapter 3 explains it. For such a program the book shows the **console view** in an Output block: the text of both streams, in the order in which a terminal shows it. The text around the block names the lines that came from `std::cerr`. The book's checks run the program twice, once to compare each stream by itself and once to compare the combined view.
 
 ```cpp title="print-values.cpp"
 {{#include ../examples/ch03/04-print-values.cpp}}
@@ -83,6 +83,30 @@ Some programs in this book are written to fail, so that you can see the error. T
 ```cpp title="missing-semicolon.cpp"
 {{#include ../examples/ch01/01-missing-semicolon.fail.cpp}}
 ```
+
+## Programs with undefined behavior
+
+A few programs in this book are valid C++, build without a warning and still have **undefined behavior**: the language does not say what they do, so anything may happen. The book shows such a program only when the problem is the point of the lesson, and it never shows output for it, because no output would be right. The first line is a comment for the book's own checks that states the problem. You can read it as the short reason why the program is there.
+
+The book's checks run each of these programs with the input that the lesson names, under **sanitizers**, which are tools that report mistakes while a program runs (lesson 3.10 introduced them), and they require a report. A program like this one is never run without them.
+
+```cpp title="doubling.cpp"
+{{#include ../examples/ch04/04-doubling.ub.cpp}}
+```
+
+<details>
+<summary>Check your understanding</summary>
+
+Why is there no Output block after the program above?
+
+<details>
+<summary>Answer</summary>
+
+For a large enough number the behavior is undefined, so any output that the book printed would be a promise that the language does not make. The text describes what might happen instead.
+
+</details>
+
+</details>
 
 ## Debugger commands
 

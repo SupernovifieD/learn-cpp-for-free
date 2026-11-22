@@ -61,3 +61,6 @@
   - [4.1 Introduction to fundamental data types](ch04-fundamental-data-types/01-introduction-to-fundamental-data-types.md)
   - [4.2 Void](ch04-fundamental-data-types/02-void.md)
   - [4.3 Object sizes and the sizeof operator](ch04-fundamental-data-types/03-object-sizes-and-the-sizeof-operator.md)
+  - [4.4 Signed integers](ch04-fundamental-data-types/04-signed-integers.md)
+  - [4.5 Unsigned integers, and why to avoid them](ch04-fundamental-data-types/05-unsigned-integers-and-why-to-avoid-them.md)
+  - [4.6 Fixed-width integers and size_t](ch04-fundamental-data-types/06-fixed-width-integers-and-size-t.md)
