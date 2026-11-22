@@ -1,0 +1,5 @@
+Breakpoint 1, applyDiscount (price=200, percent=10)
+Breakpoint 1, applyDiscount (price=80, percent=25)
+Breakpoint 1, applyDiscount (price=50, percent=50)
+breakpoint already hit 3 times
+exited normally

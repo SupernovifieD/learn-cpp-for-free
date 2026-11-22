@@ -40,7 +40,13 @@ SCREENSHOT_ARGS ?=
 # e.g. `make test-ui UI_WORKERS=4`.
 UI_WORKERS ?= 2
 
-.PHONY: help install serve build test-ui test-scripts screenshots lint examples format format-check check
+# A drafting aid, never a gate: run only the browser tests whose id contains this text, for example
+# `make test-ui UI_ONLY=ch03-debugging` while you write Chapter 3. Page ids start with the chapter folder
+# and the lesson file, so `UI_ONLY=ch03-debugging__04` selects lesson 3.4. `make check` refuses it, and CI
+# never sets it, so every gate still runs every page.
+UI_ONLY ?=
+
+.PHONY: help install serve build test-ui test-scripts screenshots lint examples format format-check check guard-ui-filter
 
 help: ## Show this list of targets
 	@grep -E '^[a-z-]+:.*## ' $(MAKEFILE_LIST) | sed -e 's/:.*## /\t/'
@@ -63,8 +69,8 @@ build: ## Build the book into book/, failing on any warning or error
 		echo "The build reported a problem (see above)." >&2; exit 1; \
 	fi
 
-test-ui: build ## Build, then run the browser tests (layout, accessibility, behavior)
-	$(PY) -m pytest tests/ui -q --durations=5 -n $(UI_WORKERS) --dist loadscope
+test-ui: build ## Build, then run the browser tests (layout, accessibility, behavior); UI_ONLY=ch03 runs only matching pages, for drafting
+	$(PY) -m pytest tests/ui -q --durations=5 -n $(UI_WORKERS) --dist loadscope $(if $(UI_ONLY),-k '$(UI_ONLY)')
 
 test-scripts: ## Test the example checker against the fixtures in tests/scripts/
 	$(PY) -m pytest tests/scripts -q
@@ -84,4 +90,9 @@ format: ## Reformat every C++ example (sources and headers) in place
 format-check: ## Fail if any C++ example is not formatted (changes nothing)
 	$(CLANG_FORMAT) --dry-run --Werror $(CPP_FILES)
 
-check: lint test-scripts examples format-check test-ui ## Everything CI checks: lint, checker tests, examples, format, build, browser tests
+guard-ui-filter:
+	@if [ -n "$(UI_ONLY)" ]; then \
+		echo "make check always runs every page, so UI_ONLY must not be set (it is only a drafting aid for make test-ui)." >&2; exit 1; \
+	fi
+
+check: guard-ui-filter lint test-scripts examples format-check test-ui ## Everything CI checks: lint, checker tests, examples, format, build, browser tests

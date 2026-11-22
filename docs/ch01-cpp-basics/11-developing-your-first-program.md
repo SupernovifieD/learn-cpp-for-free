@@ -80,7 +80,7 @@ A beginner meets small decisions at every step. This program shows a few of them
 
 **Names.** The variables are called `hours`, `minutes` and `seconds`, so each name says what it holds and in which unit. Names such as `h` or `result` would force the reader to look at the calculation to find out.
 
-**The numbers 60 and 3600.** A number that appears in the code without a name is sometimes called a magic number, because the reader has to guess where it comes from. Here the meaning is clear from the names around it, which is acceptable. A later chapter introduces constants, the proper way to give such a number a name.
+**The numbers 60 and 3600.** A number that appears in the code without a name is sometimes called a magic number, because the reader has to guess where it comes from. Here the meaning is clear from the names around it, which is acceptable. [Lesson 5.1](../ch05-constants-and-strings/01-constant-variables-named-constants.md) introduces constants, the proper way to give such a number a name.
 
 **When to stop.** A program is never finished in the sense that it cannot be improved. A good stopping point is when it does what it should for the inputs it will meet, and you can explain every line. This program is a good example of the limit. For a very large number of hours, the result of `hours * 60 * 60` no longer fits in an `int`, and the program has undefined behavior, as lesson 1.6 described. For a first program that is fine, and a later chapter shows how to guard against it.
 

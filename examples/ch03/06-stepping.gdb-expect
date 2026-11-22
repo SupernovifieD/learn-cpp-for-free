@@ -1,0 +1,5 @@
+Temporary breakpoint 1, main ()
+addBonus (points=40, bonus=3)
+doubleIt (value=3)
+Value returned is $1 = 6
+Value returned is $2 = 46

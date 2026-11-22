@@ -75,6 +75,16 @@ jobs:
           g++ --version | head -n 1
           clang++ --version | head -n 1
 
+      # The checked debugger walkthroughs (the X.gdb files) run under gdb. Install it if the
+      # image lacks it, and print the version for the log.
+      - name: Make sure gdb is installed
+        run: |
+          if ! command -v gdb > /dev/null; then
+            sudo apt-get update
+            sudo apt-get install --yes gdb
+          fi
+          gdb --version | head -n 1
+
       # Headless Chromium for the browser tests, plus the system libraries it needs.
       - name: Install the browser for the UI tests
         run: python -m playwright install --with-deps chromium
@@ -145,8 +155,8 @@ jobs:
         id: deployment
         uses: actions/deploy-pages@v5
 
-      # Ask the published address for the home page and two lessons, one of Chapter 0 and one
-      # of Chapter 2 (a program of several files), and make sure the answers are mdBook's pages.
+      # Ask the published address for the home page and three lessons, one each of Chapter 0, Chapter 2
+      # (a program of several files) and Chapter 5, and make sure the answers are mdBook's pages.
       # Pages can take a moment to serve a new deployment.
       - name: Verify the published book
         env:
@@ -156,4 +166,5 @@ jobs:
           fetch "$PAGE_URL" | grep -q 'id="mdbook-content"'
           fetch "${PAGE_URL}ch00-getting-started/07-compiling-your-first-program.html" | grep -q 'Filename: hello-world.cpp'
           fetch "${PAGE_URL}ch02-functions-and-files/11-header-files.html" | grep -q 'Filename: add.h'
+          fetch "${PAGE_URL}ch05-constants-and-strings/08-introduction-to-std-string-view.html" | grep -q 'Filename: print-view.cpp'
           echo "The published book at $PAGE_URL is the mdBook build."

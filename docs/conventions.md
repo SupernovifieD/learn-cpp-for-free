@@ -50,6 +50,32 @@ Only the number after the question: the `42` on the first line. The program prin
 
 </details>
 
+## Programs that write to the error stream
+
+Some programs print messages to a second output, the error stream, next to their normal output, and Chapter 3 explains it. For such a program the book shows the **console view** in an Output block: the text of both streams, in the order in which a terminal shows it. The text around the block names the lines that came from `std::cerr`. The book's checks run the program twice, once to compare each stream by itself and once to compare the combined view.
+
+```cpp title="print-values.cpp"
+{{#include ../examples/ch03/04-print-values.cpp}}
+```
+
+```text title="Output"
+{{#include ../examples/ch03/04-print-values.out}}
+```
+
+<details>
+<summary>Check your understanding</summary>
+
+In the output above, which line did `std::cerr` write?
+
+<details>
+<summary>Answer</summary>
+
+The first line, the one that starts with `[debug]`. The program printed it with `std::cerr`, and it printed the second line with `std::cout`.
+
+</details>
+
+</details>
+
 ## Programs that do not build
 
 Some programs in this book are written to fail, so that you can see the error. The first lines of such a program are comments for the book's own checks, and you can ignore them when you read. The line `// expect-fail:` says why the program does not build, and a line `// passes-without:` names compiler options that, once removed, make the program build, which shows that those options cause the error.
@@ -57,6 +83,59 @@ Some programs in this book are written to fail, so that you can see the error. T
 ```cpp title="missing-semicolon.cpp"
 {{#include ../examples/ch01/01-missing-semicolon.fail.cpp}}
 ```
+
+## Programs with undefined behavior
+
+A few programs in this book are valid C++, build without a warning and still have **undefined behavior**: the language does not say what they do, so anything may happen. The book shows such a program only when the problem is the point of the lesson, and it never shows output for it, because no output would be right. The first line is a comment for the book's own checks that states the problem. You can read it as the short reason why the program is there.
+
+The book's checks run each of these programs with the input that the lesson names, under **sanitizers**, which are tools that report mistakes while a program runs (lesson 3.10 introduced them), and they require a report. A program like this one is never run without them.
+
+```cpp title="doubling.cpp"
+{{#include ../examples/ch04/04-doubling.ub.cpp}}
+```
+
+<details>
+<summary>Check your understanding</summary>
+
+Why is there no Output block after the program above?
+
+<details>
+<summary>Answer</summary>
+
+For a large enough number the behavior is undefined, so any output that the book printed would be a promise that the language does not make. The text describes what might happen instead.
+
+</details>
+
+</details>
+
+## Debugger commands
+
+Lessons about a debugger give the steps for three toolchains in tabs, and the labels in bold are the same in every tab, so you can compare them. The command line tab shows GDB (Linux, and Windows through MSYS2) and LLDB (macOS). A table puts the two debuggers side by side, one action per row.
+
+A block titled **Commands for GDB** holds the exact commands that you type at the `(gdb)` prompt, one per line, with nothing else in it. The book's checks run these commands against the program with GCC and GDB and compare what GDB prints, so a value quoted in the text, such as `$1 = 6`, is what GDB really prints. The LLDB column is taken from the LLDB documentation and is not run automatically. Keys appear like <kbd>F10</kbd>, and windows and menus appear by their names, because the book shows no screenshots of a changing interface.
+
+```text title="Commands for GDB"
+{{#include ../examples/ch03/06-stepping.gdb}}
+```
+
+| Action | GDB | LLDB |
+| --- | --- | --- |
+| Over | `next` | `next` |
+| Out | `finish` | `finish` |
+
+<details>
+<summary>Check your understanding</summary>
+
+In the table above, which command is the same in both debuggers?
+
+<details>
+<summary>Answer</summary>
+
+Both rows: `next` and `finish` are spelled the same in GDB and LLDB.
+
+</details>
+
+</details>
 
 ## Callouts
 
@@ -216,7 +295,9 @@ Links to other sites always use https. A long address never stretches the page, 
 
 - Complete programs have a titled code block, and their output follows in an Output block.
 - A program that reads input shows an Example session, with the lines you type included.
+- A program that writes to the error stream shows both streams in one Output block, and the text names the lines that `std::cerr` wrote.
 - A program that is meant to fail starts with comment lines for the book's checks, and you can ignore them.
+- A debugger lesson shows the steps for three toolchains with the same labels, and its GDB commands are checked against the program.
 - Callouts set side information apart, and each type has one job.
 - Tabs let you read only the instructions for your platform and tools, and your choice carries across the site.
 - Keys, diagrams and wide tables are built to work on any screen size, in light and dark mode.

@@ -1,0 +1,3 @@
+boxVolume(4, 3, 2): expected 24, got 24
+boxVolume(1, 1, 1): expected 1, got 1
+boxVolume(5, 0, 9): expected 0, got 0

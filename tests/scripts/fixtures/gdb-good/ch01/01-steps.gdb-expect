@@ -1,0 +1,3 @@
+addPoints (current=40, bonus=2)
+#1
+Value returned is $1 = 42

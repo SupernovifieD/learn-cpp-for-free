@@ -48,7 +48,7 @@ The replacement is plain text, and the preprocessor does not know about numbers,
 
 A reader of `WIDTH * 4` would expect 20, the product of 5 and 4. But the preprocessor turns the statement into `2 + 3 * 4`, and the multiplication binds tighter than the addition, as lesson 1.9 explained, so the result is 14.
 
-This is one of several reasons why modern C++ avoids macros for values. A macro has no type, it has no scope, so it affects every line after its definition, and it ignores the rules of the language. A later chapter introduces constants, which do the same job without these problems. Macros are still the right tool for a few jobs, and conditional compilation is the most important one.
+This is one of several reasons why modern C++ avoids macros for values. A macro has no type, it has no scope, so it affects every line after its definition, and it ignores the rules of the language. [Lesson 5.1](../ch05-constants-and-strings/01-constant-variables-named-constants.md) introduces constants, which do the same job without these problems. Macros are still the right tool for a few jobs, and conditional compilation is the most important one.
 
 ## Conditional compilation
 

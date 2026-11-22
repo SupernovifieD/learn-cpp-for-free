@@ -68,6 +68,45 @@ def test_a_session_must_be_included_by_a_page(examples):
     assert problems_for({"examples/ch01/01-read.cpp", "examples/ch01/01-read.session"}) == []
 
 
+def test_a_standard_error_file_belongs_to_its_program_and_needs_no_include(examples):
+    examples(["ch01/01-trace.cpp", "ch01/01-trace.out", "ch01/01-trace.err", "ch01/02-proj/main.cpp", "ch01/02-proj.out", "ch01/02-proj.err"])
+    used = {"examples/ch01/01-trace.cpp", "examples/ch01/01-trace.out", "examples/ch01/02-proj/main.cpp", "examples/ch01/02-proj.out"}
+    assert problems_for(used) == []
+
+
+def test_a_standard_error_file_without_a_program_is_reported(examples):
+    examples(["ch01/01-a.cpp", "ch01/09-orphan.err"])
+    problems = problems_for({"examples/ch01/01-a.cpp"})
+    assert len(problems) == 1 and "09-orphan.err" in problems[0] and "standard error file has no program next to it" in problems[0]
+
+
+def test_an_undefined_behavior_program_must_be_included_but_its_input_file_need_not_be(examples):
+    examples(["ch04/04-overflow.ub.cpp", "ch04/04-overflow.ub.in", "ch04/05-divide.ub/main.cpp", "ch04/05-divide.ub.in"])
+    assert problems_for({"examples/ch04/04-overflow.ub.cpp", "examples/ch04/05-divide.ub/main.cpp"}) == []
+    problems = problems_for({"examples/ch04/05-divide.ub/main.cpp"})
+    assert len(problems) == 1 and "04-overflow.ub.cpp" in problems[0] and "is not used by any page" in problems[0]
+
+
+def test_an_input_file_of_an_undefined_behavior_program_without_a_program_is_reported(examples):
+    examples(["ch04/04-overflow.ub.cpp", "ch04/09-gone.ub.in"])
+    problems = problems_for({"examples/ch04/04-overflow.ub.cpp"})
+    assert len(problems) == 1 and "09-gone.ub.in" in problems[0] and "no program next to it" in problems[0]
+
+
+def test_a_walkthrough_must_be_included_but_its_expectations_need_not_be(examples):
+    examples(["ch03/06-steps.cpp", "ch03/06-steps.out", "ch03/06-steps.gdb", "ch03/06-steps.gdb-expect"])
+    used = {"examples/ch03/06-steps.cpp", "examples/ch03/06-steps.out", "examples/ch03/06-steps.gdb"}
+    assert problems_for(used) == []
+    problems = problems_for(used - {"examples/ch03/06-steps.gdb"})
+    assert len(problems) == 1 and "06-steps.gdb:" in problems[0] and "is not used by any page" in problems[0]
+
+
+def test_walkthrough_expectations_without_a_walkthrough_are_reported(examples):
+    examples(["ch03/06-steps.cpp", "ch03/09-gone.gdb-expect"])
+    problems = problems_for({"examples/ch03/06-steps.cpp"})
+    assert len(problems) == 1 and "09-gone.gdb-expect" in problems[0] and "has no 09-gone.gdb next to it" in problems[0]
+
+
 def test_files_the_operating_system_adds_are_not_examples(examples):
     examples(["ch01/01-a.cpp", "ch01/.DS_Store"])
     assert problems_for({"examples/ch01/01-a.cpp"}) == []
@@ -94,3 +133,13 @@ def test_every_placeholder_phrase_of_the_quiz_template_is_known_to_the_linter():
     phrases = [phrase for phrase in lint_content.TEMPLATE_LEFTOVERS if phrase in text]
     for expected in ("# N.x Chapter N summary and quiz", "what this page recaps", "Restate the key terms of the lesson", "Write the first question here", "Explain the solution here"):
         assert expected in phrases, f"'{expected}' is not in TEMPLATE_LEFTOVERS, or no longer in the quiz template."
+
+
+@pytest.mark.parametrize("text", ["This is simply wrong.", "It just works.", "Obviously so.", "an easy fix", "TODO later"])
+def test_the_words_that_the_style_guide_bans_are_forbidden(text):
+    assert lint_content.FORBIDDEN_WORDS.search(text), text
+
+
+@pytest.mark.parametrize("text", ["a just-in-time compiler", "adjust the width", "justify the text", "a simple fix", "the easiest way"])
+def test_words_that_only_contain_a_banned_word_are_allowed(text):
+    assert not lint_content.FORBIDDEN_WORDS.search(text), text

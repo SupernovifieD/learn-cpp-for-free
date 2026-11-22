@@ -179,13 +179,22 @@ def test_u7_the_theme_follows_the_system_color_scheme(tabs, scheme):
 
 
 LESSON_2_12 = "ch02-functions-and-files/12-header-guards.html"
-SEARCHES = [("linker", LESSON_0_5), ("header guard", LESSON_2_12)]
+LESSON_3_7 = "ch03-debugging/07-using-an-integrated-debugger-running-and-breakpoints.html"
+LESSON_4_7 = "ch04-fundamental-data-types/07-introduction-to-scientific-notation.html"
+LESSON_5_8 = "ch05-constants-and-strings/08-introduction-to-std-string-view.html"
+SEARCHES = [
+    ("linker", LESSON_0_5),
+    ("header guard", LESSON_2_12),
+    ("breakpoint", LESSON_3_7),
+    ("scientific notation", LESSON_4_7),
+    ("string_view", LESSON_5_8),
+]
 
 
 @pytest.mark.parametrize("width", [375, 1280])
 @pytest.mark.parametrize("query, lesson", SEARCHES, ids=[query.replace(" ", "-") for query, _ in SEARCHES])
 def test_u9_searching_lists_the_lesson_that_explains_the_word(private_tab, base_url, width, query, lesson):
-    """U9: typing 'linker' lists lesson 0.5 and 'header guard' lists lesson 2.12 among the results, and a result opens it."""
+    """U9: typing a term, such as 'linker' or 'string_view', lists the lesson that explains it among the results, and a result opens it."""
     tab = private_tab(width)
     tab.visit("index.html")
     page = tab.page
@@ -218,9 +227,10 @@ DIAGRAM_JS = """(content) => {
       if (!svg) return null;
       const r = svg.getBoundingClientRect();
       const scale = r.width / svg.viewBox.baseVal.width;
+      const broken = svg.textContent.includes('Unsupported markdown');
       const fonts = [...svg.querySelectorAll('text, span, p, div')].map(e => parseFloat(getComputedStyle(e).fontSize)).filter(n => n > 0);
       const label = svg.querySelector('.nodeLabel');
-      return { left: Math.round(r.left), right: Math.round(r.right), columnLeft: Math.round(left), columnRight: Math.round(right),
+      return { broken, left: Math.round(r.left), right: Math.round(r.right), columnLeft: Math.round(left), columnRight: Math.round(right),
                smallestTextPx: fonts.length ? +(Math.min(...fonts) * scale).toFixed(1) : null,
                textColor: label ? getComputedStyle(label).color : null };
     }),
@@ -252,6 +262,10 @@ def test_u10_every_diagram_renders_and_fits_at_320(tabs, path, width, scheme):
     assert found["drawn"] == found["hosts"], f"{found['hosts'] - found['drawn']} diagram(s) did not render an <svg>."
     assert found["pageFits"], "The diagram makes the page scroll sideways at 320px."
     for diagram in found["diagrams"]:
+        assert not diagram["broken"], (
+            "A node label was read as Markdown and replaced by 'Unsupported markdown'. "
+            "Do not start a label with a number and a dot (1.), a dash or a star; write it as plain words."
+        )
         assert diagram["left"] >= diagram["columnLeft"] - 1 and diagram["right"] <= diagram["columnRight"] + 1, (
             f"The diagram spans {diagram['left']}-{diagram['right']}px but the text column is {diagram['columnLeft']}-{diagram['columnRight']}px."
         )

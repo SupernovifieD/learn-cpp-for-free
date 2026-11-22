@@ -8,7 +8,7 @@ A **literal** is a value that you write directly in the code. In the statement `
 
 A literal is different from a variable in one important way: it is fixed. The value of `seats` can change when the program runs, but the number 40 will always be 40. You can think of a literal as a value that is part of the text of the program itself, and of a variable as a box that holds a value that the program may change.
 
-This book has used two kinds of literals so far. A number without a fraction, such as `40` or `250`, is an **integer literal**. Text between quotation marks, such as `"Hello"`, is a **string literal**. Every literal has a type, in the same way that a variable has one, and Chapter 4 explains the types in detail.
+This book has used two kinds of literals so far. A number without a fraction, such as `40` or `250`, is an **integer literal**. Text between quotation marks, such as `"Hello"`, is a **string literal**. Every literal has a type, in the same way that a variable has one, and [lesson 5.2](../ch05-constants-and-strings/02-literals.md) explains the types of literals in detail.
 
 ## Operators and operands
 
