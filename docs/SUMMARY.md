@@ -57,3 +57,7 @@
   - [3.9 Using an integrated debugger: The call stack](ch03-debugging/09-using-an-integrated-debugger-the-call-stack.md)
   - [3.10 Finding issues before they become problems](ch03-debugging/10-finding-issues-before-they-become-problems.md)
   - [3.x Chapter 3 summary and quiz](ch03-debugging/x-summary-and-quiz.md)
+- [4. Fundamental Data Types](ch04-fundamental-data-types/index.md)
+  - [4.1 Introduction to fundamental data types](ch04-fundamental-data-types/01-introduction-to-fundamental-data-types.md)
+  - [4.2 Void](ch04-fundamental-data-types/02-void.md)
+  - [4.3 Object sizes and the sizeof operator](ch04-fundamental-data-types/03-object-sizes-and-the-sizeof-operator.md)
