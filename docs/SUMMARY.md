@@ -75,3 +75,6 @@
   - [5.1 Constant variables (named constants)](ch05-constants-and-strings/01-constant-variables-named-constants.md)
   - [5.2 Literals](ch05-constants-and-strings/02-literals.md)
   - [5.3 Numeral systems (decimal, binary, hexadecimal, and octal)](ch05-constants-and-strings/03-numeral-systems.md)
+  - [5.4 The as-if rule and compile-time optimization](ch05-constants-and-strings/04-the-as-if-rule-and-compile-time-optimization.md)
+  - [5.5 Constant expressions](ch05-constants-and-strings/05-constant-expressions.md)
+  - [5.6 Constexpr variables](ch05-constants-and-strings/06-constexpr-variables.md)

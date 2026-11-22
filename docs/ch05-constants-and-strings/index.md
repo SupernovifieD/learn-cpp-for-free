@@ -16,3 +16,6 @@ Some values never change while a program runs, and some of the most useful value
 - [5.1 Constant variables (named constants)](01-constant-variables-named-constants.md): magic numbers, `const`, and why a named constant beats a macro.
 - [5.2 Literals](02-literals.md): the type of every literal, suffixes, and why `1 / 2` is 0.
 - [5.3 Numeral systems (decimal, binary, hexadecimal, and octal)](03-numeral-systems.md): converting by hand, writing literals and printing in each base.
+- [5.4 The as-if rule and compile-time optimization](04-the-as-if-rule-and-compile-time-optimization.md): what a compiler may change, and why compile-time work is not guaranteed.
+- [5.5 Constant expressions](05-constant-expressions.md): values that are known when the program is built, and where the language requires them.
+- [5.6 Constexpr variables](06-constexpr-variables.md): `constexpr`, and when to choose it over `const`.
