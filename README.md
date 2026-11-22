@@ -4,7 +4,7 @@ A free, open-source book for learning modern C++ from first principles. It is bu
 
 **Read it online: <https://supernovified.github.io/learn-cpp-for-free/>**
 
-The book grows chapter by chapter. It now has a home page, a page that explains the conventions used in the book, and three chapters: **Chapter 0 (Introduction / Getting Started)** with 13 lessons, **Chapter 1 (C++ Basics)** with 11 lessons, and **Chapter 2 (C++ Basics: Functions and Files)** with 13 lessons. Chapters 1 and 2 each end with a summary and a quiz. Every complete program in the book is compiled with GCC and Clang, using C++20 and strict warnings, and run again under AddressSanitizer and UBSan, and its output is checked automatically.
+The book grows chapter by chapter. It now has a home page, a page that explains the conventions used in the book, and six chapters: **Chapter 0 (Introduction / Getting Started)** with 13 lessons, **Chapter 1 (C++ Basics)** with 11 lessons, **Chapter 2 (C++ Basics: Functions and Files)** with 13 lessons, **Chapter 3 (Debugging C++ Programs)** with 10 lessons, **Chapter 4 (Fundamental Data Types)** with 12 lessons, and **Chapter 5 (Constants and Strings)** with 9 lessons. Chapters 1 to 5 each end with a summary and a quiz. Every complete program in the book is compiled with GCC and Clang, using C++20 and strict warnings, and run again under AddressSanitizer and UBSan, and its output is checked automatically.
 
 ## Quick start
 

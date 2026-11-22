@@ -15,6 +15,32 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 - Chapter 2, "C++ Basics: Functions and Files": 13 lessons on functions,
   scope, several source files, namespaces, the preprocessor, header files and
   header guards, and a summary and quiz page.
+- Chapter 3, "Debugging C++ Programs": 10 lessons on the kinds of errors, the
+  debugging process and strategy, printing to the error stream, switching debug
+  output on and off, using a debugger (stepping, breakpoints, watching variables
+  and the call stack, with Visual Studio, VS Code, GDB and LLDB), and finding
+  problems early with warnings, static analysis, tests and sanitizers, and a
+  summary and quiz page.
+- Chapter 4, "Fundamental Data Types": 12 lessons on bits and types, sizes,
+  signed and unsigned integers, fixed-width integers, scientific notation,
+  floating point numbers, Booleans, `if` statements, characters and
+  `static_cast`, and a summary and quiz page.
+- Chapter 5, "Constants and Strings": 9 lessons on `const`, literals, numeral
+  systems, the as-if rule, constant expressions, `constexpr`, `std::string` and
+  `std::string_view`, and a summary and quiz page.
+- Example programs that write to the error stream. `X.err` holds exactly what a
+  program writes to standard error, and `X.out` or `X.session` shows the console
+  view, with both streams in the order in which the program wrote them.
+- Example programs with undefined behavior (`X.ub.cpp`). The checker builds them
+  without `-Werror` and with the sanitizers, and requires a non-zero exit status
+  and a sanitizer report. A lesson shows them without output.
+- Checked GDB walkthroughs. `X.gdb` holds the commands and `X.gdb-expect` the
+  texts that GDB must print, in order. CI installs gdb if it is missing.
+- `make test-ui UI_ONLY=<text>` runs only the browser tests whose id contains
+  the text, for drafting. `make check` refuses it, and CI never sets it.
+- A browser test that fails a Mermaid diagram that renders as "Unsupported
+  markdown", and search tests for "breakpoint", "scientific notation" and
+  "string_view".
 - Example programs of several files. A program in `examples/` is a file or a
   folder with `.cpp` and `.h` files that are built together, and headers are
   checked for length and formatting like the sources.
@@ -38,6 +64,7 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 - `tests/ui/screenshots.py` can open all answers, choose pages and choose
   widths.
 - Forward references in Chapter 0 link to the lessons that explain them.
+- Forward references in Chapters 0 to 2 link to the lessons of Chapters 3 to 5 that explain them.
 
 ### Fixed
 
