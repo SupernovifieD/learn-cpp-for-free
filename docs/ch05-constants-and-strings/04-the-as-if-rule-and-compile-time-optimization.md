@@ -17,7 +17,7 @@ The last box is the important one. The optimizer is not allowed to make a progra
 
 ## The as-if rule
 
-The language standard states the limit in a single sentence, which is called the **as-if rule**. The compiler may change a program in any way, as long as the **observable behavior** is the same as if the program ran exactly as you wrote it. Observable behavior is what happens outside the program: the text that it writes, the files that it changes, the input that it reads, and the accesses to a few special variables that the book does not use.
+The language standard describes the limit with an abstract machine, and the idea is called the **as-if rule**. The compiler may change a program in any way, as long as the **observable behavior** is the same as if the program ran exactly as you wrote it. Observable behavior is what happens outside the program: the data that it writes to files, the text that it shows before it waits for input, and the accesses to a few special variables, called `volatile`, that the book does not use.
 
 Everything else is open to change. The compiler may calculate a value in a different order, keep it somewhere other than memory, or decide that it is not needed. This program multiplies two numbers and prints the result:
 
@@ -50,9 +50,9 @@ This is what you saw in [lesson 3.8](../ch03-debugging/08-using-an-integrated-de
 
 ## Compile time is not guaranteed
 
-The compiler may calculate `3 * 4` while it builds the program, and it usually does when it optimizes. Nothing in the language promises it, though. A debug build may skip it, and a different compiler may make a different choice, because the as-if rule lets all of them do as they like.
+The compiler may calculate `3 * 4` while it builds the program, and it usually does when it optimizes. Nothing in the language promises it, though. A calculation on values that sit in ordinary variables is usually left to run time in a debug build, and a different compiler may make a different choice, because the as-if rule lets all of them do as they like.
 
-Sometimes you need a promise. The size of a `std::bitset` has to be known while the program is built, and a value that you want to treat as fixed should not depend on how hard the optimizer worked. The language therefore has a separate idea, the constant expression, which is a calculation that must be done at build time. [Lesson 5.5](05-constant-expressions.md) introduces it.
+Sometimes you need a promise. The size of a `std::bitset` has to be known while the program is built, and a value that you want to treat as fixed should not depend on how hard the optimizer worked. The language therefore has a separate idea, the constant expression, which the compiler must evaluate wherever the language requires one. [Lesson 5.5](05-constant-expressions.md) introduces it.
 
 ## Undefined behavior and the optimizer
 
@@ -108,5 +108,5 @@ The compiler may optimize on the assumption that no undefined behavior happens. 
 ## Further reading
 
 - [The as-if rule (cppreference)](https://en.cppreference.com/w/cpp/language/as_if)
-- [Program execution in the C++ working draft](https://eel.is/c++draft/intro.abstract)
+- [The abstract machine in the C++ working draft](https://eel.is/c++draft/intro.abstract)
 - [Compiler Explorer](https://godbolt.org/)

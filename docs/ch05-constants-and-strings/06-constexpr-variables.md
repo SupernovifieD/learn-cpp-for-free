@@ -26,7 +26,7 @@ The compiler enforces the keyword. This program tries to make a `constexpr` vari
 {{#include ../../examples/ch05/06-constexpr-input.fail.cpp}}
 ```
 
-The build fails, and the message says that `limit` must be initialized by a constant expression. This is the check that you want: a `constexpr` variable is a promise that is verified when you build the program, and not a hope.
+The build fails, and the compiler reports that the initializer of `limit` is not a constant expression. This is the check that you want: a `constexpr` variable is a promise that is verified when you build the program, and not a hope.
 
 ## const or constexpr
 
@@ -58,7 +58,13 @@ A `const` variable would often do the same job, so why does the language have bo
 
 The fundamental types can all be `constexpr`: integers, floating point numbers, `bool` and `char`. So can `std::string_view`, which [lesson 5.8](08-introduction-to-std-string-view.md) introduces.
 
-The type `std::string` cannot, at least not in practice. It manages memory that it allocates while the program runs, and C++20 allows that only inside a calculation that frees the memory again before it ends, so a variable cannot hold one. The page for `std::basic_string` on cppreference says that defining a `constexpr` string variable is generally an error, and the compilers that this book is checked with reject it.
+A `constexpr` variable of the type `std::string` does not build with the compilers that this book is checked with. It manages memory that it allocates while the program runs, and C++20 allows that only inside a calculation that frees the memory again before it ends, so a variable cannot hold one. The page for `std::basic_string` on cppreference says that defining a `constexpr` string variable is generally an error.
+
+```cpp title="constexpr-string.cpp"
+{{#include ../../examples/ch05/06-constexpr-string.fail.cpp}}
+```
+
+The library that comes with a compiler may even decide that `std::string` is not a type that can be `constexpr` at all, which is why the exact message differs between compilers.
 
 ## Parameters cannot be constexpr
 
@@ -71,7 +77,7 @@ A function runs with whatever arguments its callers pass, and it exists once, so
 Both compilers reject the parameter. A function that has to be evaluated at compile time is a separate feature, and a later chapter introduces it.
 
 > [!ADVANCED]
-> C++20 has two more keywords in this family. A function declared `consteval` must be evaluated at compile time, and a variable declared `constinit` must be initialized at compile time but may change later. The book does not use them.
+> C++20 has two more keywords in this family. A function declared `consteval` must be evaluated at compile time, and a variable declared `constinit`, which must live for the whole run of the program, must be initialized at compile time but may change later. The book does not use them.
 
 <details>
 <summary>Check your understanding</summary>

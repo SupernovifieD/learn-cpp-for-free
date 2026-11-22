@@ -36,7 +36,7 @@ Changing `b` leaves `a` alone, which keeps strings independent of each other. Th
 
 ## The length of a string
 
-The function `length()` returns an unsigned integer type, the one that the library calls `std::string::size_type`. On the mainstream platforms it is the same type as `std::size_t`, from [lesson 4.6](../ch04-fundamental-data-types/06-fixed-width-integers-and-size-t.md), which is why the program above stores the result in a `std::size_t` variable. When you need the length as an `int`, convert it on purpose with `static_cast<int>(text.length())`, as [lesson 4.12](../ch04-fundamental-data-types/12-introduction-to-type-conversion-and-static-cast.md) showed. C++20 also has `std::ssize(text)`, from the header `<iterator>`, which gives the length as a signed number, and the book mentions it only so that you recognize it.
+The function `length()` returns an unsigned integer type, the one that the library calls `std::string::size_type`. It is the same type as `std::size_t`, from [lesson 4.6](../ch04-fundamental-data-types/06-fixed-width-integers-and-size-t.md), which is why the program above stores the result in a `std::size_t` variable. When you need the length as an `int`, convert it on purpose with `static_cast<int>(text.length())`, as [lesson 4.12](../ch04-fundamental-data-types/12-introduction-to-type-conversion-and-static-cast.md) showed. C++20 also has `std::ssize(text)`, from the header `<iterator>`, which gives the length as a signed number, and the book mentions it only so that you recognize it.
 
 ## Reading a word
 
@@ -89,7 +89,7 @@ The `+` operator joins two strings into a new one, and it also joins a string an
 {{#include ../../examples/ch05/07-join-literals.fail.cpp}}
 ```
 
-The message says that the two operands, an array of 8 `char` and an array of 6 `char`, are invalid for `+`. To make one side a `std::string`, add the suffix `s` to a literal, as in `"Hello, "s`. The suffix needs a using-directive for the namespace that holds it:
+The compiler reports that the two operands, an array of 8 `char` and an array of 6 `char`, are invalid for `+`. To make one side a `std::string`, add the suffix `s` to a literal, as in `"Hello, "s`. The suffix needs a using-directive for the namespace that holds it:
 
 ```cpp title="literal-suffix.cpp"
 {{#include ../../examples/ch05/07-literal-suffix.cpp}}

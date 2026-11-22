@@ -69,7 +69,7 @@ flowchart TD
 
 Think of a tripwire on one variable instead of a guard at one door. A breakpoint guards a line, and a watchpoint guards a value, so it catches every line that touches the variable, including the lines you forgot about.
 
-Here are the checked GDB commands for `watching.cpp`. They stop at the start of `main`, step over the first assignment, show the variable in two ways, set a watchpoint, and continue three times:
+Here are the checked GDB commands for `watching.cpp`. They stop at the start of `main`, step over the definition of `balance`, show the variable in three ways with `info locals`, `print` and `display`, set a watchpoint, and continue three times:
 
 ```text title="Commands for GDB"
 {{#include ../../examples/ch03/08-watching.gdb}}
@@ -88,7 +88,7 @@ A watchpoint can be hardware or software. A **hardware watchpoint** uses a featu
 
 Three more limits apply:
 
-- A watchpoint on a local variable ends when its function returns, because the variable stops existing.
+- GDB deletes a watchpoint on a local variable when its function returns, because the variable stops existing. In Visual Studio, delete the data breakpoint before the function ends, because its behavior afterwards is unpredictable.
 - Visual Studio switches a data breakpoint off when the debugging session ends, so you set it again in the next session.
 - A watchpoint reports a change of the value, so a write that stores the same value that is already there does not stop the program.
 

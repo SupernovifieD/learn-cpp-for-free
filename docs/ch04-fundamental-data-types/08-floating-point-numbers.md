@@ -47,7 +47,7 @@ A `double` holds about 16 significant digits, and `std::cout` shows six unless y
 {{#include ../../examples/ch04/08-precision.out}}
 ```
 
-The first line uses the default of six digits. The next two lines ask for three and for twelve digits, and the last line shows that the setting of twelve is still active for another value. Notice that trailing zeros are not printed: the number needs no more digits than it has.
+The first line uses the default of six digits. The next two lines ask for three and for twelve digits, and the last line shows that the setting of twelve is still active for another value.
 
 A `float` runs out of digits much sooner than a `double`. This program stores a third in each type, and prints each with a few digits more than the type can hold:
 
@@ -94,7 +94,7 @@ In `7.0 / 2` the integer 2 is converted to the floating point number 2.0 before 
 
 ## Infinity and NaN
 
-Two special values come with the floating point types: **infinity**, which is larger than any number, and **NaN**, short for "not a number", which is the result of a calculation without an answer. The C++ standard says that dividing by zero is undefined behavior, for floating point types as well as for integers. Computers that follow IEEE 754 define the result as infinity, or as NaN for 0.0 divided by 0.0, but the language itself does not promise it, and the text that `std::cout` prints for these values differs between platforms. The book shows no program for them, and you should avoid dividing by zero.
+Two special values come with the floating point types: **infinity**, which is larger than any number, and **NaN**, short for "not a number", which is the result of a calculation without an answer. The C++ standard says that dividing by zero is undefined behavior, for floating point types as well as for integers. Computers that follow IEEE 754 define the result as infinity, or as NaN for 0.0 divided by 0.0, but the language text calls it undefined, and the text that `std::cout` prints for these values differs between platforms. The book shows no program for them, and you should avoid dividing by zero.
 
 <details>
 <summary>Check your understanding</summary>

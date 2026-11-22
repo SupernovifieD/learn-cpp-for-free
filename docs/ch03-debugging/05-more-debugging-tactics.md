@@ -78,7 +78,7 @@ Without a value, the name counts as defined, which is all that `#ifdef` asks. Th
 
 A debug message that stays in the program for good is a **log** message, and recording them is called **logging**. Real programs log more than a bare text: each message usually carries a time stamp, so that you can tell when it happened, and a severity such as information, warning or error, so that you can filter them. They often go to a file, because nobody is watching the screen when a program runs on a server at three in the morning.
 
-The C++ standard library has no logging facility. A program either writes its own small logger, which is mostly `std::cerr` or a file with a time stamp added, or it uses a library from outside the standard library. This book does not recommend one, because the right choice depends on the project. When you evaluate one, look at how it handles severity levels, where it can write, and how much it slows the program down.
+The C++ standard library has no logging framework, with severity levels, time stamps and file handling. The nearest thing is `std::clog`, a buffered stream that goes to the error stream. A program either writes its own small logger, which is mostly `std::cerr` or a file with a time stamp added, or it uses a library from outside the standard library. This book does not recommend one, because the right choice depends on the project. When you evaluate one, look at how it handles severity levels, where it can write, and how much it slows the program down.
 
 Two cautions apply to every log. A log grows for as long as the program runs, so a real logger needs a plan for old files. A log also keeps what you put into it, so never write passwords or other private data into one.
 
@@ -131,7 +131,7 @@ The next bug will need the same kind of messages, and writing them again costs t
 
 - Debug output placed between `#ifdef` and `#endif` exists only when a macro such as `ENABLE_DEBUG` is defined, so one name switches all of it on or off.
 - The macro can be defined in the build instead of the source file, with `-D` for GCC and Clang, `/D` for Microsoft's compiler, or the project's preprocessor definitions.
-- Logging keeps messages for good, usually with a time stamp and a severity, and the C++ standard library has no logging facility of its own.
+- Logging keeps messages for good, usually with a time stamp and a severity, and the C++ standard library has no logging framework of its own.
 - Printing and logging need an edit, a rebuild and a run for every question, and you must guess what to print.
 - A debugger lets you stop the program and inspect it without changing the code, which [lesson 3.6](06-using-an-integrated-debugger-stepping.md) introduces.
 

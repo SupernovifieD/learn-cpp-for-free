@@ -23,7 +23,7 @@ The letters at the end of a number are **suffixes**. For whole numbers, `u` mean
 > [!ADVANCED]
 > C++23 added the suffix `uz`, which gives a literal the type `std::size_t`. The book uses C++20, where this suffix does not exist, so you will not see it here.
 
-A whole number without a suffix is an `int` if its value fits. A bigger value gets the first of `long` and `long long` that can hold it, and which one that is depends on the platform. That is why a suffix is the only way to be sure of the type of a large literal.
+A decimal whole number without a suffix is an `int` if its value fits. A bigger value gets the first of `long` and `long long` that can hold it, and which one that is depends on the platform. That is why a suffix is the only way to be sure of the type of a large literal.
 
 ## The sizes of literals
 

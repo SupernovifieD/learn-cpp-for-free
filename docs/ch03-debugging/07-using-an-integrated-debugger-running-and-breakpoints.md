@@ -32,7 +32,7 @@ Here is a program with two functions. You want to stop at the start of `shipping
 {{#endtab}}
 {{#tab VS Code}}
 
-**Run to a place:** the VS Code documentation does not describe a run-to-cursor command, so set a breakpoint on the line and continue.
+**Run to a place:** while the program is paused, the context menu of the editor offers **Run to Cursor** when the debugger supports it. Otherwise set a breakpoint on the line and continue.
 
 **Continue:** <kbd>F5</kbd>.
 
@@ -45,7 +45,7 @@ Here is a program with two functions. You want to stop at the start of `shipping
 {{#endtab}}
 {{#tab Command line}}
 
-**Run to a place:** in GDB, `advance shipping` runs until the function `shipping` is reached. LLDB has no direct equivalent: set a breakpoint on the function and continue.
+**Run to a place:** in GDB, `advance shipping` runs until the function `shipping` is reached. LLDB has no direct equivalent of `advance`: set a breakpoint on the function and continue.
 
 **Continue:** `continue`.
 
@@ -72,7 +72,7 @@ GDB also has `until`, which looks similar and behaves differently. It stops only
 
 A **breakpoint** is a marker on a line. When the program is about to run that line, it pauses instead. This is how you let a program run at full speed and still catch it at the exact place that matters.
 
-The difference to run to cursor is that a breakpoint stays. If the line runs again, the program stops again. The program below calls `applyDiscount` three times with three different arguments, and a single breakpoint in the function catches all three.
+The difference from run to cursor is that a breakpoint stays. If the line runs again, the program stops again. The program below calls `applyDiscount` three times with three different arguments, and a single breakpoint in the function catches all three.
 
 ```cpp title="breakpoints.cpp"
 {{#include ../../examples/ch03/07-breakpoints.cpp}}
@@ -121,7 +121,7 @@ Visual Studio offers one more move, which needs care. **Set Next Statement** cha
 > [!WARNING]
 > Skipping code changes what the program does. A skipped line never ran, so a variable keeps the value it had, a function is never called, and a result may never be stored. Moving the next statement to another function or scope usually corrupts the call stack, as Microsoft's documentation warns. Use it for a quick experiment, never as evidence of what the program normally does.
 
-VS Code does not document an equivalent, and some other debuggers have commands with the same effect. This book does not teach them, because the danger is the same everywhere.
+VS Code has the command **Jump to Cursor**, also called **Set Next Statement**, when the debugger supports it, and other debuggers have commands with the same effect. This book does not teach them, because the danger is the same everywhere.
 
 <details>
 <summary>Check your understanding</summary>

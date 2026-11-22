@@ -44,19 +44,19 @@ The output is the same, and the program is simpler to read and to change. The pi
 
 ## A constant must have a value, and keeps it
 
-A constant variable has to be given its value when it is defined, because there will be no second chance. A definition without a value is an error:
+A constant of a fundamental type has to be given its value when it is defined, because there will be no second chance. A definition without a value is an error:
 
 ```cpp title="uninitialized.cpp"
 {{#include ../../examples/ch05/01-uninitialized.fail.cpp}}
 ```
 
-The compiler rejects the definition and says that a `const` object needs an initial value. The other half of the rule is that the value cannot be replaced later:
+The compiler rejects the definition, because a `const` object needs an initial value. The other half of the rule is that the value cannot be replaced later:
 
 ```cpp title="assign-to-const.cpp"
 {{#include ../../examples/ch05/01-assign-to-const.fail.cpp}}
 ```
 
-The assignment is an error, and the message names the variable and says that it cannot be assigned because it is `const`. This is the point of the keyword: if a line tries to change something that you promised to keep, the compiler finds it for you.
+The assignment is an error, and the message names the variable and says that it is read-only or `const`. This is the point of the keyword: if a line tries to change something that you promised to keep, the compiler finds it for you.
 
 The value does not have to be a literal. A constant can be set from a calculation, from a value that is read while the program runs, or from other constants, as in `const int total{nights * pitchFee};`. `const` only means that the value cannot change after the definition. Lessons [5.5](05-constant-expressions.md) and [5.6](06-constexpr-variables.md) return to the question of when the value is known.
 
@@ -68,7 +68,7 @@ A constant is a variable, so it follows the naming rules of [lesson 1.7](../ch01
 
 You can write `const` in front of a function's by-value parameter: `void printFee(const int fee)`. The parameter is a copy of the argument, so changing it inside the function could never affect the caller anyway, and the keyword adds little. This book leaves it out of by-value parameters, to keep the signatures short.
 
-A `const` in front of a returned fundamental type has no effect at all, because the caller receives a copy that it may use as it likes. The compiler even says so:
+A `const` in front of a returned fundamental type has no effect on the value that the caller receives, because the caller receives a copy that it may use as it likes. The compiler even says so:
 
 ```cpp title="const-return.cpp"
 {{#include ../../examples/ch05/01-const-return.fail.cpp}}
@@ -85,7 +85,7 @@ The second line of the file says that the program builds without `-Werror`, whic
 const int pitchFee{25};
 ```
 
-The macro is replaced by text before the compiler sees the program. It has no type, it ignores scope, and a debugger cannot show its name, because the name no longer exists once the preprocessor is done. The constant variable has a type that the compiler checks, a scope, and a name that the debugger shows, as [lesson 3.8](../ch03-debugging/08-using-an-integrated-debugger-watching-variables.md) described for variables.
+The macro is replaced by text before the compiler sees the program. It has no type, it ignores scope, and a debugger usually cannot show its name, because the name no longer exists once the preprocessor is done. The constant variable has a type that the compiler checks, a scope, and a name that the debugger shows, as [lesson 3.8](../ch03-debugging/08-using-an-integrated-debugger-watching-variables.md) described for variables.
 
 > [!BEST-PRACTICE]
 > Give every value that has a meaning a name, with `const` when it can be set once. Use a plain literal only where the number is obvious, such as 0 and 1, and use a constant instead of an object-like macro.
@@ -128,7 +128,7 @@ Both literals are magic numbers with the same value but different meanings, so c
 
 - A literal constant is a value in the code, and a named constant gives a value a name that says what it means.
 - `const` before the type makes a variable that cannot be changed after its definition.
-- A constant must be initialized when it is defined, and assigning to it is an error.
+- A constant of a fundamental type must be initialized when it is defined, and assigning to it is an error.
 - A magic number is a literal whose meaning is unclear, and a named constant replaces it.
 - The book writes constants in camelCase, does not use `const` on by-value parameters or returned values, and prefers `const` variables to object-like macros.
 

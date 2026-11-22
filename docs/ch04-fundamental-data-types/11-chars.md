@@ -38,7 +38,7 @@ An `int` does not go back into a `char` as easily. The next program tries to sto
 {{#include ../../examples/ch04/11-char-plus-one.fail.cpp}}
 ```
 
-The compiler refuses to build it, because a brace initializer does not accept an `int` that is not a constant for a `char`: the value might not fit. [Lesson 4.12](12-introduction-to-type-conversion-and-static-cast.md) shows how to convert on purpose.
+With the book's options both compilers refuse to build it, because a brace initializer does not accept an `int` that is not a constant for a `char`: the value might not fit. [Lesson 4.12](12-introduction-to-type-conversion-and-static-cast.md) shows how to convert on purpose.
 
 ## Read a character
 
@@ -96,7 +96,7 @@ GCC and Clang both warn about it, and the book's options turn the warning into a
 
 Whether a plain `char` is signed or unsigned depends on the platform: some computers treat it as a number from -128 to 127, and others from 0 to 255. The ASCII characters have codes from 0 to 127, so both choices agree for everything in this book. Never rely on the sign of a `char`. The types `signed char` and `unsigned char` exist when you need to say which one you mean.
 
-C++ has more character types for text that does not fit in ASCII: `char8_t`, `char16_t`, `char32_t` and `wchar_t`. Their sizes and meaning differ between platforms, so the book only names them.
+C++ has more character types for text that does not fit in ASCII: `char8_t`, `char16_t`, `char32_t` and `wchar_t`. The first three hold the code units of the Unicode formats UTF-8, UTF-16 and UTF-32, and `wchar_t` has 2 bytes on Windows and 4 bytes on Linux and macOS. The book only names them.
 
 <details>
 <summary>Check your understanding</summary>

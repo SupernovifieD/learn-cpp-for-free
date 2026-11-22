@@ -38,7 +38,7 @@ The program below keeps the stock of a shop in an `unsigned int`. It sells one i
 {{#include ../../examples/ch04/05-wraparound.out}}
 ```
 
-An `unsigned int` has 32 bits on every mainstream computer, so 0 minus 1 wraps to the largest value, 4,294,967,295. Nothing went wrong as far as C++ is concerned: the wraparound is defined, so the compiler and the sanitizers stay silent. For the shop, the result is nonsense, and it appears without any warning.
+An `unsigned int` has 32 bits on every mainstream computer, so 0 minus 1 wraps to the largest value, 4,294,967,295. Nothing went wrong as far as C++ is concerned: the wraparound is defined, so the compiler and the sanitizers that the book uses stay silent. For the shop, the result is nonsense, and it appears without any warning.
 
 Wraparound is not a flaw of the type. Some calculations want it, such as those that mix up the bits of a number, and for them an unsigned type is exactly right. It is a poor match for counting things.
 
@@ -48,7 +48,7 @@ The program above shows the first problem. An unsigned type does not stop a valu
 
 The compiler does catch the most obvious case: a braced definition such as `unsigned int seats{-1};` is rejected, because storing -1 would be a narrowing conversion. It cannot catch a negative value that appears in the middle of a calculation.
 
-The second problem is mixing. When one operand of an operator is signed and the other is unsigned, the compiler converts the signed value to unsigned before it calculates. A negative number then turns into a large positive one:
+The second problem is mixing. When an `int` meets an `unsigned int`, or an unsigned type that is at least as large, the compiler converts the signed value to unsigned before it calculates. A negative number then turns into a large positive one:
 
 ```cpp title="mixed-signs.cpp"
 {{#include ../../examples/ch04/05-mixed-signs.fail.cpp}}
@@ -65,7 +65,7 @@ The third problem is a false sense of safety. Declaring a variable `unsigned` do
 There are two places where unsigned types are the right tool. The standard library uses them for sizes and counts: the result of `sizeof` is the unsigned type `std::size_t`, which [lesson 4.6](06-fixed-width-integers-and-size-t.md) introduces. And programs that work on individual bits use unsigned types, because wraparound and the absence of a sign are what you want there. A later chapter covers bit manipulation.
 
 > [!BEST-PRACTICE]
-> Use signed types for quantities, even for quantities that are never negative, such as a number of seats. A signed type shows a mistake as a negative number that you can see and test for, and the C++ Core Guidelines give the same advice.
+> Use signed types for quantities, even for quantities that are never negative, such as a number of seats. A signed type shows a mistake as a negative number that you can see and test for, and the C++ Core Guidelines give the same advice in their rules to use signed types for arithmetic and not to avoid negative values by using unsigned.
 
 <details>
 <summary>Check your understanding</summary>
@@ -111,4 +111,5 @@ The type does not prevent them. A calculation that goes below zero wraps to a hu
 
 - [Fundamental types: integer types (cppreference)](https://en.cppreference.com/w/cpp/language/types)
 - [Implicit conversions: integral conversions (cppreference)](https://en.cppreference.com/w/cpp/language/implicit_conversion)
-- [The C++ Core Guidelines: Expressions and statements](https://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines#S-expr)
+- [The C++ Core Guidelines: use signed types for arithmetic](https://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines#es102-use-signed-types-for-arithmetic)
+- [The C++ Core Guidelines: do not avoid negative values by using unsigned](https://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines#es106-dont-try-to-avoid-negative-values-by-using-unsigned)

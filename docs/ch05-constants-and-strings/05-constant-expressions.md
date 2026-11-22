@@ -16,7 +16,7 @@ flowchart TD
 
 ## What a constant expression is
 
-A **constant expression** is an expression that the compiler can evaluate while it builds the program, and that the language therefore guarantees to be known at compile time. The full rules are long, so here is a simplified version that covers this book. These are constant expressions:
+A **constant expression** is an expression that the compiler can evaluate while it builds the program, and that the compiler must evaluate wherever the language requires a constant expression. Elsewhere it may still be calculated at run time. The full rules are long, so here is a simplified version that covers this book. These are constant expressions:
 
 - a literal, such as `8` or `3.5`,
 - an operator applied to constant expressions, such as `3 * 4` or `2 + 5 * 2`,
@@ -44,7 +44,7 @@ The angle brackets of `std::bitset` are one place where the language demands a c
 {{#include ../../examples/ch05/05-runtime-size.fail.cpp}}
 ```
 
-The variable `bits` is `const`, but that only means that it cannot change after it is set. It is set from input, so its value is known at run time only, and the compiler says that the template argument is not a constant expression. A `const` variable is not automatically a compile-time value.
+The variable `bits` is `const`, but that only means that it cannot change after it is set. It is set from input, so its value is known at run time only, and the compiler reports that the template argument is not a constant expression. The compiler calls the number in the angle brackets a template argument, and templates are a topic for a later chapter. A `const` variable is not automatically a compile-time value.
 
 The second example calls an ordinary function that always returns 8:
 
@@ -52,7 +52,7 @@ The second example calls an ordinary function that always returns 8:
 {{#include ../../examples/ch05/05-function-call.fail.cpp}}
 ```
 
-The compiler refuses to call the function while it builds, because it is not allowed to: the function is a run-time thing. GCC says that the call is to a non-`constexpr` function, which is the word that [lesson 5.6](06-constexpr-variables.md) explains.
+The compiler refuses to call the function while it builds, because it is not allowed to: the function is a run-time thing. GCC reports a call to a non-`constexpr` function, and the word `constexpr` is the one that [lesson 5.6](06-constexpr-variables.md) explains.
 
 The third example is the surprise. A `const` variable of the type `double` is not usable in a constant expression, even when it is initialized with a literal:
 
@@ -67,7 +67,7 @@ The rule for `const` variables covers integer types only, and the value 8.0 does
 
 ## A promise and a favor
 
-The two lessons fit together. In `int area{3 * 4};`, the compiler may fold the multiplication into the number 12, as [lesson 5.4](04-the-as-if-rule-and-compile-time-optimization.md) explained, but it does not have to, and a debug build may not. In `std::bitset<3 * 4>`, the same expression must be evaluated while the program is built, because the language requires a constant expression there. Folding is a favor that the compiler may do you, and a constant expression is a promise that it has to keep.
+The two lessons fit together. In `int area{3 * 4};`, the compiler may fold the multiplication into the number 12, as [lesson 5.4](04-the-as-if-rule-and-compile-time-optimization.md) explained, but it does not have to. In `std::bitset<3 * 4>`, the same expression must be evaluated while the program is built, because the language requires a constant expression there. Folding is a favor that the compiler may do you, and a constant expression is a promise that it has to keep.
 
 ## Why it matters
 
@@ -108,7 +108,7 @@ An ordinary function is a run-time thing, and the compiler is not allowed to tre
 ## Summary
 
 - Compile time is when the program is built, and run time is when it runs, and a value that depends on input is known at run time only.
-- A constant expression is an expression that the language guarantees to be evaluated at compile time.
+- A constant expression is an expression that the compiler must evaluate at compile time wherever the language requires one.
 - Literals, operators on constant expressions and `const` integer variables initialized with constant expressions are constant expressions.
 - A call to an ordinary function, a value from input and a `const` variable of a floating point type are not.
 - Some places, such as the size of a `std::bitset`, require a constant expression.

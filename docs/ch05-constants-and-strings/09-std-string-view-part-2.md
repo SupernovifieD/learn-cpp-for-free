@@ -4,7 +4,7 @@ A `std::string_view` is cheap because it owns nothing, and that is also the sour
 
 ## Owners and viewers
 
-A `std::string` is like a house, and a `std::string_view` is like a note with the address of the house. The note is small, so you can copy it and hand it around freely, and it never needs a new house. But the note does not keep the house standing. If the house is demolished, the note still lists the address, and anyone who goes there finds an empty plot or whatever has been built on it since.
+A `std::string` is like a sheet that is pinned to a corkboard, and a `std::string_view` is like a sticky note that says "third line, first 17 letters". The note is small, so you can copy it and hand it around freely. But the note does not keep the sheet on the board. If the sheet is taken down, or swapped for a longer one, the note still gives the old position, and you read whatever hangs there now.
 
 The rule that follows is simple: **the owner must outlive every viewer**. The diagram shows the order of events when the rule is broken.
 
@@ -19,7 +19,7 @@ A view that looks at characters that no longer exist is a **dangling view**. Usi
 
 ## A view of a temporary
 
-The first mistake is to create a view of a temporary string. A function that returns a `std::string` by value produces a temporary, which lives until the end of the statement that created it. A view that is made from it outlives it:
+The first mistake is to create a view of a temporary string. A **temporary** is a value that exists only until the end of the statement that created it, such as the result of a function that you do not store. A function that returns a `std::string` by value produces such a temporary. A view that is made from it outlives it:
 
 ```cpp title="temporary-string.cpp"
 {{#include ../../examples/ch05/09-temporary-string.ub.cpp}}
@@ -46,11 +46,8 @@ Some compilers warn about this one, and some do not, so you cannot rely on a war
 
 A string can also be alive and still invalidate its views. A view remembers where the characters are. If the owner changes in a way that moves its characters, the view points to the old place:
 
-```cpp
-std::string text{"first text, long enough to need the heap"};
-std::string_view view{text};
-text = "a second text that is much longer than the first one";
-std::cout << view << "\n";
+```cpp title="changed-string.cpp"
+{{#include ../../examples/ch05/09-changed-string.ub.cpp}}
 ```
 
 The second text is longer than the first, so the string may have to allocate new memory and release the old, and the view then looks at the released memory. The library's rules treat a view as invalid after a change like this, whether or not the characters happen to move. The safe habit is to finish using a view before you change the string that it looks at.
@@ -71,7 +68,7 @@ The view starts as the whole line. Removing seven characters from the front take
 
 ## The end of a view
 
-One more fact will matter later. The text in a `std::string` ends with a null character, but a view is not guaranteed to.
+One more fact will matter later. A `std::string` keeps a null character after its text, which `length()` does not count, but a view is not guaranteed to have one after its text.
 
 A view that was shortened with `remove_suffix` ends in the middle of the text, and what follows it is not part of the view. A view may even contain null characters of its own, because it knows its length and does not look for a terminator. A function that expects a null-terminated string, such as many functions from the C language, cannot be given a view's characters without care.
 
@@ -111,7 +108,7 @@ The temporary string is destroyed at the end of the first statement, so the view
 <details>
 <summary>Answer</summary>
 
-The owner of the text must outlive every view of it, and it must not change in a way that moves its characters while a view is in use.
+The owner of the text must outlive every view of it, and it must not be modified while a view of it is in use.
 
 </details>
 

@@ -5,7 +5,7 @@
 
 int main()
 {
-    std::string_view note;
+    std::string_view note{};
     {
         std::string text{"A reminder that is long enough to need the heap"};
         note = text;

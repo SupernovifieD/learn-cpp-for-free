@@ -10,7 +10,7 @@ The quiz has eight questions: the first four are about ideas, and the last four 
 - [3.2 The debugging process](02-the-debugging-process.md): reproduce the problem, find the root cause, understand it, decide how to fix it, repair the code and retest. The symptom is what you see, and the root cause is the mistake in the code.
 - [3.3 A strategy for debugging](03-a-strategy-for-debugging.md): inspection means reading the code, and it fails because you read what you meant. Narrow a bug down by halves, test one hypothesis and change one thing at a time, and keep notes.
 - [3.4 Basic debugging tactics](04-basic-debugging-tactics.md): switch code off to isolate a problem, trace calls, and print values. `std::cerr` is a separate, unbuffered stream that is tied to `std::cout`, and `2>` redirects it.
-- [3.5 More debugging tactics](05-more-debugging-tactics.md): debug output between `#ifdef ENABLE_DEBUG` and `#endif` exists only when the macro is defined, for example with `-D` on the command line. Logging keeps messages for good, and the standard library has no logging facility.
+- [3.5 More debugging tactics](05-more-debugging-tactics.md): debug output between `#ifdef ENABLE_DEBUG` and `#endif` exists only when the macro is defined, for example with `-D` on the command line. Logging keeps messages for good, and the standard library has no logging framework.
 - [3.6 Using an integrated debugger: Stepping](06-using-an-integrated-debugger-stepping.md): a debugger pauses a program and shows its state, and a debug build keeps the link to the source lines. Step into follows a call, step over runs it, and step out returns to the caller.
 - [3.7 Using an integrated debugger: Running and breakpoints](07-using-an-integrated-debugger-running-and-breakpoints.md): run to a place stops once, and a breakpoint stays and stops at every call. Set Next Statement skips code and changes what the program does.
 - [3.8 Using an integrated debugger: Watching variables](08-using-an-integrated-debugger-watching-variables.md): a paused program can be inspected, and a watch keeps an expression in view. A watchpoint, or data breakpoint, stops the program when a value changes, after the line that changed it.
@@ -81,7 +81,7 @@ A program is paused in the function `average`. The call stack lists, from the to
 <details>
 <summary>Solution</summary>
 
-(a) `average`, because the top of the stack is the function that is running. (b) `total`, the frame directly below the top. (c) `print` shows the variables of `total`, because `up` moved your view one frame towards `main`. The program is still paused in `average`, so the next `next` steps through `average`: moving to a frame changes only what you look at.
+(a) `average`, because the top of the stack is the function that is running. (b) `total`, the frame directly below the top. (c) `print` shows the variables of `total`, because `up` moved your view one frame toward `main`. The program is still paused in `average`, so the next `next` steps through `average`: moving to a frame changes only what you look at.
 
 </details>
 
@@ -121,7 +121,7 @@ The program below should print the change due when a customer pays 50 for someth
 
 The function is right. The mistake is in the call: `changeDue(cost, paid)` passes the cost as the amount paid and the amount paid as the cost, so the function computes 37 minus 50. Both arguments are `int`, so the compiler has no reason to object.
 
-Swap the arguments in the call. The root cause is the call, so changing the function to subtract the other way round would hide the symptom and break every other caller.
+Swap the arguments in the call. The root cause is the call, so changing the function to subtract the other way around would hide the symptom and break every other caller.
 
 ```cpp title="change-fixed.cpp"
 {{#include ../../examples/ch03/x-q6-change-fixed.cpp}}
@@ -162,7 +162,7 @@ The expression `part / whole * 100` is evaluated from left to right. The first s
 
 ### Question 8
 
-Change your program from Question 5 so that the debug line exists only when a macro named `ENABLE_DEBUG` is defined. Define the macro at the top of the file for now. How do you switch the debug output off without editing the file, and what does the program print then?
+Change your program from Question 5 so that the debug line exists only when a macro named `ENABLE_DEBUG` is defined. Define the macro with a line at the top of the file for now. Which edit switches the debug output off, how can you switch it on again without editing the source, and what does the program print in each case?
 
 <details>
 <summary>Solution</summary>
@@ -177,6 +177,6 @@ The `std::cerr` statement goes between `#ifdef ENABLE_DEBUG` and `#endif`, and t
 {{#include ../../examples/ch03/x-q8-debug-switch.out}}
 ```
 
-To switch the output off without editing the file, remove the `#define` line from the source and define the macro in the build when you need it, with `-DENABLE_DEBUG` for GCC and Clang or `/DENABLE_DEBUG` for Microsoft's compiler. Without the macro, the preprocessor removes the debug statement, and the program prints only `Trip cost: 120`.
+To switch the output off, remove the `#define` line from the source. Without the macro, the preprocessor removes the debug statement, and the program prints only `Trip cost: 120`. To switch the output on again without editing the source, define the macro in the build, with `-DENABLE_DEBUG` for GCC and Clang or `/DENABLE_DEBUG` for Microsoft's compiler, and the console view is the one above. Do not keep the `#define` line as well, because the compiler reports a macro that is defined twice.
 
 </details>

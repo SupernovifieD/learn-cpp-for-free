@@ -64,7 +64,7 @@ The dangerous case is a number that arrives while the program runs, because the 
 {{#include ../../examples/ch04/04-doubling.ub.cpp}}
 ```
 
-The program builds without a warning, and it is correct for every number up to 1,073,741,823. When someone types 2000000000, the double is 4,000,000,000, which is more than an `int` can hold, and the behavior is undefined. The program might print a negative number, it might print another wrong number, or it might behave in a way that no one expected, because the compiler is allowed to assume that an overflow never happens.
+The program builds without a warning, and it is correct for every number from -1,073,741,824 to 1,073,741,823. When someone types 2000000000, the double is 4,000,000,000, which is more than an `int` can hold, and the behavior is undefined. The program might print a negative number, it might print another wrong number, or it might behave in a way that no one expected, because the compiler is allowed to assume that an overflow never happens.
 
 The book shows no output for this program, because no output would be right. Its checks run the program with that input under sanitizers, which are tools that report mistakes while a program runs, and they report a signed integer overflow. [Lesson 3.10](../ch03-debugging/10-finding-issues-before-they-become-problems.md) introduced them.
 

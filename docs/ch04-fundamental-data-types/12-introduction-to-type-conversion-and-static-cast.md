@@ -52,7 +52,7 @@ Brace initialization is stricter still. It refuses a conversion that might chang
 {{#include ../../examples/ch04/12-int-to-double.fail.cpp}}
 ```
 
-An `int` fits in a `double` on mainstream computers, but the language still treats it as narrowing when the value is not a constant, and both compilers reject the program. These errors are a gift. They mark every place where the program changes a value, and they let you decide what you really want.
+An `int` fits in a `double` on mainstream computers, but the language still treats it as narrowing when the value is not a constant. Clang rejects the program outright, and GCC warns, which the book's options turn into an error. These errors are a gift. They mark every place where the program changes a value, and they let you decide what you really want.
 
 ## Explicit conversion with static_cast
 
@@ -92,7 +92,7 @@ The mixed sum of [lesson 4.5](05-unsigned-integers-and-why-to-avoid-them.md) can
 {{#include ../../examples/ch04/12-signs-fixed.out}}
 ```
 
-The first result is the -5 that the earlier program should have printed. The second line converts -15 to `unsigned int` on purpose, and the wraparound that [lesson 4.5](05-unsigned-integers-and-why-to-avoid-them.md) explained gives 4,294,967,281. Converting to an unsigned type always follows that rule. Since C++20, converting a value that is too large for a signed type is defined as well: the result is the value reduced by the same rule, and earlier standards left it to the compiler.
+The first result is the -5 that the earlier program should have printed. The second line converts -15 to `unsigned int` on purpose, and the wraparound that [lesson 4.5](05-unsigned-integers-and-why-to-avoid-them.md) explained gives 4,294,967,281. Converting an integer to an unsigned type always follows that rule. Since C++20, converting a value that is too large for a signed type is defined as well: the result is the value reduced by the same rule, and earlier standards left it to the compiler.
 
 > [!WARNING]
 > A cast tells the compiler to trust you, so it does not make a wrong conversion right. Converting a `double` that is too large for an `int` is undefined behavior, and a cast around it does not change that. Use a cast only where you know that the value is in range.
@@ -101,7 +101,7 @@ The first result is the -5 that the earlier program should have printed. The sec
 
 C++ has an older way to write a conversion, inherited from C: `(int)price`, with the type in parentheses before the value. It works, but it can perform several different kinds of conversion, and it is hard to find in a program, so mistakes hide in it.
 
-The C++ Core Guidelines advise against it, and so does this book. Always write `static_cast`. Chapter 10 covers conversions in depth, with the other named casts.
+The C++ Core Guidelines say to avoid casts where you can, to use a named cast when you must, and to flag every C-style cast, and so does this book. Always write `static_cast`. Chapter 10 covers conversions in depth, with the other named casts.
 
 <details>
 <summary>Check your understanding</summary>
@@ -140,11 +140,11 @@ Write `char next{static_cast<char>(letter + 1)};`. The sum is an `int`, and the 
 - An implicit conversion happens when a type is expected and another one is given, and the compiler chooses what to do.
 - Conversions that can change the value, such as `double` to `int` or `int` to `char`, are rejected by the book's options or by a brace initializer.
 - `static_cast<type>(value)` converts on purpose, so the compiler and the reader both know that the conversion is intended.
-- Converting a `double` to an `int` cuts off the fraction, and converting to an unsigned type wraps around.
+- Converting a `double` to an `int` cuts off the fraction, and converting an integer to an unsigned type wraps around.
 - A cast does not make an out-of-range conversion safe, and the old C-style cast is avoided.
 
 ## Further reading
 
 - [static_cast (cppreference)](https://en.cppreference.com/w/cpp/language/static_cast)
 - [Implicit conversions (cppreference)](https://en.cppreference.com/w/cpp/language/implicit_conversion)
-- [The C++ Core Guidelines: casts](https://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines#es48-avoid-casts)
+- [The C++ Core Guidelines: if you must use a cast, use a named cast](https://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines#es49-if-you-must-use-a-cast-use-a-named-cast)

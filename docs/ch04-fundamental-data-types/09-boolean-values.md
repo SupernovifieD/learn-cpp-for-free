@@ -92,7 +92,9 @@ The variable `cartItems` holds 3, so `hasItems` becomes `true`, and `returns` ho
 
 ## Reading a bool
 
-`std::cin` can read a `bool`. By default it accepts the numbers 0 and 1. After `std::boolalpha` has been applied to `std::cin`, it accepts the words `true` and `false` instead. Any other input makes the read fail, in the way that lesson 1.5 showed for numbers. Type `1` and press Enter at the first question, and type `false` and press Enter at the second:
+`std::cin` can read a `bool`. By default it accepts the numbers 0 and 1. After `std::boolalpha` has been applied to `std::cin`, it accepts the words `true` and `false` instead. Any other input makes the read fail, in the way that lesson 1.5 showed for numbers.
+
+Type `1` and press Enter at the first question, and type `false` and press Enter at the second:
 
 ```cpp title="read-bool.cpp"
 {{#include ../../examples/ch04/09-read-bool.cpp}}

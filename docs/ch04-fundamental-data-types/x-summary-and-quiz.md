@@ -38,7 +38,7 @@ Choose the best type for each quantity: `int`, `double`, `bool`, `char` or `std:
 - (b) `double`, because the value has a fractional part.
 - (c) `bool`, which has exactly the two values that the question needs.
 - (d) `char`, which holds one character.
-- (e) `std::int64_t`: the value does not fit in 32 bits, and a `long` has only 32 bits on 64-bit Windows, so the fixed-width type is the only choice that is the same on every platform.
+- (e) `std::int64_t`: the value does not fit in 32 bits, and a `long` has only 32 bits on 64-bit Windows, so the fixed-width type states the exact size that is needed and is the same on every platform.
 
 </details>
 
@@ -49,7 +49,7 @@ A program defines `unsigned int stock{2};` and then runs `stock = stock - 3;`. W
 <details>
 <summary>Solution</summary>
 
-The `unsigned int` holds 4,294,967,295. Two minus three is -1, which is below the range, so the unsigned arithmetic wraps around to the largest value. An `int` would hold -1. The wraparound is defined behavior, so no tool reports it, and the shop that the number describes now seems to have four billion items.
+The `unsigned int` holds 4,294,967,295. Two minus three is -1, which is below the range, so the unsigned arithmetic wraps around to the largest value. An `int` would hold -1. The wraparound is defined behavior, so the sanitizers that the book uses do not report it, and the shop that the number describes now seems to have four billion items.
 
 </details>
 
@@ -89,7 +89,7 @@ The program prints `Parcel`. The computer tests the conditions from the top and 
 
 ### Question 5
 
-The program below should print the average of 7 and 2, which is 3.5. The compiler refuses to build it. Find the problem and fix it.
+The program below should print the average of 7 and 2, which is 3.5. With the book's options the compiler refuses to build it. Find the problem and fix it.
 
 ```cpp title="average-bug.cpp"
 {{#include ../../examples/ch04/x-q5-average.fail.cpp}}

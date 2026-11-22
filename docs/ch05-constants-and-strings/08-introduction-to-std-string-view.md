@@ -4,7 +4,7 @@
 
 ## The cost of passing text
 
-Suppose a function prints a label, and its parameter is a `std::string`. Each call copies the text of the argument into the parameter. It is like making a photocopy of a whole book each time that someone asks you to read out one title. If the argument is a string literal, the call also has to build a `std::string` out of it first, which is another copy.
+Suppose a function prints a label, and its parameter is a `std::string`. Each call copies the text of the argument into the parameter. It is like retyping the whole menu each time that a customer asks for today's soup. If the argument is a string literal, the call has to build a `std::string` from it, which copies the characters and may allocate memory.
 
 The function does not change the text. It only reads it, so the copy buys nothing. What the function needs is a way to look at the characters that are already there.
 
@@ -42,7 +42,7 @@ What each kind of argument costs depends on the type of the parameter that recei
 - **A `std::string`:** a `std::string` parameter copies it, and a `std::string_view` parameter views it.
 - **A view:** a `std::string` parameter does not build, and a `std::string_view` parameter views the same text.
 
-The last case is the surprise. A function that takes a `std::string` cannot be called with a view at all, because the conversion would copy, and the language asks you to say so.
+The last case is the surprise. A function that takes a `std::string` cannot be called with a view directly, because the conversion would copy, and the language asks you to say so.
 
 ## What a view can tell you
 
@@ -58,7 +58,7 @@ Going the other way is not automatic. A `std::string` owns its characters, so ma
 {{#include ../../examples/ch05/08-view-to-string.fail.cpp}}
 ```
 
-The compiler refuses to convert the view when the string is created with `=`. The message says that there is no viable conversion from `std::string_view` to `std::string`. Create the string with braces instead, as in `std::string copy{view};`, which asks for the conversion explicitly. The explicit request is the point: a reader can see where a copy happens.
+The compiler refuses to convert the view when the string is created with `=`. Clang reports that there is no viable conversion from `std::string_view` to `std::string`, and GCC words the message differently, but both refuse. Create the string with braces instead, as in `std::string copy{view};`, which asks for the conversion explicitly. The explicit request is the point: a reader can see where a copy happens.
 
 ## Constants and the sv suffix
 

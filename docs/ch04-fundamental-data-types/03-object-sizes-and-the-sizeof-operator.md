@@ -23,7 +23,7 @@ A type with more bits can hold more values, and a type with fewer bits can hold 
 {{#include ../../examples/ch04/03-too-big.fail.cpp}}
 ```
 
-The compiler refuses to build the program. As [lesson 1.4](../ch01-cpp-basics/04-variable-assignment-and-initialization.md) explained, the braces reject a narrowing conversion, and storing 40000 in a `short` would change the value. The compiler's message says that 40000 cannot be narrowed to a `short`. The cure is a type with more bits, such as `int`.
+The compiler refuses to build the program. As [lesson 1.4](../ch01-cpp-basics/04-variable-assignment-and-initialization.md) explained, the braces reject a narrowing conversion, and storing 40000 in a `short` would change the value. The message mentions a narrowing conversion of 40000 to a `short`. The cure is a type with more bits, such as `int`.
 
 ## What the standard promises
 
@@ -37,7 +37,7 @@ The standard does not fix the size of most types. It sets a minimum size for eac
 | `long` | 4 bytes | 4 or 8 bytes |
 | `long long` | 8 bytes | 8 bytes |
 
-The standard states the minimums in bits (8, 16, 16, 32 and 64), and the table converts them to bytes of eight bits. Only one size is exact: `sizeof(char)` is 1 by definition, and the other sizes are counted in units of a `char`.
+The standard states the minimums in bits (8, 16, 16, 32 and 64), and the table converts them to bytes of eight bits. Only one size is exact: `sizeof(char)`, `sizeof(signed char)` and `sizeof(unsigned char)` are 1 by definition, and the other sizes are counted in units of a `char`.
 
 Two things in the table deserve attention. The minimum size of an `int` is only 2 bytes, yet the typical size is 4, so a program that needs the larger range cannot count on it from the minimum alone. And the typical size of `long` depends on the platform: it has 4 bytes on 64-bit Windows and 8 bytes on 64-bit macOS and Linux. A program that uses `long` can therefore behave differently on two computers, and [lesson 4.6](06-fixed-width-integers-and-size-t.md) shows the types that avoid the problem.
 

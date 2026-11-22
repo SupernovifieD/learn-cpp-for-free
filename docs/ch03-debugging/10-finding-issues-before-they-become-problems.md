@@ -2,7 +2,7 @@
 
 The best bug is one that never reaches the debugger. Everything in this chapter so far helps after a bug has shown itself, and this lesson looks the other way: the habits and the tools that catch mistakes while you write, while you build, and the first time the code runs. None of them replaces the others, so the lesson ends with a map of how they fit together.
 
-## Layers of defence
+## Layers of defense
 
 A single net never catches every fish, so careful programmers use several, each with a different mesh. The diagram shows the layers in the order in which they meet your code, from the cheapest to the most expensive.
 
@@ -64,10 +64,10 @@ Here is a program that builds without a single warning under the book's strict o
 
 The last assignment gives `tickets` a new value that nothing ever reads. The program is valid, the compiler is silent, and the output is correct, but the line is almost certainly a mistake: perhaps the author meant to update the cost, or this line belongs to code that was deleted. The Clang static analyzer, whose checks clang-tidy offers in its `clang-analyzer-` group, reports exactly this: a value stored and never read.
 
-Run the tools from the command line. The compiler options go after the double dash:
+Run the tools from the command line. For clang-tidy the compiler options go after the double dash, and the `--checks` option names the analyzer check, because recent versions of clang-tidy do not run the `clang-analyzer-` checks unless you ask for them:
 
 ```bash
-clang-tidy dead-store.cpp -- -std=c++20
+clang-tidy --checks='-*,clang-analyzer-deadcode.DeadStores' dead-store.cpp -- -std=c++20
 ```
 
 ```bash
@@ -78,7 +78,7 @@ cppcheck --enable=style --std=c++20 dead-store.cpp
 cl /analyze /std:c++20 dead-store.cpp
 ```
 
-Each tool has its own list of checks, so they find different things, and the book does not show their output because it differs between tools and versions. Treat a report as a question rather than a verdict. An analyzer can be wrong about correct code, and it can miss real bugs, but a flagged line is worth reading twice.
+Each tool has its own list of checks, so they find different things, and Microsoft's analyzer may not flag this particular line. The book does not show their output because it differs between tools and versions. Treat a report as a question rather than a verdict. An analyzer can be wrong about correct code, and it can miss real bugs, but a flagged line is worth reading twice.
 
 ## Sanitizers
 
@@ -92,7 +92,7 @@ Neither of them finds a read of an uninitialized variable, as [lesson 1.6](../ch
 {{#tabs}}
 {{#tab Visual Studio}}
 
-**Turn on:** open the project's **Property Pages**, go to **Configuration Properties > C/C++ > General**, and set **Enable AddressSanitizer**. It needs Visual Studio 2019 version 16.9 or later, and a program for x86 or x64.
+**Turn on:** open the project's **Property Pages**, go to **Configuration Properties > C/C++ > General**, and set **Enable AddressSanitizer**. It needs Visual Studio 2019 version 16.9 or later, and a program for x86 or x64. In the Debug configuration, also set **Debug Information Format** to **Program Database (/Zi)**, **Basic Runtime Checks** to **Default**, and **Enable Incremental Linking** to **No**, because the sanitizer does not work with the defaults of a Debug build.
 
 **Keep in mind:** Microsoft's compiler has no UndefinedBehaviorSanitizer, so only the memory checks are available.
 
@@ -101,7 +101,7 @@ Neither of them finds a read of an uninitialized variable, as [lesson 1.6](../ch
 
 **Turn on:** add `-fsanitize=address,undefined` to the `args` of your build task when you use GCC or Clang, and `/fsanitize=address` when you use Microsoft's compiler.
 
-**Keep in mind:** keep `-g` in the arguments too, so that a report names the file and the line.
+**Keep in mind:** keep `-g` in the arguments too, or `/Zi` for Microsoft's compiler, so that a report names the file and the line.
 
 {{#endtab}}
 {{#tab Command line}}
@@ -113,10 +113,10 @@ g++ -std=c++20 -g -fsanitize=address,undefined program.cpp -o program
 ```
 
 ```powershell
-cl /std:c++20 /fsanitize=address program.cpp
+cl /std:c++20 /Zi /fsanitize=address program.cpp
 ```
 
-**Keep in mind:** the two sanitizers work together, and you can leave out the one you do not need.
+**Keep in mind:** the two sanitizers work together, and you can leave out the one you do not need. On Windows, the GCC of MSYS2 may not include the sanitizer runtime, so use Microsoft's compiler or Clang there.
 
 {{#endtab}}
 {{#endtabs}}
