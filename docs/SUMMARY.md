@@ -71,3 +71,7 @@
   - [4.11 Chars](ch04-fundamental-data-types/11-chars.md)
   - [4.12 Introduction to type conversion and static_cast](ch04-fundamental-data-types/12-introduction-to-type-conversion-and-static-cast.md)
   - [4.x Chapter 4 summary and quiz](ch04-fundamental-data-types/x-summary-and-quiz.md)
+- [5. Constants and Strings](ch05-constants-and-strings/index.md)
+  - [5.1 Constant variables (named constants)](ch05-constants-and-strings/01-constant-variables-named-constants.md)
+  - [5.2 Literals](ch05-constants-and-strings/02-literals.md)
+  - [5.3 Numeral systems (decimal, binary, hexadecimal, and octal)](ch05-constants-and-strings/03-numeral-systems.md)
