@@ -179,13 +179,22 @@ def test_u7_the_theme_follows_the_system_color_scheme(tabs, scheme):
 
 
 LESSON_2_12 = "ch02-functions-and-files/12-header-guards.html"
-SEARCHES = [("linker", LESSON_0_5), ("header guard", LESSON_2_12)]
+LESSON_3_7 = "ch03-debugging/07-using-an-integrated-debugger-running-and-breakpoints.html"
+LESSON_4_7 = "ch04-fundamental-data-types/07-introduction-to-scientific-notation.html"
+LESSON_5_8 = "ch05-constants-and-strings/08-introduction-to-std-string-view.html"
+SEARCHES = [
+    ("linker", LESSON_0_5),
+    ("header guard", LESSON_2_12),
+    ("breakpoint", LESSON_3_7),
+    ("scientific notation", LESSON_4_7),
+    ("string_view", LESSON_5_8),
+]
 
 
 @pytest.mark.parametrize("width", [375, 1280])
 @pytest.mark.parametrize("query, lesson", SEARCHES, ids=[query.replace(" ", "-") for query, _ in SEARCHES])
 def test_u9_searching_lists_the_lesson_that_explains_the_word(private_tab, base_url, width, query, lesson):
-    """U9: typing 'linker' lists lesson 0.5 and 'header guard' lists lesson 2.12 among the results, and a result opens it."""
+    """U9: typing a term, such as 'linker' or 'string_view', lists the lesson that explains it among the results, and a result opens it."""
     tab = private_tab(width)
     tab.visit("index.html")
     page = tab.page
