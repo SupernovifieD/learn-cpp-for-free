@@ -81,7 +81,7 @@ A program is paused in the function `average`. The call stack lists, from the to
 <details>
 <summary>Solution</summary>
 
-(a) `average`, because the top of the stack is the function that is running. (b) `total`, the frame just below the top. (c) `print` shows the variables of `total`, because `up` moved your view one frame towards `main`. The program is still paused in `average`, so the next `next` steps through `average`: moving to a frame changes only what you look at.
+(a) `average`, because the top of the stack is the function that is running. (b) `total`, the frame directly below the top. (c) `print` shows the variables of `total`, because `up` moved your view one frame towards `main`. The program is still paused in `average`, so the next `next` steps through `average`: moving to a frame changes only what you look at.
 
 </details>
 

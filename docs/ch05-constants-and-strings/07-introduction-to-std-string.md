@@ -32,7 +32,7 @@ flowchart TD
     C["std::string b"] --> D["Owns: Noor"]
 ```
 
-Changing `b` leaves `a` alone, which makes strings easy to reason about. The price is the copy, which is the topic of a later section.
+Changing `b` leaves `a` alone, which keeps strings independent of each other. The price is the copy, which is the topic of a later section.
 
 ## The length of a string
 

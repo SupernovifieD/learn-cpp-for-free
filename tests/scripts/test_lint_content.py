@@ -133,3 +133,13 @@ def test_every_placeholder_phrase_of_the_quiz_template_is_known_to_the_linter():
     phrases = [phrase for phrase in lint_content.TEMPLATE_LEFTOVERS if phrase in text]
     for expected in ("# N.x Chapter N summary and quiz", "what this page recaps", "Restate the key terms of the lesson", "Write the first question here", "Explain the solution here"):
         assert expected in phrases, f"'{expected}' is not in TEMPLATE_LEFTOVERS, or no longer in the quiz template."
+
+
+@pytest.mark.parametrize("text", ["This is simply wrong.", "It just works.", "Obviously so.", "an easy fix", "TODO later"])
+def test_the_words_that_the_style_guide_bans_are_forbidden(text):
+    assert lint_content.FORBIDDEN_WORDS.search(text), text
+
+
+@pytest.mark.parametrize("text", ["a just-in-time compiler", "adjust the width", "justify the text", "a simple fix", "the easiest way"])
+def test_words_that_only_contain_a_banned_word_are_allowed(text):
+    assert not lint_content.FORBIDDEN_WORDS.search(text), text

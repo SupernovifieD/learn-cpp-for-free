@@ -18,7 +18,7 @@ flowchart TD
     B --> C["Characters owned elsewhere"]
 ```
 
-Because a view holds just two small values, it is cheap to copy, so you pass it to a function by value, and no characters are copied. It is read-only: you can look at the characters and ask for the length, and you cannot change the text through the view.
+Because a view holds two small values, it is cheap to copy, so you pass it to a function by value, and no characters are copied. It is read-only: you can look at the characters and ask for the length, and you cannot change the text through the view.
 
 ## Creating a view
 

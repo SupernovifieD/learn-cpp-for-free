@@ -39,7 +39,7 @@ To convert a binary number to decimal, add up the value of each position that ho
 
 To go the other way, take the largest position that fits, subtract it, and repeat. The number 200 contains 128, and what remains is 72, which contains 64, and what remains is 8. The positions worth 128, 64 and 8 are the ones that hold a 1, so 200 is 11001000.
 
-Hexadecimal is easier, because of the four-bit rule. Split the binary number into groups of four bits from the right, and convert each group on its own. The diagram shows the idea for a byte.
+Hexadecimal needs less work, because of the four-bit rule. Split the binary number into groups of four bits from the right, and convert each group on its own. The diagram shows the idea for a byte.
 
 ```mermaid
 flowchart TD

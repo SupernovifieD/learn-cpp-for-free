@@ -56,7 +56,7 @@ Sometimes you need a promise. The size of a `std::bitset` has to be known while 
 
 ## Undefined behavior and the optimizer
 
-The as-if rule applies to a program that has no undefined behavior. A compiler is allowed to assume that your program never does anything undefined, such as the signed overflow of [lesson 4.4](../ch04-fundamental-data-types/04-signed-integers.md), and it may optimize on that assumption. If the assumption is wrong, the optimized program does not simply print a wrapped number: it may do something that no line of your code seems to explain.
+The as-if rule applies to a program that has no undefined behavior. A compiler is allowed to assume that your program never does anything undefined, such as the signed overflow of [lesson 4.4](../ch04-fundamental-data-types/04-signed-integers.md), and it may optimize on that assumption. If the assumption is wrong, the optimized program does not print a wrapped number: it may do something that no line of your code seems to explain.
 
 > [!WARNING]
 > A program with undefined behavior may seem to work in a debug build and fail in a release build, or the other way round. The fix is never to build in a different way, but to remove the undefined behavior, which [lesson 1.6](../ch01-cpp-basics/06-uninitialized-variables-and-undefined-behavior.md) and the sanitizers of [lesson 3.10](../ch03-debugging/10-finding-issues-before-they-become-problems.md) help to find.

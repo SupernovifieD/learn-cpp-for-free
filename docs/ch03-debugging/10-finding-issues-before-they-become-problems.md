@@ -21,7 +21,7 @@ A bug that slips through one layer is often caught by the next. The debugger is 
 
 Some of the best tools are habits, and they cost nothing:
 
-- **Write small functions.** A function that does one thing is easy to read, and a mistake in it is easy to see. [Lesson 2.6](../ch02-functions-and-files/06-why-functions-are-useful-and-how-to-use-them-effectively.md) gave the reasons and the guidelines, and they matter even more when you hunt a bug.
+- **Write small functions.** A function that does one thing is simple to read, and a mistake in it is simple to see. [Lesson 2.6](../ch02-functions-and-files/06-why-functions-are-useful-and-how-to-use-them-effectively.md) gave the reasons and the guidelines, and they matter even more when you hunt a bug.
 - **Build and run often.** After every small change, build and run the program. If something breaks, the cause is in the last few lines you wrote, and the search by halves from [lesson 3.3](03-a-strategy-for-debugging.md) is already done for you.
 - **Fix every warning.** The options from [lesson 0.11](../ch00-getting-started/11-warning-and-error-levels.md) turn warnings into errors for this reason. A warning that you ignore today hides the next one.
 - **Refactor when code is hard to read.** To **refactor** is to rewrite code so that it is clearer, without changing what it does. Moving repeated statements into a well-named function, as the "before and after" example in lesson 2.6 did, removes places where bugs hide.

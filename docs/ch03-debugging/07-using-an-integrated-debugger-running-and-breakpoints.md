@@ -116,7 +116,7 @@ In the table, `f` stands for the name of a function, and the last row deletes br
 
 ## Set Next Statement
 
-Visual Studio offers one more move, which is easy to misuse. **Set Next Statement** changes which line runs next: you right-click a line and choose it, and the program carries on from there. The lines in between are skipped, and nothing undoes that.
+Visual Studio offers one more move, which needs care. **Set Next Statement** changes which line runs next: you right-click a line and choose it, and the program carries on from there. The lines in between are skipped, and nothing undoes that.
 
 > [!WARNING]
 > Skipping code changes what the program does. A skipped line never ran, so a variable keeps the value it had, a function is never called, and a result may never be stored. Moving the next statement to another function or scope usually corrupts the call stack, as Microsoft's documentation warns. Use it for a quick experiment, never as evidence of what the program normally does.

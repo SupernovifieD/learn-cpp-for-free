@@ -55,7 +55,7 @@ The type also decides how a calculation behaves. Because the literal has its typ
 {{#include ../../examples/ch05/02-literal-type.out}}
 ```
 
-Both variables are `double`, but `1 / 2` divides two `int` literals. The division gives the integer 0, and only then is the 0 stored as a `double`. The second line has the literal `1.0`, so the division is a floating point division and gives 0.5. The rule from [lesson 4.8](../ch04-fundamental-data-types/08-floating-point-numbers.md) applies to literals just as it does to variables.
+Both variables are `double`, but `1 / 2` divides two `int` literals. The division gives the integer 0, and only then is the 0 stored as a `double`. The second line has the literal `1.0`, so the division is a floating point division and gives 0.5. The rule from [lesson 4.8](../ch04-fundamental-data-types/08-floating-point-numbers.md) applies to literals as it does to variables.
 
 A suffix matters in the same way for large values. The product of 100000 and 100000 is 10 billion, which does not fit in an `int`, so the calculation overflows as [lesson 4.4](../ch04-fundamental-data-types/04-signed-integers.md) described. Writing `100000LL * 100000` makes one operand a `long long`, and the other is converted to match, so the calculation has room for the result.
 

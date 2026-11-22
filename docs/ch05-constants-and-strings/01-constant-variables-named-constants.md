@@ -40,7 +40,7 @@ A named constant removes the guesswork. Each value gets its own name, and each n
 {{#include ../../examples/ch05/01-named-constants.out}}
 ```
 
-The output is the same, and the program is easier to read and to change. The pitch fee appears in one place, so raising it means editing one line, and the deposit does not change by accident.
+The output is the same, and the program is simpler to read and to change. The pitch fee appears in one place, so raising it means editing one line, and the deposit does not change by accident.
 
 ## A constant must have a value, and keeps it
 

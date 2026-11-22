@@ -41,7 +41,7 @@ The debug line is gone from the output, and it is gone from the program too. The
 
 ## Define the macro without editing the file
 
-Editing the source to switch debugging on is easy to forget to undo. A better way is to leave the `#define` out of the file and ask the build to define the name. The option has the same effect as a `#define` at the top of the file, and `debug-off.cpp` built this way behaves like `debug-on.cpp`.
+Editing the source to switch debugging on is a change that is simple to forget to undo. A better way is to leave the `#define` out of the file and ask the build to define the name. The option has the same effect as a `#define` at the top of the file, and `debug-off.cpp` built this way behaves like `debug-on.cpp`.
 
 {{#tabs}}
 {{#tab Visual Studio}}

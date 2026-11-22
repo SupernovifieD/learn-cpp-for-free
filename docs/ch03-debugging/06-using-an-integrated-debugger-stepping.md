@@ -132,7 +132,7 @@ flowchart TD
     F --> G["Back here"]
 ```
 
-- **Step into** follows the call: the current line moves to the first statement inside the function. On a line without a call, it simply moves to the next line.
+- **Step into** follows the call: the current line moves to the first statement inside the function. On a line without a call, it moves to the next line.
 - **Step over** runs the whole call at once, including everything the function calls, and stops at the next line of the *same* function. You see the effect, and you skip the details.
 - **Step out** runs the rest of the current function and stops back in its caller, right after the call returns.
 
@@ -186,7 +186,7 @@ Step over. The whole call to `addBonus` runs, and the current line moves to the 
 <details>
 <summary>Answer</summary>
 
-Step out. It runs the rest of `doubleIt` and stops in the caller, `addBonus`, just after the call returned. The program runs on from there only when you tell it to.
+Step out. It runs the rest of `doubleIt` and stops in the caller, `addBonus`, directly after the call returned. The program runs on from there only when you tell it to.
 
 </details>
 

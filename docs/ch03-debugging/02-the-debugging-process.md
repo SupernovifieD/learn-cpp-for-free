@@ -18,7 +18,7 @@ flowchart TD
 ```
 
 1. **Reproduce the problem.** Find the exact steps and inputs that make the bug appear, every time. A bug you cannot repeat is a bug you cannot test a fix for.
-2. **Find the root cause.** Locate the statement or function that is actually wrong, not just where the wrong value shows up. Most of the effort goes into this step, and [lesson 3.3](03-a-strategy-for-debugging.md) gives you a strategy for it.
+2. **Find the root cause.** Locate the statement or function that is actually wrong, not only where the wrong value shows up. Most of the effort goes into this step, and [lesson 3.3](03-a-strategy-for-debugging.md) gives you a strategy for it.
 3. **Understand the problem.** Explain, in words, why that code produces the wrong result. If you cannot, you have not found the cause yet.
 4. **Decide how to fix it.** There is often more than one way, and the quickest one is not always the best one.
 5. **Repair the code.** Make the change you decided on, and nothing else.
@@ -42,7 +42,7 @@ A program should print the average of three test scores: 90, 85 and 80.
 {{#include ../../examples/ch03/02-average-bug.out}}
 ```
 
-**Reproduce.** The program takes no input, so the bug appears on every run. That is the easy case.
+**Reproduce.** The program takes no input, so the bug appears on every run. That is the simple case.
 
 **Root cause.** The symptom is an average of 201, which is larger than every score, so no correct average can look like that. The expression `first + second + third / 3` is the suspect. Division binds tighter than addition, so only `third` is divided by 3, and the other two scores are added to the result: 90 + 85 + 26 is 201, using whole-number division for the 26.
 

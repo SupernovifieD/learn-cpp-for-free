@@ -41,7 +41,7 @@ A **semantic error** is code with a valid grammar and an invalid meaning. The se
 
 The program defines `total` but asks for `totl`. Every statement is well formed, yet the second one refers to something that does not exist, so the compiler refuses to build. GCC and Clang word the message differently, and both name `totl` and the line. Calling a function with the wrong number of arguments, as in [lesson 2.4](../ch02-functions-and-files/04-introduction-to-function-parameters-and-arguments.md), is another semantic error that the compiler finds.
 
-These two kinds are the easy ones. The compiler is a tireless proofreader, and it points at the place. Your job is only to read what it says.
+The compiler finds these two kinds for you. The compiler is a tireless proofreader, and it points at the place. Your job is only to read what it says.
 
 ## Logic errors
 

@@ -4,7 +4,7 @@ When a program stops inside a function, one question comes up again and again: h
 
 ## Frames and the stack
 
-Every time a function is called, the program sets aside a small block of memory for that call. It holds the function's parameters, its local variables, and the place to return to when the function ends. The block is a **stack frame**, or just a **frame**. A function that is running has a frame, and a function that has finished does not.
+Every time a function is called, the program sets aside a small block of memory for that call. It holds the function's parameters, its local variables, and the place to return to when the function ends. The block is a **stack frame**, or a **frame**. A function that is running has a frame, and a function that has finished does not.
 
 The **call stack** is the list of all frames that exist right now, one for each active call. Think of a pile of sticky notes. Every note says "come back here when you are done", and every new call puts a note on top of the pile. When a function returns, its note comes off, and the one below it tells the program where to continue.
 

@@ -70,7 +70,8 @@ TEMPLATE_LEFTOVERS = [
     "Write the first question here",
     "Explain the solution here",
 ]
-FORBIDDEN_WORDS = re.compile(r"\b(TODO|TBD|FIXME|lorem|coming soon)\b", re.IGNORECASE)
+# Placeholders, and the words that CONTRIBUTING.md bans from the writing style ("just" is allowed only in "just-in-time").
+FORBIDDEN_WORDS = re.compile(r"\b(TODO|TBD|FIXME|lorem|coming soon|simply|obviously|easy)\b|\bjust\b(?!-in-time)", re.IGNORECASE)
 # Syntax of the former site generator. mdBook would print it as plain text.
 OBSOLETE_SYNTAX = [
     (re.compile(r"^\s*(!!!|\?\?\?\+?)\s"), "write callouts as `> [!NOTE]` block quotes and questions as <details>"),

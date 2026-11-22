@@ -22,7 +22,7 @@ flowchart TD
     A --> C["As char: A"]
 ```
 
-Read as a whole number, `01000001` is 65. Read as a character in ASCII, the code that most computers use for basic characters, the same bits are the letter `A`. Nothing in the bits says which reading is right, so the program has to say it, and that is the job of a **data type**, or just a **type**. A type tells the compiler how many bits an object uses and how to interpret them.
+Read as a whole number, `01000001` is 65. Read as a character in ASCII, the code that most computers use for basic characters, the same bits are the letter `A`. Nothing in the bits says which reading is right, so the program has to say it, and that is the job of a **data type**, or a **type**. A type tells the compiler how many bits an object uses and how to interpret them.
 
 > [!KEY-INSIGHT]
 > The bits of an object carry no label. The type, which the compiler knows from your source code, is what turns the bits into a number, a letter or a yes-or-no answer.

@@ -155,7 +155,7 @@ Block comments do not nest, so the first `*/` ends the whole comment, including 
 - A message at the start of each function gives a trace, which shows which code ran and in which order.
 - `std::cerr` is a separate, unbuffered stream that is tied to `std::cout`, so it is the right stream for debug messages.
 - `2>` redirects only the error stream to a file, and `>` redirects only the standard output.
-- Printing parameters and results shows what the code worked with, and a common prefix such as `[debug]` makes the lines easy to find and remove.
+- Printing parameters and results shows what the code worked with, and a common prefix such as `[debug]` makes the lines simple to find and remove.
 
 ## Further reading
 
