@@ -76,7 +76,7 @@ The ticket costs 40 and the voucher is worth 5, so the right output is `You pay 
 
 [Lesson 1.6](../ch01-cpp-basics/06-uninitialized-variables-and-undefined-behavior.md) introduced undefined behavior, where the standard places no requirements on what a program does. It is the hardest kind of mistake to find, because the program may behave differently from one run to the next, or work for months and then fail after you change something unrelated. A bug that comes and goes is a hint, though not a proof, that undefined behavior is involved.
 
-You cannot catch it by reading the output, since the output may look right. [Lesson 3.10](10-finding-issues-before-they-become-problems.md) shows tools that detect some of it while a program runs, and lesson 4.4 shows a program that triggers it on purpose. For now, remember the habit from [lesson 0.11](../ch00-getting-started/11-warning-and-error-levels.md): turn on the compiler's warnings and treat them as errors, because the compiler can spot many of the simple cases before they ever run.
+You cannot catch it by reading the output, since the output may look right. [Lesson 3.10](10-finding-issues-before-they-become-problems.md) shows tools that detect some of it while a program runs, and [lesson 4.4](../ch04-fundamental-data-types/04-signed-integers.md) shows a program that triggers it on purpose. For now, remember the habit from [lesson 0.11](../ch00-getting-started/11-warning-and-error-levels.md): turn on the compiler's warnings and treat them as errors, because the compiler can spot many of the simple cases before they ever run.
 
 <details>
 <summary>Check your understanding</summary>

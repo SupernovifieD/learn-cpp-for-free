@@ -71,7 +71,7 @@ The book shows no output for this program, because no output would be right. Its
 > [!WARNING]
 > Signed overflow does not wrap around to a negative number in a way that you can rely on. It is undefined behavior, and the same program may behave differently with another compiler or another setting.
 
-You can avoid the problem in two ways. Choose a type with a larger range when the values may be large, such as `long long` for the doubling program. Or check the input before you calculate with it, which needs the `if` statement of lesson 4.10.
+You can avoid the problem in two ways. Choose a type with a larger range when the values may be large, such as `long long` for the doubling program. Or check the input before you calculate with it, which needs the `if` statement of [lesson 4.10](10-introduction-to-if-statements.md).
 
 <details>
 <summary>Check your understanding</summary>

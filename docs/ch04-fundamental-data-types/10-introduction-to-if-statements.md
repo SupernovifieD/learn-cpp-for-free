@@ -86,7 +86,7 @@ A child under 13 pays 5, and the function returns at once. Someone aged 13 to 64
 
 ## Conditions that are not Booleans
 
-The condition of an `if` does not have to be a `bool`. The compiler converts any value that it can, using the rule from lesson 4.9: zero is `false`, and everything else is `true`. The two statements below behave the same:
+The condition of an `if` does not have to be a `bool`. The compiler converts any value that it can, using the rule from [lesson 4.9](09-boolean-values.md): zero is `false`, and everything else is `true`. The two statements below behave the same:
 
 ```cpp
 if (messages > 0)

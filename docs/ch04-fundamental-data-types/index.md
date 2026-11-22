@@ -25,3 +25,4 @@ Every value in a program has a type, and the type decides what the value can be,
 - [4.10 Introduction to if statements](10-introduction-to-if-statements.md): if, else and else if, and the mistake of writing = for ==.
 - [4.11 Chars](11-chars.md): characters as codes, reading a char, escape sequences and quotes.
 - [4.12 Introduction to type conversion and static_cast](12-introduction-to-type-conversion-and-static-cast.md): implicit conversions, why risky ones are rejected, and converting on purpose.
+- [4.x Chapter 4 summary and quiz](x-summary-and-quiz.md): a recap of the chapter, and eight questions to test yourself.

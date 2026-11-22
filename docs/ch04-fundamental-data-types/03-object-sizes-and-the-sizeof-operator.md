@@ -17,7 +17,7 @@ The rule is that a group of n bits has 2 multiplied by itself n times different 
 
 ## Size limits what a type can store
 
-A type with more bits can hold more values, and a type with fewer bits can hold fewer. The program below asks a `short` to hold the number 40000. On every mainstream computer a `short` has 16 bits, which is 65,536 patterns, but those patterns must cover negative numbers as well as positive ones, as lesson 4.4 explains. The largest value of a `short` there is 32767.
+A type with more bits can hold more values, and a type with fewer bits can hold fewer. The program below asks a `short` to hold the number 40000. On every mainstream computer a `short` has 16 bits, which is 65,536 patterns, but those patterns must cover negative numbers as well as positive ones, as [lesson 4.4](04-signed-integers.md) explains. The largest value of a `short` there is 32767.
 
 ```cpp title="too-big.cpp"
 {{#include ../../examples/ch04/03-too-big.fail.cpp}}
@@ -39,7 +39,7 @@ The standard does not fix the size of most types. It sets a minimum size for eac
 
 The standard states the minimums in bits (8, 16, 16, 32 and 64), and the table converts them to bytes of eight bits. Only one size is exact: `sizeof(char)` is 1 by definition, and the other sizes are counted in units of a `char`.
 
-Two things in the table deserve attention. The minimum size of an `int` is only 2 bytes, yet the typical size is 4, so a program that needs the larger range cannot count on it from the minimum alone. And the typical size of `long` depends on the platform: it has 4 bytes on 64-bit Windows and 8 bytes on 64-bit macOS and Linux. A program that uses `long` can therefore behave differently on two computers, and lesson 4.6 shows the types that avoid the problem.
+Two things in the table deserve attention. The minimum size of an `int` is only 2 bytes, yet the typical size is 4, so a program that needs the larger range cannot count on it from the minimum alone. And the typical size of `long` depends on the platform: it has 4 bytes on 64-bit Windows and 8 bytes on 64-bit macOS and Linux. A program that uses `long` can therefore behave differently on two computers, and [lesson 4.6](06-fixed-width-integers-and-size-t.md) shows the types that avoid the problem.
 
 ## The sizeof operator
 
@@ -52,7 +52,7 @@ sizeof(count)
 
 The first form asks about a type, and the second asks about the type of a variable. The book always writes the parentheses. The compiler works out the answer while it builds the program, so `sizeof` never runs the expression inside it.
 
-The result is an unsigned whole number of the type `std::size_t`, which lesson 4.6 explains. This program prints the sizes of seven types, and of a variable:
+The result is an unsigned whole number of the type `std::size_t`, which [lesson 4.6](06-fixed-width-integers-and-size-t.md) explains. This program prints the sizes of seven types, and of a variable:
 
 ```cpp title="sizes.cpp"
 {{#include ../../examples/ch04/03-sizes.cpp}}

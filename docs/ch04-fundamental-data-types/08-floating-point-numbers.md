@@ -76,7 +76,7 @@ Most decimal fractions cannot be stored exactly in binary. Think of a ruler whos
 With seventeen digits, the stored value of 0.1 turns out to be slightly more than a tenth, and the sum of 0.1 and 0.2 is not quite 0.3. With the default six digits you never see this, because the error is far below the sixth digit. The error is small, and it is also real.
 
 > [!WARNING]
-> Do not test two floating point values for exact equality after a calculation. Results that look equal on paper can differ in the last digit. Lesson 4.9 shows the comparison operators, and a later chapter shows how to compare floating point values safely.
+> Do not test two floating point values for exact equality after a calculation. Results that look equal on paper can differ in the last digit. [Lesson 4.9](09-boolean-values.md) shows the comparison operators, and a later chapter shows how to compare floating point values safely.
 
 ## Integer and floating point division
 

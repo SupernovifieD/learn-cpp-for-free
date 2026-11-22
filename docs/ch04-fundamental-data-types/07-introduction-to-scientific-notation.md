@@ -46,7 +46,7 @@ When `std::cout` prints a `double`, it shows up to six significant digits, and i
 {{#include ../../examples/ch04/07-large-small.out}}
 ```
 
-`1200.0` and `1.2e3` print the same, because they are the same number. The values `2.5e6`, `4e-6` and `7.9e9` are printed in E-notation: `2.5e+06` means 2.5 times 10 to the power of 6. The value 123456 has six digits and still prints in plain form, and a seventh digit would tip it over into E-notation. Lesson 4.8 shows how to ask for more digits.
+`1200.0` and `1.2e3` print the same, because they are the same number. The values `2.5e6`, `4e-6` and `7.9e9` are printed in E-notation: `2.5e+06` means 2.5 times 10 to the power of 6. The value 123456 has six digits and still prints in plain form, and a seventh digit would tip it over into E-notation. [Lesson 4.8](08-floating-point-numbers.md) shows how to ask for more digits.
 
 > [!NOTE]
 > The output of `std::cout` follows the rules of the `%g` conversion of C's `printf`, which the C++ library uses for floating point values. That is why the exponent always has at least two digits, and why the output is the same with every conforming standard library.

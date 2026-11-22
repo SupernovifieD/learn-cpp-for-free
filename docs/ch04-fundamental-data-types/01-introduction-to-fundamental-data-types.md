@@ -45,11 +45,11 @@ The table groups the fundamental types by the kind of value that they hold.
 
 Each row has more types than the table shows, and the next lessons introduce them:
 
-- **Integer types** hold whole numbers. Besides `int` there are `short`, `long` and `long long`, and an unsigned form of each. Lessons 4.3 to 4.6 cover them.
-- **Floating point types** hold numbers that can have a fractional part. They are `float`, `double` and `long double`, and lessons 4.7 and 4.8 cover them.
-- **`bool`** holds one of two values, `true` or `false`. Lesson 4.9 covers it.
-- **`char`** holds one character. Lesson 4.11 covers it.
-- **`void`** means that there is no value at all. Lesson 4.2 covers it.
+- **Integer types** hold whole numbers. Besides `int` there are `short`, `long` and `long long`, and an unsigned form of each. Lessons [4.3](03-object-sizes-and-the-sizeof-operator.md) to [4.6](06-fixed-width-integers-and-size-t.md) cover them.
+- **Floating point types** hold numbers that can have a fractional part. They are `float`, `double` and `long double`, and lessons [4.7](07-introduction-to-scientific-notation.md) and [4.8](08-floating-point-numbers.md) cover them.
+- **`bool`** holds one of two values, `true` or `false`. [Lesson 4.9](09-boolean-values.md) covers it.
+- **`char`** holds one character. [Lesson 4.11](11-chars.md) covers it.
+- **`void`** means that there is no value at all. [Lesson 4.2](02-void.md) covers it.
 
 There is one more fundamental type, `std::nullptr_t`. It is the type of the keyword `nullptr`, which only makes sense together with pointers, so it waits for a later chapter.
 
@@ -60,7 +60,7 @@ The language standard has a name for every type whose values are whole numbers s
 This book keeps the two words apart in the way that most programmers do. It says **integer** for the types and the values that you use to count and measure in whole numbers, such as `int` and `42`, and it says **integral** when `bool` and `char` are included.
 ## The `_t` suffix
 
-Some type names in the standard library end in `_t`, such as `std::size_t`, `std::int32_t` and `std::nullptr_t`. The letter stands for "type", and the suffix is a convention that the library took over from C. It tells you at a glance that the name is a type and not a variable or a function. Lesson 4.6 introduces `std::size_t` and `std::int32_t`.
+Some type names in the standard library end in `_t`, such as `std::size_t`, `std::int32_t` and `std::nullptr_t`. The letter stands for "type", and the suffix is a convention that the library took over from C. It tells you at a glance that the name is a type and not a variable or a function. [Lesson 4.6](06-fixed-width-integers-and-size-t.md) introduces `std::size_t` and `std::int32_t`.
 
 ## Print values of several types
 
@@ -74,9 +74,9 @@ This program defines one variable of each of four types, and prints them. A gree
 {{#include ../../examples/ch04/01-fundamental-types.out}}
 ```
 
-The value in the braces decides which type fits. `48` is a whole number, so `seedlings` is an `int`. `21.5` has a fractional part, so `temperature` is a `double`, which is the floating point type that the book uses until lesson 4.8. The keyword `true` is a `bool` value, and `'B'` in single quotes is a `char`.
+The value in the braces decides which type fits. `48` is a whole number, so `seedlings` is an `int`. `21.5` has a fractional part, so `temperature` is a `double`, which is the floating point type that the book uses until [lesson 4.8](08-floating-point-numbers.md). The keyword `true` is a `bool` value, and `'B'` in single quotes is a `char`.
 
-Two lines of the output deserve a second look. The lamp prints as `1`, because `std::cout` prints a `bool` as a number until you tell it otherwise, and lesson 4.9 shows how. The grade prints as the letter `B` and not as its code, because `std::cout` knows from the type that the bits are a character.
+Two lines of the output deserve a second look. The lamp prints as `1`, because `std::cout` prints a `bool` as a number until you tell it otherwise, and [lesson 4.9](09-boolean-values.md) shows how. The grade prints as the letter `B` and not as its code, because `std::cout` knows from the type that the bits are a character.
 
 <details>
 <summary>Check your understanding</summary>

@@ -27,7 +27,7 @@ This program uses three of them, and prints their sizes together with the size o
 {{#include ../../examples/ch04/06-fixed-widths.out}}
 ```
 
-The ranges follow from the bit counts, with the tables of lessons 4.4 and 4.5: `std::int32_t` holds -2,147,483,648 to 2,147,483,647, and `std::uint16_t` holds 0 to 65,535. Each type has exactly the size that its name says: `std::int16_t` has 2 bytes, `std::int32_t` has 4, and `std::int64_t` has 8. The value 9,000,000,000 would not fit in 32 bits, so the program needs a 64-bit type for it, and `std::int64_t` says so without depending on the size of `long`. The line for `int` shows 4 bytes on the platforms of this book, but only the fixed-width types promise a size.
+The ranges follow from the bit counts, with the tables of lessons [4.4](04-signed-integers.md) and [4.5](05-unsigned-integers-and-why-to-avoid-them.md): `std::int32_t` holds -2,147,483,648 to 2,147,483,647, and `std::uint16_t` holds 0 to 65,535. Each type has exactly the size that its name says: `std::int16_t` has 2 bytes, `std::int32_t` has 4, and `std::int64_t` has 8. The value 9,000,000,000 would not fit in 32 bits, so the program needs a 64-bit type for it, and `std::int64_t` says so without depending on the size of `long`. The line for `int` shows 4 bytes on the platforms of this book, but only the fixed-width types promise a size.
 
 The exact-width types are optional in theory: a platform provides one only if it has an integer type of exactly that size. Every mainstream platform provides all eight, so you can use them freely.
 
@@ -35,7 +35,7 @@ The header also defines two other families. A name such as `std::int_fast32_t` i
 
 ## The smallest types print as characters
 
-The types `std::int8_t` and `std::uint8_t` hold a number from a tiny range, and on the mainstream compilers they are names for `signed char` and `unsigned char`. These are character types, which lesson 4.11 introduces, and `std::cout` prints a character type as a character:
+The types `std::int8_t` and `std::uint8_t` hold a number from a tiny range, and on the mainstream compilers they are names for `signed char` and `unsigned char`. These are character types, which [lesson 4.11](11-chars.md) introduces, and `std::cout` prints a character type as a character:
 
 ```cpp title="small-ints.cpp"
 {{#include ../../examples/ch04/06-small-ints.cpp}}
@@ -45,7 +45,7 @@ The types `std::int8_t` and `std::uint8_t` hold a number from a tiny range, and 
 {{#include ../../examples/ch04/06-small-ints.out}}
 ```
 
-The values 65 and 66 are the codes of the letters `A` and `B`, so the program prints letters and not numbers. The value is right, and only the way of printing is surprising. Lesson 4.12 shows how to print the number: convert the value to `int` with `static_cast` first.
+The values 65 and 66 are the codes of the letters `A` and `B`, so the program prints letters and not numbers. The value is right, and only the way of printing is surprising. [Lesson 4.12](12-introduction-to-type-conversion-and-static-cast.md) shows how to print the number: convert the value to `int` with `static_cast` first.
 
 ## When to use which
 

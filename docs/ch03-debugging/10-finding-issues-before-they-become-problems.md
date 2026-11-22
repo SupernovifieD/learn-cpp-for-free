@@ -30,7 +30,7 @@ Some of the best tools are habits, and they cost nothing:
 
 **Defensive programming** is writing code that assumes something may go wrong, and prepares for it. A function that receives a number can check that the number makes sense before it uses it, and a program that reads a value can check that the read succeeded.
 
-The checks need a decision, and C++ makes decisions with `if` statements, which arrive in Chapter 4. Chapter 4 therefore shows the first of these checks, and a later chapter covers error handling properly. For now it is enough to keep the idea: every value that comes from outside the function is a guess until the code checks it.
+The checks need a decision, and C++ makes decisions with `if` statements, which arrive in [lesson 4.10](../ch04-fundamental-data-types/10-introduction-to-if-statements.md). Chapter 4 therefore shows the first of these checks, and a later chapter covers error handling properly. For now it is enough to keep the idea: every value that comes from outside the function is a guess until the code checks it.
 
 ## Test small pieces
 
@@ -121,7 +121,7 @@ cl /std:c++20 /fsanitize=address program.cpp
 {{#endtab}}
 {{#endtabs}}
 
-Every complete program in this book is built and run with exactly these two sanitizers, and a program that shows undefined behavior on purpose is run only with them, so that the report proves the problem is real. You will meet such programs in Chapter 4.
+Every complete program in this book is built and run with exactly these two sanitizers, and a program that shows undefined behavior on purpose is run only with them, so that the report proves the problem is real. You will meet the first such program in [lesson 4.4](../ch04-fundamental-data-types/04-signed-integers.md).
 
 > [!BEST-PRACTICE]
 > Build and test with warnings as errors and the sanitizers switched on. Each layer takes seconds to enable, and each one catches a different kind of mistake before a user does.
@@ -162,7 +162,7 @@ Each line tests a different case, and the edge case with a zero side is where a 
 
 - Several layers catch mistakes: the compiler's warnings, static analysis, tests, sanitizers, and finally the debugger, which is the most expensive.
 - Small functions, frequent builds, fixed warnings and refactoring prevent many bugs without any tool.
-- Defensive programming checks what comes from outside a function, and the checks need `if`, which Chapter 4 introduces.
+- Defensive programming checks what comes from outside a function, and the checks need `if`, which [lesson 4.10](../ch04-fundamental-data-types/10-introduction-to-if-statements.md) introduces.
 - A test calls a function with known inputs, including edge cases, and compares the result with the expected answer.
 - Static analyzers such as clang-tidy and cppcheck read code without running it, and the sanitizers report memory errors and undefined behavior while the program runs.
 

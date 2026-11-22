@@ -56,7 +56,7 @@ The second problem is mixing. When one operand of an operator is signed and the 
 
 The program adds -15 to 10, and the right answer is -5. The compiler converts -15 to 4,294,967,281, which is the unsigned number that has the same pattern of bits, and the sum wraps to 4,294,967,291. GCC and Clang both warn about the conversion, and the book's options turn the warning into an error. Without `-Werror` the program builds and prints that number.
 
-Lesson 4.12 shows how to convert a value on purpose, so that you can say what you mean.
+[Lesson 4.12](12-introduction-to-type-conversion-and-static-cast.md) shows how to convert a value on purpose, so that you can say what you mean.
 
 The third problem is a false sense of safety. Declaring a variable `unsigned` documents that it should not be negative, but the compiler does not enforce it, and the mistakes that the type was meant to prevent happen anyway, without a message.
 

@@ -1,6 +1,6 @@
 # 4.12 Introduction to type conversion and static_cast
 
-Lessons 4.4 to 4.11 left a few loose ends. A `char` plus 1 is an `int` that will not go back into a `char`, a `std::int8_t` prints as a letter, and a sum of an unsigned and a signed number came out wrong. All of them have the same cause, a value of one type being turned into another, and all of them have the same cure.
+Lessons [4.4](04-signed-integers.md) to [4.11](11-chars.md) left a few loose ends. A `char` plus 1 is an `int` that will not go back into a `char`, a `std::int8_t` prints as a letter, and a sum of an unsigned and a signed number came out wrong. All of them have the same cause, a value of one type being turned into another, and all of them have the same cure.
 
 This lesson introduces that cure. It explains when the compiler converts a value by itself, why the book's options reject the risky cases, and how to convert a value on purpose.
 
@@ -92,7 +92,7 @@ The mixed sum of [lesson 4.5](05-unsigned-integers-and-why-to-avoid-them.md) can
 {{#include ../../examples/ch04/12-signs-fixed.out}}
 ```
 
-The first result is the -5 that the earlier program should have printed. The second line converts -15 to `unsigned int` on purpose, and the wraparound that lesson 4.5 explained gives 4,294,967,281. Converting to an unsigned type always follows that rule. Since C++20, converting a value that is too large for a signed type is defined as well: the result is the value reduced by the same rule, and earlier standards left it to the compiler.
+The first result is the -5 that the earlier program should have printed. The second line converts -15 to `unsigned int` on purpose, and the wraparound that [lesson 4.5](05-unsigned-integers-and-why-to-avoid-them.md) explained gives 4,294,967,281. Converting to an unsigned type always follows that rule. Since C++20, converting a value that is too large for a signed type is defined as well: the result is the value reduced by the same rule, and earlier standards left it to the compiler.
 
 > [!WARNING]
 > A cast tells the compiler to trust you, so it does not make a wrong conversion right. Converting a `double` that is too large for an `int` is undefined behavior, and a cast around it does not change that. Use a cast only where you know that the value is in range.

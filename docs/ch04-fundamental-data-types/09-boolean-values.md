@@ -44,7 +44,7 @@ flowchart TD
     B --> D["false"]
 ```
 
-Take care with `==`. A single `=` is the assignment from [lesson 1.4](../ch01-cpp-basics/04-variable-assignment-and-initialization.md), and writing it where you mean a comparison is a classic mistake that lesson 4.10 returns to. This program applies each operator to a pair of numbers:
+Take care with `==`. A single `=` is the assignment from [lesson 1.4](../ch01-cpp-basics/04-variable-assignment-and-initialization.md), and writing it where you mean a comparison is a classic mistake that [lesson 4.10](10-introduction-to-if-statements.md) returns to. This program applies each operator to a pair of numbers:
 
 ```cpp title="comparisons.cpp"
 {{#include ../../examples/ch04/09-comparisons.cpp}}
