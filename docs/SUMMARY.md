@@ -51,3 +51,5 @@
   - [3.3 A strategy for debugging](ch03-debugging/03-a-strategy-for-debugging.md)
   - [3.4 Basic debugging tactics](ch03-debugging/04-basic-debugging-tactics.md)
   - [3.5 More debugging tactics](ch03-debugging/05-more-debugging-tactics.md)
+  - [3.6 Using an integrated debugger: Stepping](ch03-debugging/06-using-an-integrated-debugger-stepping.md)
+  - [3.7 Using an integrated debugger: Running and breakpoints](ch03-debugging/07-using-an-integrated-debugger-running-and-breakpoints.md)

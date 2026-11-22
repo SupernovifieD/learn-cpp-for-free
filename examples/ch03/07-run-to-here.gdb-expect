@@ -1,0 +1,4 @@
+Temporary breakpoint 1, main ()
+shipping (goods=48)
+goods = 48
+Value returned is $1 = 8

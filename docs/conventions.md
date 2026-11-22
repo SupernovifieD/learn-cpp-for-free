@@ -84,6 +84,35 @@ Some programs in this book are written to fail, so that you can see the error. T
 {{#include ../examples/ch01/01-missing-semicolon.fail.cpp}}
 ```
 
+## Debugger commands
+
+Lessons about a debugger give the steps for three toolchains in tabs, and the labels in bold are the same in every tab, so you can compare them. The command line tab shows GDB (Linux, and Windows through MSYS2) and LLDB (macOS). A table puts the two debuggers side by side, one action per row.
+
+A block titled **Commands for GDB** holds the exact commands that you type at the `(gdb)` prompt, one per line, with nothing else in it. The book's checks run these commands against the program with GCC and GDB and compare what GDB prints, so a value quoted in the text, such as `$1 = 6`, is what GDB really prints. The LLDB column is taken from the LLDB documentation and is not run automatically. Keys appear like <kbd>F10</kbd>, and windows and menus appear by their names, because the book shows no screenshots of a changing interface.
+
+```text title="Commands for GDB"
+{{#include ../examples/ch03/06-stepping.gdb}}
+```
+
+| Action | GDB | LLDB |
+| --- | --- | --- |
+| Over | `next` | `next` |
+| Out | `finish` | `finish` |
+
+<details>
+<summary>Check your understanding</summary>
+
+In the table above, which command is the same in both debuggers?
+
+<details>
+<summary>Answer</summary>
+
+Both rows: `next` and `finish` are spelled the same in GDB and LLDB.
+
+</details>
+
+</details>
+
 ## Callouts
 
 A **callout** is a box that sets a piece of information apart from the main text. Each type has its own job, and a lesson uses them sparingly.
@@ -244,6 +273,7 @@ Links to other sites always use https. A long address never stretches the page, 
 - A program that reads input shows an Example session, with the lines you type included.
 - A program that writes to the error stream shows both streams in one Output block, and the text names the lines that `std::cerr` wrote.
 - A program that is meant to fail starts with comment lines for the book's checks, and you can ignore them.
+- A debugger lesson shows the steps for three toolchains with the same labels, and its GDB commands are checked against the program.
 - Callouts set side information apart, and each type has one job.
 - Tabs let you read only the instructions for your platform and tools, and your choice carries across the site.
 - Keys, diagrams and wide tables are built to work on any screen size, in light and dark mode.

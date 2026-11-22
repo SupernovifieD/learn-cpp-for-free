@@ -17,3 +17,5 @@ Sooner or later every program does something its author did not intend, and the 
 - [3.3 A strategy for debugging](03-a-strategy-for-debugging.md): reading, gathering evidence, and narrowing a bug down by halves.
 - [3.4 Basic debugging tactics](04-basic-debugging-tactics.md): switching code off, tracing calls and printing values to the error stream.
 - [3.5 More debugging tactics](05-more-debugging-tactics.md): debug output that a macro switches on and off, and logging.
+- [3.6 Using an integrated debugger: Stepping](06-using-an-integrated-debugger-stepping.md): pausing a program and moving through it one statement at a time.
+- [3.7 Using an integrated debugger: Running and breakpoints](07-using-an-integrated-debugger-running-and-breakpoints.md): running to a place, and breakpoints that stay.

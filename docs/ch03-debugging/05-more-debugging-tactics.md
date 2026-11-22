@@ -86,7 +86,7 @@ Two cautions apply to every log. A log grows for as long as the program runs, so
 
 Printing and logging share three weaknesses. Every experiment means editing the code, rebuilding and running again, and the cycle gets slow in a large program. You have to guess in advance what to print, and a wrong guess sends you around the loop again. And the debug code is code: it can contain bugs of its own, and in a rare case it can change how the program behaves.
 
-What you want instead is to stop the program in the middle of its run and look at everything it holds, without changing a single line. That is what a debugger does, and lesson 3.6 starts with it.
+What you want instead is to stop the program in the middle of its run and look at everything it holds, without changing a single line. That is what a debugger does, and [lesson 3.6](06-using-an-integrated-debugger-stepping.md) starts with it.
 
 <details>
 <summary>Check your understanding</summary>
@@ -133,7 +133,7 @@ The next bug will need the same kind of messages, and writing them again costs t
 - The macro can be defined in the build instead of the source file, with `-D` for GCC and Clang, `/D` for Microsoft's compiler, or the project's preprocessor definitions.
 - Logging keeps messages for good, usually with a time stamp and a severity, and the C++ standard library has no logging facility of its own.
 - Printing and logging need an edit, a rebuild and a run for every question, and you must guess what to print.
-- A debugger lets you stop the program and inspect it without changing the code, which lesson 3.6 introduces.
+- A debugger lets you stop the program and inspect it without changing the code, which [lesson 3.6](06-using-an-integrated-debugger-stepping.md) introduces.
 
 ## Further reading
 
