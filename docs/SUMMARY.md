@@ -53,3 +53,6 @@
   - [3.5 More debugging tactics](ch03-debugging/05-more-debugging-tactics.md)
   - [3.6 Using an integrated debugger: Stepping](ch03-debugging/06-using-an-integrated-debugger-stepping.md)
   - [3.7 Using an integrated debugger: Running and breakpoints](ch03-debugging/07-using-an-integrated-debugger-running-and-breakpoints.md)
+  - [3.8 Using an integrated debugger: Watching variables](ch03-debugging/08-using-an-integrated-debugger-watching-variables.md)
+  - [3.9 Using an integrated debugger: The call stack](ch03-debugging/09-using-an-integrated-debugger-the-call-stack.md)
+  - [3.10 Finding issues before they become problems](ch03-debugging/10-finding-issues-before-they-become-problems.md)

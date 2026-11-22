@@ -19,3 +19,6 @@ Sooner or later every program does something its author did not intend, and the 
 - [3.5 More debugging tactics](05-more-debugging-tactics.md): debug output that a macro switches on and off, and logging.
 - [3.6 Using an integrated debugger: Stepping](06-using-an-integrated-debugger-stepping.md): pausing a program and moving through it one statement at a time.
 - [3.7 Using an integrated debugger: Running and breakpoints](07-using-an-integrated-debugger-running-and-breakpoints.md): running to a place, and breakpoints that stay.
+- [3.8 Using an integrated debugger: Watching variables](08-using-an-integrated-debugger-watching-variables.md): inspecting values, watches, and stopping when a value changes.
+- [3.9 Using an integrated debugger: The call stack](09-using-an-integrated-debugger-the-call-stack.md): the list of active calls, and looking at a caller's variables.
+- [3.10 Finding issues before they become problems](10-finding-issues-before-they-become-problems.md): habits, tests, static analysis and sanitizers.
