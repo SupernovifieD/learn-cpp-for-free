@@ -22,3 +22,4 @@ Some values never change while a program runs, and some of the most useful value
 - [5.7 Introduction to std::string](07-introduction-to-std-string.md): storing, reading and joining text, and reading a whole line.
 - [5.8 Introduction to std::string_view](08-introduction-to-std-string-view.md): a read-only view of text, without copying it.
 - [5.9 std::string_view (part 2)](09-std-string-view-part-2.md): owners and viewers, and the views that dangle.
+- [5.x Chapter 5 summary and quiz](x-summary-and-quiz.md): a recap of the chapter, and eight questions to test yourself.

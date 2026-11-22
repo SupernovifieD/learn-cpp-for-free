@@ -81,3 +81,4 @@
   - [5.7 Introduction to std::string](ch05-constants-and-strings/07-introduction-to-std-string.md)
   - [5.8 Introduction to std::string_view](ch05-constants-and-strings/08-introduction-to-std-string-view.md)
   - [5.9 std::string_view (part 2)](ch05-constants-and-strings/09-std-string-view-part-2.md)
+  - [5.x Chapter 5 summary and quiz](ch05-constants-and-strings/x-summary-and-quiz.md)
