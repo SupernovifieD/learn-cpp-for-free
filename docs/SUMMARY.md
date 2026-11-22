@@ -64,3 +64,6 @@
   - [4.4 Signed integers](ch04-fundamental-data-types/04-signed-integers.md)
   - [4.5 Unsigned integers, and why to avoid them](ch04-fundamental-data-types/05-unsigned-integers-and-why-to-avoid-them.md)
   - [4.6 Fixed-width integers and size_t](ch04-fundamental-data-types/06-fixed-width-integers-and-size-t.md)
+  - [4.7 Introduction to scientific notation](ch04-fundamental-data-types/07-introduction-to-scientific-notation.md)
+  - [4.8 Floating point numbers](ch04-fundamental-data-types/08-floating-point-numbers.md)
+  - [4.9 Boolean values](ch04-fundamental-data-types/09-boolean-values.md)

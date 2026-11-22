@@ -1,0 +1,7 @@
+seats == sold: false
+seats != sold: true
+seats > sold: true
+seats < sold: false
+seats >= 30: true
+seats <= 29: false
+0.1 + 0.2 == 0.3: false

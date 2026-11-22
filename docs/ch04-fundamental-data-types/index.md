@@ -19,3 +19,6 @@ Every value in a program has a type, and the type decides what the value can be,
 - [4.4 Signed integers](04-signed-integers.md): the signed types, their ranges, and what overflow does.
 - [4.5 Unsigned integers, and why to avoid them](05-unsigned-integers-and-why-to-avoid-them.md): wraparound, mixing signs, and a preference for signed types.
 - [4.6 Fixed-width integers and size_t](06-fixed-width-integers-and-size-t.md): types with an exact size, and the type that sizeof returns.
+- [4.7 Introduction to scientific notation](07-introduction-to-scientific-notation.md): significand and exponent, and E-notation in C++ literals.
+- [4.8 Floating point numbers](08-floating-point-numbers.md): float and double, precision, rounding errors and division.
+- [4.9 Boolean values](09-boolean-values.md): true and false, comparisons, and reading and printing a bool.

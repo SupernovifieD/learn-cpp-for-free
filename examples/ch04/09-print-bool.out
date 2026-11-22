@@ -1,0 +1,4 @@
+Lamp: 1, door: 0
+Lamp: true, door: false
+Lamp off: false
+Lamp off: 0

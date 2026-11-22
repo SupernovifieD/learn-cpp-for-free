@@ -1,0 +1,3 @@
+isNegative(-4): true
+isNegative(0): false
+isNegative(9): false
