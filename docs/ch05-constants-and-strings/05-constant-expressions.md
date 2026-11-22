@@ -22,7 +22,7 @@ A **constant expression** is an expression that the compiler can evaluate while 
 - an operator applied to constant expressions, such as `3 * 4` or `2 + 5 * 2`,
 - a `const` variable of an integer type that was initialized with a constant expression, such as `columns` in the next program.
 
-These are not constant expressions: a call to an ordinary function, which is a run-time event even when the function always returns the same number, and a variable whose value comes from input. Lesson 5.6 adds the `constexpr` variable and a later chapter adds `constexpr` functions, which are the ways to extend the list.
+These are not constant expressions: a call to an ordinary function, which is a run-time event even when the function always returns the same number, and a variable whose value comes from input. [Lesson 5.6](06-constexpr-variables.md) adds the `constexpr` variable and a later chapter adds `constexpr` functions, which are the ways to extend the list.
 
 This program uses two constants to compute a size at compile time:
 
@@ -52,7 +52,7 @@ The second example calls an ordinary function that always returns 8:
 {{#include ../../examples/ch05/05-function-call.fail.cpp}}
 ```
 
-The compiler refuses to call the function while it builds, because it is not allowed to: the function is a run-time thing. GCC says that the call is to a non-`constexpr` function, which is the word that lesson 5.6 explains.
+The compiler refuses to call the function while it builds, because it is not allowed to: the function is a run-time thing. GCC says that the call is to a non-`constexpr` function, which is the word that [lesson 5.6](06-constexpr-variables.md) explains.
 
 The third example is the surprise. A `const` variable of the type `double` is not usable in a constant expression, even when it is initialized with a literal:
 

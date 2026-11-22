@@ -39,7 +39,7 @@ You can see the size of each type with the `sizeof` operator from [lesson 4.3](.
 
 The sizes are the ones on the mainstream platforms that the book targets, and only the size of `char` is fixed by the language.
 
-The surprise is the string literal. `"hello"` has five letters, but its size is 6, because the compiler adds a character with the code 0 at the end, the **null terminator**. A literal like this is a **C-style string**, an array of characters that ends in a null, and it is why the type in the table is `const char[4]` for three letters. Lesson 5.7 introduces `std::string`, which is the better tool for text.
+The surprise is the string literal. `"hello"` has five letters, but its size is 6, because the compiler adds a character with the code 0 at the end, the **null terminator**. A literal like this is a **C-style string**, an array of characters that ends in a null, and it is why the type in the table is `const char[4]` for three letters. [Lesson 5.7](07-introduction-to-std-string.md) introduces `std::string`, which is the better tool for text.
 
 ## The type decides the behavior
 

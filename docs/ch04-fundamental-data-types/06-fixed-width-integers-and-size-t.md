@@ -58,7 +58,7 @@ The reason is clarity. When you write `std::int32_t`, a reader knows that the si
 
 The result of `sizeof` has the type **`std::size_t`**. It is an unsigned integer type that is large enough for the size of the largest object that the platform allows. That makes it 8 bytes on a 64-bit platform, as the last line of the output above shows, and 4 bytes on a 32-bit platform.
 
-The standard library uses `std::size_t` for sizes and counts, such as the number of characters in a string, which lesson 5.7 introduces. The type is defined in the header `<cstddef>`, and the program above includes it. A variable that holds the result of `sizeof` has this type:
+The standard library uses `std::size_t` for sizes and counts, such as the number of characters in a string, which [lesson 5.7](../ch05-constants-and-strings/07-introduction-to-std-string.md) introduces. The type is defined in the header `<cstddef>`, and the program above includes it. A variable that holds the result of `sizeof` has this type:
 
 ```cpp
 std::size_t intSize{sizeof(int)};

@@ -58,7 +58,7 @@ The compiler rejects the definition and says that a `const` object needs an init
 
 The assignment is an error, and the message names the variable and says that it cannot be assigned because it is `const`. This is the point of the keyword: if a line tries to change something that you promised to keep, the compiler finds it for you.
 
-The value does not have to be a literal. A constant can be set from a calculation, from a value that is read while the program runs, or from other constants, as in `const int total{nights * pitchFee};`. `const` only means that the value cannot change after the definition. Lessons 5.5 and 5.6 return to the question of when the value is known.
+The value does not have to be a literal. A constant can be set from a calculation, from a value that is read while the program runs, or from other constants, as in `const int total{nights * pitchFee};`. `const` only means that the value cannot change after the definition. Lessons [5.5](05-constant-expressions.md) and [5.6](06-constexpr-variables.md) return to the question of when the value is known.
 
 ## Naming constants
 

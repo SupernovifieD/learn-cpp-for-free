@@ -82,7 +82,7 @@ A tab moves the next text to the next tab stop, so the space that it leaves depe
 
 The two kinds of quotes mean different things. `'A'` is one character, of the type `char`.
 
-`"A"` is a string literal, which is text, and its type is not `char`. Lesson 5.7 introduces the type that holds text. A beginner who writes `'hello'` with single quotes does not get text, but a multicharacter literal, which is described next.
+`"A"` is a string literal, which is text, and its type is not `char`. [Lesson 5.7](../ch05-constants-and-strings/07-introduction-to-std-string.md) introduces the type that holds text. A beginner who writes `'hello'` with single quotes does not get text, but a multicharacter literal, which is described next.
 
 A literal with several characters between single quotes is a **multicharacter literal**. It has the type `int`, and the value that it has is up to the compiler, so a program that uses one may change its behavior on another platform:
 

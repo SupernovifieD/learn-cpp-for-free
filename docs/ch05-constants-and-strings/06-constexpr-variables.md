@@ -43,7 +43,7 @@ The two keywords answer different questions, and the choice follows from when th
 
 A `constexpr` variable can be initialized from other `constexpr` variables, as `totalSeats` was, so a chain of constants stays a chain of compile-time values. Beginners sometimes ask whether `constexpr` makes a program faster. It can, because the compiler may use the value directly, but the main gain is the check and the clarity.
 
-The keyword also fixes the problem of floating point constants from lesson 5.5. A `constexpr double` is usable in a constant expression, where a `const double` was not, so the program with `constexpr double width{8.0};` in place of the `const` version builds without a problem.
+The keyword also fixes the problem of floating point constants from [lesson 5.5](05-constant-expressions.md). A `constexpr double` is usable in a constant expression, where a `const double` was not, so the program with `constexpr double width{8.0};` in place of the `const` version builds without a problem.
 
 ## Why not use const everywhere
 
@@ -52,11 +52,11 @@ A `const` variable would often do the same job, so why does the language have bo
 - It tells the reader that the value never depends on input or on a call, so nothing has to be traced to find where the value comes from.
 - The compiler checks the claim. A change that makes the value depend on something at run time becomes an error, and not a silent change of meaning.
 - It works for every type that can be `constexpr`, while a `const` variable counts as a constant expression only for integers.
-- A value that the compiler knows can be folded into the code, as lesson 5.4 described, so that it costs nothing at run time.
+- A value that the compiler knows can be folded into the code, as [lesson 5.4](04-the-as-if-rule-and-compile-time-optimization.md) described, so that it costs nothing at run time.
 
 ## Which types can be constexpr
 
-The fundamental types can all be `constexpr`: integers, floating point numbers, `bool` and `char`. So can `std::string_view`, which lesson 5.8 introduces.
+The fundamental types can all be `constexpr`: integers, floating point numbers, `bool` and `char`. So can `std::string_view`, which [lesson 5.8](08-introduction-to-std-string-view.md) introduces.
 
 The type `std::string` cannot, at least not in practice. It manages memory that it allocates while the program runs, and C++20 allows that only inside a calculation that frees the memory again before it ends, so a variable cannot hold one. The page for `std::basic_string` on cppreference says that defining a `constexpr` string variable is generally an error, and the compilers that this book is checked with reject it.
 
