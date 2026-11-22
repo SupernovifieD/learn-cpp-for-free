@@ -22,3 +22,6 @@ Every value in a program has a type, and the type decides what the value can be,
 - [4.7 Introduction to scientific notation](07-introduction-to-scientific-notation.md): significand and exponent, and E-notation in C++ literals.
 - [4.8 Floating point numbers](08-floating-point-numbers.md): float and double, precision, rounding errors and division.
 - [4.9 Boolean values](09-boolean-values.md): true and false, comparisons, and reading and printing a bool.
+- [4.10 Introduction to if statements](10-introduction-to-if-statements.md): if, else and else if, and the mistake of writing = for ==.
+- [4.11 Chars](11-chars.md): characters as codes, reading a char, escape sequences and quotes.
+- [4.12 Introduction to type conversion and static_cast](12-introduction-to-type-conversion-and-static-cast.md): implicit conversions, why risky ones are rejected, and converting on purpose.

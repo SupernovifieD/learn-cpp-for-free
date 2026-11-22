@@ -67,3 +67,6 @@
   - [4.7 Introduction to scientific notation](ch04-fundamental-data-types/07-introduction-to-scientific-notation.md)
   - [4.8 Floating point numbers](ch04-fundamental-data-types/08-floating-point-numbers.md)
   - [4.9 Boolean values](ch04-fundamental-data-types/09-boolean-values.md)
+  - [4.10 Introduction to if statements](ch04-fundamental-data-types/10-introduction-to-if-statements.md)
+  - [4.11 Chars](ch04-fundamental-data-types/11-chars.md)
+  - [4.12 Introduction to type conversion and static_cast](ch04-fundamental-data-types/12-introduction-to-type-conversion-and-static-cast.md)
