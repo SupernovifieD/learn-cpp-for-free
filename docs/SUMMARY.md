@@ -56,3 +56,4 @@
   - [3.8 Using an integrated debugger: Watching variables](ch03-debugging/08-using-an-integrated-debugger-watching-variables.md)
   - [3.9 Using an integrated debugger: The call stack](ch03-debugging/09-using-an-integrated-debugger-the-call-stack.md)
   - [3.10 Finding issues before they become problems](ch03-debugging/10-finding-issues-before-they-become-problems.md)
+  - [3.x Chapter 3 summary and quiz](ch03-debugging/x-summary-and-quiz.md)

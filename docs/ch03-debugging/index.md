@@ -22,3 +22,4 @@ Sooner or later every program does something its author did not intend, and the 
 - [3.8 Using an integrated debugger: Watching variables](08-using-an-integrated-debugger-watching-variables.md): inspecting values, watches, and stopping when a value changes.
 - [3.9 Using an integrated debugger: The call stack](09-using-an-integrated-debugger-the-call-stack.md): the list of active calls, and looking at a caller's variables.
 - [3.10 Finding issues before they become problems](10-finding-issues-before-they-become-problems.md): habits, tests, static analysis and sanitizers.
+- [3.x Chapter 3 summary and quiz](x-summary-and-quiz.md): a recap of the chapter, and eight questions to test yourself.
