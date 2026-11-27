@@ -25,6 +25,7 @@ The options work like this:
 | `-std=c++20` | Selects the C++20 standard, without GNU extensions |
 | `-Wall` | Turns on a large group of warnings about questionable code |
 | `-Wextra` | Turns on more warnings that `-Wall` leaves out |
+| `-Wimplicit-fallthrough` | Warns when one `switch` case can run into the next without an explicit marker |
 | `-Wpedantic` | Warns about code that does not follow the ISO standard, including extensions |
 | `-Wconversion` | Warns about implicit conversions that may change a value |
 | `-Wsign-conversion` | Warns about implicit conversions that may change the sign of an integer |
@@ -81,7 +82,7 @@ With `-Wall` on, the compiler warns about the unused variable. With `-Werror` al
 **Switch:** Add the options after the compiler name. This command builds the program from lesson 0.7 with all of them.
 
 ```bash
-g++ -std=c++20 -Wall -Wextra -Wpedantic -Wconversion -Wsign-conversion -Wshadow -pedantic-errors -Werror -o hello-world hello-world.cpp
+g++ -std=c++20 -Wall -Wextra -Wimplicit-fallthrough -Wpedantic -Wconversion -Wsign-conversion -Wshadow -pedantic-errors -Werror -o hello-world hello-world.cpp
 ```
 
 **Note:** Replace `g++` with `clang++` to use Clang. Build tools, which lesson 0.5 introduced, let you write the options once instead of typing them each time.
@@ -93,7 +94,7 @@ g++ -std=c++20 -Wall -Wextra -Wpedantic -Wconversion -Wsign-conversion -Wshadow 
 
 - An error stops the build, and a warning reports code that is legal but suspicious.
 - Treating warnings as errors forces you to fix every warning, which builds a good habit.
-- The book builds every example with `-std=c++20 -Wall -Wextra -Wpedantic -Wconversion -Wsign-conversion -Wshadow -pedantic-errors -Werror`.
+- The book builds every example with the strict options shown in `flags-gcc-clang.txt`, including `-Wimplicit-fallthrough` to catch an unmarked path from one `switch` case into the next.
 - With Microsoft's compiler, use `/W4` and `/WX`, together with the options from the earlier lessons.
 - An unused variable is legal C++, but it stops the build when warnings are errors.
 
