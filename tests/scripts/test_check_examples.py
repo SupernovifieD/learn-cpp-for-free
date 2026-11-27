@@ -291,6 +291,72 @@ def test_an_invalid_status_file_explains_the_allowed_values_and_shape(tmp_path, 
     assert any("01-a.status" in p and "0 to 255" in p and "abort" in p for p in problems), problems
 
 
+# ----------------------------------------------------------- varying output --
+
+
+@needs_compiler
+def test_a_program_with_varying_output_matches_each_line_and_its_example():
+    run = run_checker("match-good")
+    assert run.returncode == 0, run.output
+    assert "1 of 1 examples passed." in run.output
+
+
+def test_varying_output_is_checked_again_under_the_sanitizers(working_sanitizers):
+    run = run_checker("match-good", sanitizers=True)
+    assert run.returncode == 0, run.output
+    assert cells_of(run.output, "01-die.cpp")[2] == "PASS"
+
+
+def test_an_example_console_view_that_does_not_match_is_reported():
+    run = run_checker("match-wrong-example")
+    assert run.returncode == 1, run.output
+    assert "01-value.example line 1 is '8'" in run.output
+    assert "does not fully match '[1-6]'" in run.output
+
+
+@needs_compiler
+def test_program_output_with_one_line_too_many_is_reported():
+    run = run_checker("match-extra-output")
+    assert run.returncode == 1, run.output
+    assert "program output has 2 lines" in run.output
+    assert "01-values.match has 1 patterns" in run.output
+
+
+def test_match_and_example_files_must_come_as_a_pair(tmp_path):
+    only_match = check_rules(tmp_path / "match", {"ch01/01-a.cpp": MINIMAL, "ch01/01-a.match": "[1-6]\n"})
+    assert any("01-a.match needs 01-a.example" in p for p in only_match), only_match
+    only_example = check_rules(tmp_path / "example", {"ch01/01-a.cpp": MINIMAL, "ch01/01-a.example": "4\n"})
+    assert any("01-a.example needs 01-a.match" in p for p in only_example), only_example
+
+
+@pytest.mark.parametrize("suffix", [".in", ".session", ".err"])
+def test_varying_output_cannot_be_combined_with_input_sessions_or_error_output(tmp_path, suffix):
+    files = {
+        "ch01/01-a.cpp": MINIMAL,
+        "ch01/01-a.match": "[1-6]\n",
+        "ch01/01-a.example": "4\n",
+        f"ch01/01-a{suffix}": "4\n",
+    }
+    problems = check_rules(tmp_path, files)
+    assert any(f"cannot go with 01-a{suffix}" in p for p in problems), problems
+
+
+def test_varying_output_replaces_an_out_file(tmp_path):
+    problems = check_rules(
+        tmp_path,
+        {"ch01/01-a.cpp": MINIMAL, "ch01/01-a.match": "[1-6]\n", "ch01/01-a.example": "4\n", "ch01/01-a.out": "4\n"},
+    )
+    assert any("01-a.out cannot go with 01-a.match and 01-a.example" in p for p in problems), problems
+
+
+def test_an_invalid_regular_expression_names_its_line(tmp_path):
+    problems = check_rules(
+        tmp_path,
+        {"ch01/01-a.cpp": MINIMAL, "ch01/01-a.match": "[1-6\n", "ch01/01-a.example": "4\n"},
+    )
+    assert any("01-a.match line 1 is not a valid regular expression" in p for p in problems), problems
+
+
 # ------------------------------------------------------------ undefined behavior --
 
 

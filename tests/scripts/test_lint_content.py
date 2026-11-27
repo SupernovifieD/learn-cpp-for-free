@@ -93,6 +93,23 @@ def test_an_exit_status_file_without_a_program_is_reported(examples):
     assert "09-orphan.status" in problems[0] and "exit status file has no program next to it" in problems[0]
 
 
+def test_a_match_file_belongs_to_its_program_but_the_example_must_be_included(examples):
+    examples(["ch01/01-die.cpp", "ch01/01-die.match", "ch01/01-die.example"])
+    source = "examples/ch01/01-die.cpp"
+    example = "examples/ch01/01-die.example"
+    problems = problems_for({source})
+    assert len(problems) == 1 and "01-die.example" in problems[0] and "is not used by any page" in problems[0]
+    assert problems_for({source, example}) == []
+
+
+def test_a_page_cannot_include_a_match_file(examples):
+    examples(["ch01/01-die.cpp", "ch01/01-die.match", "ch01/01-die.example"])
+    used = {"examples/ch01/01-die.cpp", "examples/ch01/01-die.match", "examples/ch01/01-die.example"}
+    problems = problems_for(used)
+    assert len(problems) == 1
+    assert "remove the .match include and include its .example file instead" in problems[0]
+
+
 def test_an_undefined_behavior_program_must_be_included_but_its_input_file_need_not_be(examples):
     examples(["ch04/04-overflow.ub.cpp", "ch04/04-overflow.ub.in", "ch04/05-divide.ub/main.cpp", "ch04/05-divide.ub.in"])
     assert problems_for({"examples/ch04/04-overflow.ub.cpp", "examples/ch04/05-divide.ub/main.cpp"}) == []

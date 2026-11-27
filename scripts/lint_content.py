@@ -19,8 +19,8 @@ Rules, each reported as  docs/page.md:LINE: message
   * no text left over from templates/lesson.md, templates/chapter-index.md or templates/summary-and-quiz.md
     (their instructions and placeholders)
   * callouts use only the documented kinds, and tabs are well formed and use only the documented label sets
-  * every file in examples/ is used by at least one page (.in, .err and .status files belong to the program
-    next to them, a .cpp file or a project folder; a .gdb-expect file to the .gdb walkthrough next to it), so every
+  * every file in examples/ is used by at least one page (.in, .err, .status and .match files belong to the
+    program next to them; a .gdb-expect file to the .gdb walkthrough next to it), so every
     .cpp and .h file of a project, and every .gdb file, needs its own include
 
 Fenced code and `inline code` are never checked for HTML, links or forbidden words, because the book
@@ -47,7 +47,7 @@ MAX_INLINE_CODE_LINES = 5
 FLAGS_EXAMPLE = "examples/flags-gcc-clang.txt"
 FLAGS_LESSON = "ch00-getting-started/11-warning-and-error-levels.md"
 # Companion files that no page includes: the file belongs to the program next to it. Suffix -> what it holds.
-BELONGS_TO_PROGRAM = {".in": "input", ".err": "standard error", ".status": "exit status"}
+BELONGS_TO_PROGRAM = {".in": "input", ".err": "standard error", ".status": "exit status", ".match": "output pattern"}
 EXPECT_SUFFIX = ".gdb-expect"  # belongs to an X.gdb walkthrough, not to a program: X.gdb itself must be included by a page
 
 CALLOUT_KINDS = NATIVE_CALLOUTS | set(CUSTOM_CALLOUTS)
@@ -318,7 +318,9 @@ def lint_examples_used(included_by_page: dict[str, set[str]], final: bool) -> li
                 problems.append(Problem(rel, 0, f"walkthrough expectations file has no {file.name[: -len(EXPECT_SUFFIX)]}.gdb next to it (the debugger commands whose output it checks)."))
             continue
         if file.suffix in BELONGS_TO_PROGRAM:
-            # X.in, X.err and X.status are checked companions that are never shown on a page.
+            # These checked companions are never shown on a page.
+            if file.suffix == ".match" and rel in used:
+                problems.append(Problem(rel, 0, "output pattern files are checker input, not book content; remove the .match include and include its .example file instead."))
             # They belong to X.cpp or to the project folder X/ next to them.
             if not file.with_suffix(".cpp").exists() and not file.with_suffix("").is_dir():
                 problems.append(

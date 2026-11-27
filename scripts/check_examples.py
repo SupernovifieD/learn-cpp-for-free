@@ -10,7 +10,7 @@ A program is either one file, examples/chNN/X.cpp, or a project: a folder exampl
 .cpp files and the .h headers they include. Every .cpp file of a project is compiled and linked in
 ONE command (the folder is flat, and one of the files is main.cpp). The files that belong to a program
 sit NEXT TO it, whether it is a file or a folder: X.out, X.in, X.session, X.err, X.status,
-X.gdb and X.gdb-expect.
+X.match, X.example, X.gdb and X.gdb-expect.
 
 How each program is judged, with the strict flags from examples/flags-gcc-clang.txt:
 
@@ -23,6 +23,8 @@ How each program is judged, with the strict flags from examples/flags-gcc-clang.
                      sees in a terminal (std::cerr is tied to std::cout, so the order is kept):
                        X.out      standard output (the console view, with X.err) must match it
                                   byte for byte;
+                       X.match    one full-line regular expression for each output line, paired
+                                  with X.example, a real console view that also matches;
                        X.session  what a reader SEES in a console when typing the lines of X.in:
                                   removing each X.in line, in order, from where it appears in
                                   X.session must leave exactly the program's standard output.
@@ -99,7 +101,7 @@ SANITIZER_RUN_TIMEOUT_SECONDS = 10
 GDB_TIMEOUT_SECONDS = 30
 COMPILE_TIMEOUT_SECONDS = 120
 SANITIZER_FLAGS = ["-fsanitize=address,undefined", "-fno-sanitize-recover=all", "-g"]
-COMPANION_SUFFIXES = (".out", ".in", ".session", ".err", ".status", ".gdb", ".gdb-expect")
+COMPANION_SUFFIXES = (".out", ".in", ".session", ".err", ".status", ".match", ".example", ".gdb", ".gdb-expect")
 IGNORED_NAMES = {".DS_Store"}
 # What the sanitizers print when they find the undefined behavior of an X.ub program (UBSan, AddressSanitizer).
 UB_REPORTS = ("runtime error:", "ERROR: AddressSanitizer")
@@ -434,6 +436,9 @@ def prove_session(session: bytes, typed: bytes, stdout: bytes, names: tuple[str,
 
 def judge_stdout(program: Program, stdout: bytes) -> str | None:
     """None when standard output is what the book promises for this program, otherwise a message."""
+    match = program.companion(".match")
+    if match.exists():
+        return judge_pattern_output(program, stdout, "program output")
     session = program.companion(".session")
     if session.exists():
         typed_file = program.companion(".in")
@@ -442,6 +447,59 @@ def judge_stdout(program: Program, stdout: bytes) -> str | None:
     expected_file = program.companion(".out")
     if expected_file.exists() and stdout != expected_file.read_bytes():
         return f"output differs from {expected_file.name}.\n      expected: {expected_file.read_bytes()[:200]!r}\n      actual:   {stdout[:200]!r}"
+    return None
+
+
+def pattern_lines(program: Program) -> tuple[list[re.Pattern[str]] | None, str | None]:
+    """Read and compile X.match; return its patterns or a contributor-facing rule problem."""
+    match = program.companion(".match")
+    if not match.exists():
+        return None, None
+    data = match.read_bytes()
+    try:
+        text = data.decode("utf-8")
+    except UnicodeDecodeError as error:
+        return None, f"{match.name} must be UTF-8 text ({error})."
+    if b"\r" in data or not data.endswith(b"\n"):
+        return None, f"{match.name} must use \\n line endings (no \\r) and end with a newline."
+    lines = text[:-1].split("\n")
+    if lines == [""]:
+        return None, f"{match.name} is empty: add one full-line regular expression for each output line."
+    patterns = []
+    for number, line in enumerate(lines, start=1):
+        try:
+            patterns.append(re.compile(line))
+        except re.error as error:
+            return None, f"{match.name} line {number} is not a valid regular expression: {error}."
+    return patterns, None
+
+
+def output_lines(data: bytes, name: str) -> tuple[list[str] | None, str | None]:
+    """Decode a console view into lines, ignoring its one optional final newline."""
+    try:
+        text = data.decode("utf-8")
+    except UnicodeDecodeError as error:
+        return None, f"{name} must be UTF-8 text ({error})."
+    if text.endswith("\n"):
+        text = text[:-1]
+    return ([] if not text else text.split("\n")), None
+
+
+def judge_pattern_output(program: Program, data: bytes, name: str) -> str | None:
+    """None when every line of data fully matches the corresponding line of X.match."""
+    patterns, problem = pattern_lines(program)
+    if problem:
+        return problem
+    if patterns is None:
+        return f"{program.companion('.example').name} needs {program.companion('.match').name}."
+    lines, problem = output_lines(data, name)
+    if problem:
+        return problem
+    if len(lines) != len(patterns):
+        return f"{name} has {len(lines)} lines, but {program.companion('.match').name} has {len(patterns)} patterns; they must have the same count."
+    for number, (line, pattern) in enumerate(zip(lines, patterns), start=1):
+        if pattern.fullmatch(line) is None:
+            return f"{name} line {number} is {line!r}, which does not fully match {pattern.pattern!r} from {program.companion('.match').name}."
     return None
 
 
@@ -856,20 +914,41 @@ def check_rules(program: Program, result: Result) -> None:
                 )
                 break
 
-    out, typed, session, err, status, gdb, expect = (program.companion(suffix) for suffix in COMPANION_SUFFIXES)
+    out, typed, session, err, status, match, example, gdb, expect = (program.companion(suffix) for suffix in COMPANION_SUFFIXES)
     if program.expects_failure:
-        for extra in (out, typed, session, err, status, gdb, expect):
+        for extra in (out, typed, session, err, status, match, example, gdb, expect):
             if extra.exists():
                 result.fail("rules", f"{extra.name}: a failing program never runs, so it cannot have an {extra.suffix} file; delete it.")
         return
     if program.expects_undefined_behavior:
-        check_ub_rules(program, result, (out, session, err, status, gdb, expect), typed)
+        check_ub_rules(program, result, (out, session, err, status, match, example, gdb, expect), typed)
         return
     _, status_problem = expected_status(program)
     if status_problem:
         result.fail("rules", status_problem)
     if out.exists() and session.exists():
         result.fail("rules", f"{out.name} and {session.name} cannot both exist: a program that reads input shows its session, any other program its output; delete one.")
+    if match.exists() != example.exists():
+        present, missing = (match, example) if match.exists() else (example, match)
+        result.fail("rules", f"{present.name} needs {missing.name}: varying output uses the pair together.")
+    if match.exists() or example.exists():
+        if out.exists():
+            result.fail("rules", f"{out.name} cannot go with {match.name} and {example.name}: varying output uses the pair instead of an .out file; delete {out.name}.")
+        for forbidden in (typed, session, err):
+            if forbidden.exists():
+                result.fail("rules", f"{match.name} and {example.name} cannot go with {forbidden.name}; keep varying-output programs free of input, sessions and error-stream output.")
+    if match.exists() and example.exists():
+        _, pattern_problem = pattern_lines(program)
+        if pattern_problem:
+            result.fail("rules", pattern_problem)
+        else:
+            example_data = example.read_bytes()
+            if b"\r" in example_data or not example_data.endswith(b"\n"):
+                result.fail("rules", f"{example.name} must use \\n line endings (no \\r) and end with a newline.")
+            else:
+                example_problem = judge_pattern_output(program, example_data, example.name)
+                if example_problem:
+                    result.fail("rules", example_problem)
     if session.exists() and not typed.exists():
         result.fail("rules", f"{session.name} needs {typed.name}, the lines the reader types, one per Enter press.")
     if typed.exists() and not session.exists():
