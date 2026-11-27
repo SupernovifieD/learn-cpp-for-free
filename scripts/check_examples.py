@@ -9,12 +9,13 @@
 A program is either one file, examples/chNN/X.cpp, or a project: a folder examples/chNN/X/ that holds
 .cpp files and the .h headers they include. Every .cpp file of a project is compiled and linked in
 ONE command (the folder is flat, and one of the files is main.cpp). The files that belong to a program
-sit NEXT TO it, whether it is a file or a folder: X.out, X.in, X.session, X.err, X.gdb and X.gdb-expect.
+sit NEXT TO it, whether it is a file or a folder: X.out, X.in, X.session, X.err, X.status,
+X.gdb and X.gdb-expect.
 
 How each program is judged, with the strict flags from examples/flags-gcc-clang.txt:
 
   X.cpp or X/        must compile and link with ZERO diagnostics on every compiler, run for at most
-                     5 seconds (stdin comes from X.in when it exists) and exit with code 0, and
+                     5 seconds (stdin comes from X.in when it exists) and exit with status 0, and
                      print what the book promises. A running program writes NOTHING to standard
                      error, unless X.err holds exactly what it writes there; then X.out or X.session
                      shows the CONSOLE VIEW instead: standard output and standard error captured
@@ -31,6 +32,8 @@ How each program is judged, with the strict flags from examples/flags-gcc-clang.
                                   really read every typed line: the author must place them honestly.
                      A program has X.out or X.session, never both, and X.in goes with X.session.
                      X.err goes with a program that has one of them, and is never empty.
+                     X.status changes the expected result from 0 to an exit status from 0 through
+                     255, or to SIGABRT when its one line is 'abort'.
                      Then the same program is built again with the strict flags plus AddressSanitizer
                      and UBSan and run again: any sanitizer report is a failure ("san" column).
   X.fail.cpp or      must FAIL to build on every compiler. The first lines of the file (of main.cpp
@@ -77,6 +80,7 @@ from __future__ import annotations
 import argparse
 import os
 import re
+import signal
 import shlex
 import shutil
 import subprocess
@@ -95,7 +99,7 @@ SANITIZER_RUN_TIMEOUT_SECONDS = 10
 GDB_TIMEOUT_SECONDS = 30
 COMPILE_TIMEOUT_SECONDS = 120
 SANITIZER_FLAGS = ["-fsanitize=address,undefined", "-fno-sanitize-recover=all", "-g"]
-COMPANION_SUFFIXES = (".out", ".in", ".session", ".err", ".gdb", ".gdb-expect")
+COMPANION_SUFFIXES = (".out", ".in", ".session", ".err", ".status", ".gdb", ".gdb-expect")
 IGNORED_NAMES = {".DS_Store"}
 # What the sanitizers print when they find the undefined behavior of an X.ub program (UBSan, AddressSanitizer).
 UB_REPORTS = ("runtime error:", "ERROR: AddressSanitizer")
@@ -171,7 +175,7 @@ class Program:
         return (*self.sources, *self.headers)
 
     def companion(self, suffix: str) -> Path:
-        """X.out, X.in, X.session or X.err next to the program (not inside a project folder)."""
+        """A companion such as X.out or X.status next to the program, not inside a project."""
         return self.base.with_name(self.stem + suffix)
 
 
@@ -310,7 +314,7 @@ def discover(root: Path) -> tuple[list[Program], list[str]]:
             else:
                 problems.append(
                     f"{shown(entry)} has an unexpected file type (a chapter folder holds .cpp files, project folders "
-                    f"and the .out, .in, .session and .err files of programs)."
+                    f"and the companion files of programs, such as .out and .status)."
                 )
 
     seen: dict[tuple[Path, str], Program] = {}
@@ -344,7 +348,7 @@ def discover_project(folder: Path, shown, problems: list[str]) -> Program | None
         else:
             problems.append(
                 f"{shown(item)} has an unexpected file type inside a project folder (only .cpp and .h files; "
-                f"put {folder.name}.out, {folder.name}.in, {folder.name}.session and {folder.name}.err NEXT TO the folder)."
+                f"put companion files such as {folder.name}.out and {folder.name}.status NEXT TO the folder)."
             )
     if folder / "main.cpp" not in sources:
         problems.append(f"{shown(folder)}/ needs a main.cpp (the project's entry point), but has none.")
@@ -365,7 +369,7 @@ def select_programs(targets: list[Path], programs: list[Program], root: Path, st
             hint = "".join(f"\n  {problem}" for problem in related)
             sys.exit(
                 f"{target} is not a program, a project folder or a file of a project inside {root}. "
-                f"Name a .cpp file, a project folder or a file inside one (the .out, .in and .session files are not programs)."
+                f"Name a .cpp file, a project folder or a file inside one (companion files such as .out and .status are not programs)."
                 + (f" Problems found with it:{hint}" if hint else "")
             )
         if match not in chosen:
@@ -501,15 +505,53 @@ def judge_stderr(program: Program, stderr: bytes) -> str | None:
     return None
 
 
+def expected_status(program: Program) -> tuple[int | str, str | None]:
+    """Return (expected status, rule problem); an invalid X.status falls back to 0."""
+    status_file = program.companion(".status")
+    if not status_file.exists():
+        return 0, None
+    data = status_file.read_bytes()
+    try:
+        text = data.decode("ascii")
+    except UnicodeDecodeError:
+        text = ""
+    if b"\r" in data or not data.endswith(b"\n") or text.count("\n") != 1:
+        return 0, f"{status_file.name} must contain exactly one line ending in \\n: an integer from 0 to 255 or the word 'abort'."
+    value = text[:-1]
+    if value == "abort":
+        return value, None
+    if not re.fullmatch(r"0|[1-9][0-9]*", value):
+        return 0, f"{status_file.name} must contain an integer from 0 to 255 or the word 'abort', not {value!r}."
+    number = int(value)
+    if number > 255:
+        return 0, f"{status_file.name} contains {number}, but it must contain a status from 0 to 255 or the word 'abort'."
+    return number, None
+
+
+def judge_status(program: Program, returncode: int, context: str = "") -> str | None:
+    """None when returncode is the integer status or SIGABRT promised by X.status."""
+    expected, _ = expected_status(program)
+    where = f" {context}" if context else ""
+    if expected == "abort":
+        wanted = -signal.SIGABRT
+        if returncode != wanted:
+            return f"the program ended with return code {returncode}{where}, expected termination by SIGABRT ('abort')."
+        return None
+    if returncode != expected:
+        return f"the program exited with status {returncode}{where}, expected {expected}."
+    return None
+
+
 def run_and_judge(exe: Path, program: Program, timeout: int, cwd: Path) -> str | None:
-    """Run a built program with X.in on stdin; None when it exits 0 and prints what the book promises."""
+    """Run with X.in; None when status and output match the program's companions."""
     stdin_file = program.companion(".in")
     stdin = stdin_file.read_bytes() if stdin_file.exists() else b""
     run, problem = start(exe, stdin, timeout, cwd)
     if problem:
         return problem
-    if run.returncode != 0:
-        return f"the program exited with code {run.returncode}, expected 0.\n{indent(run.stderr.decode(errors='replace'))}".rstrip()
+    problem = judge_status(program, run.returncode)
+    if problem:
+        return f"{problem}\n{indent(run.stderr.decode(errors='replace'))}".rstrip()
     problem = judge_stderr(program, run.stderr)
     if problem:
         return problem
@@ -519,14 +561,15 @@ def run_and_judge(exe: Path, program: Program, timeout: int, cwd: Path) -> str |
         merged, problem = start(exe, stdin, timeout, cwd, merge_stderr=True)
         if problem:
             return problem
-        if merged.returncode != 0:
-            return f"the program exited with code {merged.returncode} when its streams were merged, expected 0."
+        problem = judge_status(program, merged.returncode, "when its streams were merged")
+        if problem:
+            return problem
         shown = merged.stdout
     return judge_stdout(program, shown)
 
 
 def check_program(compiler: Compiler, flags: list[str], program: Program, scratch: Path, result: Result) -> bool:
-    """X.cpp or X/: builds cleanly, runs, exits 0, and prints what X.out or X.session promises."""
+    """X.cpp or X/: builds cleanly, then matches X.status and its promised output."""
     column = compiler.kind
     exe = scratch / f"{program.stem}-{compiler.kind}"
     built = build(compiler, flags, program.sources, exe, scratch)
@@ -813,15 +856,18 @@ def check_rules(program: Program, result: Result) -> None:
                 )
                 break
 
-    out, typed, session, err, gdb, expect = (program.companion(suffix) for suffix in COMPANION_SUFFIXES)
+    out, typed, session, err, status, gdb, expect = (program.companion(suffix) for suffix in COMPANION_SUFFIXES)
     if program.expects_failure:
-        for extra in (out, typed, session, err, gdb, expect):
+        for extra in (out, typed, session, err, status, gdb, expect):
             if extra.exists():
                 result.fail("rules", f"{extra.name}: a failing program never runs, so it cannot have an {extra.suffix} file; delete it.")
         return
     if program.expects_undefined_behavior:
-        check_ub_rules(program, result, (out, session, err, gdb, expect), typed)
+        check_ub_rules(program, result, (out, session, err, status, gdb, expect), typed)
         return
+    _, status_problem = expected_status(program)
+    if status_problem:
+        result.fail("rules", status_problem)
     if out.exists() and session.exists():
         result.fail("rules", f"{out.name} and {session.name} cannot both exist: a program that reads input shows its session, any other program its output; delete one.")
     if session.exists() and not typed.exists():

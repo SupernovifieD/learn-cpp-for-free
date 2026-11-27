@@ -80,6 +80,19 @@ def test_a_standard_error_file_without_a_program_is_reported(examples):
     assert len(problems) == 1 and "09-orphan.err" in problems[0] and "standard error file has no program next to it" in problems[0]
 
 
+def test_an_exit_status_file_belongs_to_its_program_and_needs_no_include(examples):
+    examples(["ch01/01-stop.cpp", "ch01/01-stop.out", "ch01/01-stop.status"])
+    used = {"examples/ch01/01-stop.cpp", "examples/ch01/01-stop.out"}
+    assert problems_for(used) == []
+
+
+def test_an_exit_status_file_without_a_program_is_reported(examples):
+    examples(["ch01/01-a.cpp", "ch01/09-orphan.status"])
+    problems = problems_for({"examples/ch01/01-a.cpp"})
+    assert len(problems) == 1
+    assert "09-orphan.status" in problems[0] and "exit status file has no program next to it" in problems[0]
+
+
 def test_an_undefined_behavior_program_must_be_included_but_its_input_file_need_not_be(examples):
     examples(["ch04/04-overflow.ub.cpp", "ch04/04-overflow.ub.in", "ch04/05-divide.ub/main.cpp", "ch04/05-divide.ub.in"])
     assert problems_for({"examples/ch04/04-overflow.ub.cpp", "examples/ch04/05-divide.ub/main.cpp"}) == []

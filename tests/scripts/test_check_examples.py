@@ -247,6 +247,50 @@ def test_a_program_with_an_err_file_also_passes_the_sanitizer_run(working_saniti
     assert cells_of(run.output, "01-trace.cpp")[2] == "PASS"
 
 
+# --------------------------------------------------------------- exit status --
+
+
+@needs_compiler
+def test_status_files_check_exit_abort_session_error_stream_and_project_programs():
+    run = run_checker("status-good")
+    assert run.returncode == 0, run.output
+    assert "5 of 5 examples passed." in run.output
+    assert "05-project/" in run.output
+
+
+def test_status_files_are_checked_again_under_the_sanitizers(working_sanitizers):
+    run = run_checker("status-good", sanitizers=True)
+    assert run.returncode == 0, run.output
+    for name in ("01-exit.cpp", "02-abort.cpp", "03-session.cpp", "04-error.cpp", "05-project/"):
+        assert cells_of(run.output, name)[2] == "PASS"
+
+
+@needs_compiler
+def test_a_wrong_exit_status_is_reported_with_expected_and_actual_values():
+    run = run_checker("status-wrong")
+    assert run.returncode == 1, run.output
+    assert "the program exited with status 2, expected 3" in run.output
+
+
+def test_a_status_file_is_for_running_programs_only(tmp_path):
+    failing = check_rules(
+        tmp_path / "fail",
+        {"ch01/01-a.fail.cpp": "// expect-fail: x\n" + MINIMAL, "ch01/01-a.fail.status": "3\n"},
+    )
+    assert any("01-a.fail.status: a failing program never runs" in p for p in failing), failing
+    undefined = check_rules(
+        tmp_path / "ub",
+        {"ch01/01-a.ub.cpp": "// undefined-behavior: x\n" + MINIMAL, "ch01/01-a.ub.status": "abort\n"},
+    )
+    assert any("01-a.ub.status: an undefined-behavior program" in p for p in undefined), undefined
+
+
+@pytest.mark.parametrize("status", ["", "-1\n", "256\n", "3.0\n", "stop\n", "3\n4\n", "3\r\n", "3"])
+def test_an_invalid_status_file_explains_the_allowed_values_and_shape(tmp_path, status):
+    problems = check_rules(tmp_path, {"ch01/01-a.cpp": MINIMAL, "ch01/01-a.status": status})
+    assert any("01-a.status" in p and "0 to 255" in p and "abort" in p for p in problems), problems
+
+
 # ------------------------------------------------------------ undefined behavior --
 
 
