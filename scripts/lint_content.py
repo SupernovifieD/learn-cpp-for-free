@@ -15,6 +15,8 @@ Rules, each reported as  docs/page.md:LINE: message
   * every {{#include ...}} names a file that exists
   * links to other pages point at a listed page and, with a #fragment, at one of its headings
   * images have alt text; links to other sites use https
+  * every chapter 6+ lesson and chapter index has a visual, and a lesson's first visual precedes code
+  * every visual follows a prose lead-in; Mermaid fences contain no page-local init or entity codes
   * none of: TODO, TBD, FIXME, lorem, "coming soon"
   * no text left over from templates/lesson.md, templates/chapter-index.md or templates/summary-and-quiz.md
     (their instructions and placeholders)
@@ -106,6 +108,11 @@ LINK = re.compile(r"(?<!!)\[[^\]]*\]\(\s*([^)\s]+)[^)]*\)")
 INSECURE_LINK = re.compile(r"(\]\(\s*|<)http://")
 INCLUDE = re.compile(r"\{\{#include\s+([^}\s]+)\s*\}\}")
 ANY_CALLOUT = re.compile(r"^>\s*\[!(?P<kind>[^\]]*)\]")
+CHAPTER_FOLDER = re.compile(r"^ch(?P<number>\d{2})-")
+LESSON_FILE = re.compile(r"^\d{2}-.*\.md$")
+MERMAID_INIT = re.compile(r"%%\{\s*init\b", re.IGNORECASE)
+MERMAID_ENTITY = re.compile(r"&?#(?:\d+|x[0-9A-Fa-f]+);")
+LIST_ITEM = re.compile(r"^\s*(?:[-+*]|\d+[.)])\s+")
 
 
 @dataclass
@@ -149,6 +156,22 @@ def strip_inline_code(line: str) -> str:
     return INLINE_CODE.sub("", line)
 
 
+def is_plain_visual_sentence(line: str) -> bool:
+    """Whether a visual's lead-in line is prose rather than Markdown structure."""
+    stripped = line.strip()
+    if not stripped or not stripped.endswith((".", "?", "!", ":")):
+        return False
+    if (
+        HEADING.match(stripped)
+        or LIST_ITEM.match(stripped)
+        or FENCE.match(stripped)
+        or stripped.startswith((">", "<", "|", "{{#", "![", "<!--", "-->"))
+        or stripped in {"---", "***", "___"}
+    ):
+        return False
+    return True
+
+
 @dataclass
 class Page:
     problems: list[Problem]
@@ -188,6 +211,14 @@ def lint_page(path: Path, label: str | None, book_title: str, final: bool) -> Pa
     in_comment = False
     tab_labels: set[str] = set()
     data_visuals: list[tuple[int, str, tuple[Path, ...]]] = []
+    visual_lines: list[int] = []
+    code_lines: list[int] = []
+
+    def note_visual(number: int) -> None:
+        visual_lines.append(number)
+        previous = next((candidate for candidate in reversed(lines[: number - 1]) if candidate.strip()), "")
+        if not is_plain_visual_sentence(previous):
+            add(number, "put a plain prose sentence immediately before this visual that explains what it shows.")
 
     def note_includes(number: int, line: str) -> None:
         for match in INCLUDE.finditer(line):
@@ -204,6 +235,16 @@ def lint_page(path: Path, label: str | None, book_title: str, final: bool) -> Pa
                 in_fence = False
                 language = fence_info.split()[0].lower() if fence_info.split() else ""
                 body = list(fence_body)
+                if language == "mermaid":
+                    for offset, content in enumerate(fence_body, start=1):
+                        if MERMAID_INIT.search(content):
+                            add(fence_start + offset, "remove the %%{init}%% directive; Mermaid configuration belongs in theme/mermaid-init.js.")
+                        entity = MERMAID_ENTITY.search(content)
+                        if entity:
+                            add(
+                                fence_start + offset,
+                                f"Mermaid label contains HTML entity code {entity.group(0)!r}; use a phrase or a backslash escape instead.",
+                            )
                 while body and not body[0].strip():
                     body.pop(0)
                 while body and not body[-1].strip():
@@ -219,6 +260,11 @@ def lint_page(path: Path, label: str | None, book_title: str, final: bool) -> Pa
             continue
         if fence:
             in_fence, fence_char, fence_len, fence_info, fence_start, fence_body = True, fence.group(2)[0], len(fence.group(2)), fence.group(3), number, []
+            language = fence_info.split()[0].lower() if fence_info.split() else ""
+            if language == "mermaid":
+                note_visual(number)
+            elif language in {"cpp", "c++", "cxx"}:
+                code_lines.append(number)
             if not fence_info:
                 add(number, "a code fence needs a language, such as ```cpp, ```bash or ```text.")
             elif not re.fullmatch(r"[\w+-]+", fence_info) and not TITLED_INFO.match(fence_info):
@@ -243,6 +289,7 @@ def lint_page(path: Path, label: str | None, book_title: str, final: bool) -> Pa
         note_includes(number, line)
 
         if VISUAL_DIRECTIVE.search(line):
+            note_visual(number)
             try:
                 visual = parse_visual_directive(line, number)
                 if visual:
@@ -251,6 +298,10 @@ def lint_page(path: Path, label: str | None, book_title: str, final: bool) -> Pa
                     data_visuals.append((number, type(visual).__name__.removesuffix("Spec").lower(), program_files_for_data(data_file)))
             except SyntaxProblem as problem:
                 add(problem.line, str(problem))
+
+        for include in INCLUDE.finditer(line):
+            if Path(include.group(1).split(":")[0]).suffix in {".cpp", ".h"}:
+                code_lines.append(number)
 
         heading = HEADING.match(line)
         if heading:
@@ -307,6 +358,14 @@ def lint_page(path: Path, label: str | None, book_title: str, final: bool) -> Pa
                 f"the program behind this {kind} must be included on the same page; add an include for {names} "
                 "(the program may be inside <details>).",
             )
+
+    chapter = CHAPTER_FOLDER.match(path.parent.name)
+    concept_first_page = path.name == "index.md" or bool(LESSON_FILE.match(path.name))
+    if chapter and int(chapter["number"]) >= 6 and concept_first_page:
+        if not visual_lines:
+            add(1, "chapter 6 and later lessons and chapter indexes need at least one Mermaid diagram, chart or generated data table.")
+        elif LESSON_FILE.match(path.name) and code_lines and min(code_lines) < min(visual_lines):
+            add(min(code_lines), "the first visual in a chapter 6 or later lesson must come before its first C++ code block or source include.")
 
     # headings
     h1s = [h for h in headings if h[1] == 1]

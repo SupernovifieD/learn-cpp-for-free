@@ -160,11 +160,15 @@ def visual_page(tmp_path, monkeypatch, body: str, files: dict[str, str]):
 
 
 def test_chart_data_counts_as_used_and_its_program_is_on_the_same_page(tmp_path, monkeypatch):
-    body = """```cpp title="values.cpp"
-{{#include ../../examples/ch06/values.cpp}}
-```
+    body = """This chart shows the value for each pass.
 
-{{#chart bar ../../examples/ch06/values.out x="Pass" y="Value" caption="Values"}}"""
+{{#chart bar ../../examples/ch06/values.out x="Pass" y="Value" caption="Values"}}
+
+This is the program behind the chart.
+
+```cpp title="values.cpp"
+{{#include ../../examples/ch06/values.cpp}}
+```"""
     page = visual_page(
         tmp_path,
         monkeypatch,
@@ -181,7 +185,7 @@ def test_data_visual_requires_its_program_on_the_same_page(tmp_path, monkeypatch
     page = visual_page(
         tmp_path,
         monkeypatch,
-        '{{#table ../../examples/ch06/values.out header="Pass | Value"}}',
+        'This table shows the value for each pass.\n\n{{#table ../../examples/ch06/values.out header="Pass | Value"}}',
         {"examples/ch06/values.cpp": "int main() {}\n", "examples/ch06/values.out": "one 1\n"},
     )
 
@@ -190,11 +194,15 @@ def test_data_visual_requires_its_program_on_the_same_page(tmp_path, monkeypatch
 
 
 def test_data_visual_requires_every_file_of_a_project_on_the_same_page(tmp_path, monkeypatch):
-    body = """```cpp title="main.cpp"
-{{#include ../../examples/ch06/trace/main.cpp}}
-```
+    body = """This chart shows the trace made by the project.
 
-{{#chart line ../../examples/ch06/trace.out x="Pass" y="Value" caption="Trace"}}"""
+{{#chart line ../../examples/ch06/trace.out x="Pass" y="Value" caption="Trace"}}
+
+This is the project's entry point.
+
+```cpp title="main.cpp"
+{{#include ../../examples/ch06/trace/main.cpp}}
+```"""
     page = visual_page(
         tmp_path,
         monkeypatch,
@@ -211,10 +219,93 @@ def test_data_visual_requires_every_file_of_a_project_on_the_same_page(tmp_path,
 
 
 def test_malformed_data_visual_has_an_actionable_lint_error(tmp_path, monkeypatch):
-    page = visual_page(tmp_path, monkeypatch, '{{#chart bar values.out x="Pass"}}', {})
+    page = visual_page(tmp_path, monkeypatch, 'This chart shows each pass.\n\n{{#chart bar values.out x="Pass"}}', {})
 
     messages = [problem.message for problem in page.problems]
     assert any("missing: caption, y" in message for message in messages)
+
+
+# ---------------------------------------------------- concept-first visuals --
+
+
+def visual_rule_messages(tmp_path, monkeypatch, body: str, name: str = "01-lesson.md") -> list[str]:
+    monkeypatch.setattr(lint_content, "REPO", tmp_path)
+    monkeypatch.setattr(lint_content, "DOCS", tmp_path / "docs")
+    monkeypatch.setattr(lint_content, "EXAMPLES", tmp_path / "examples")
+    page = tmp_path / "docs" / "ch06-operators" / name
+    page.parent.mkdir(parents=True)
+    label = "6.1 Test" if name != "index.md" else "6. Operators"
+    page.write_text(f"# {label}\n\n{body}\n")
+    result = lint_content.lint_page(page, label, "Book", final=False)
+    return [problem.message for problem in result.problems]
+
+
+def test_chapter_six_lesson_without_a_visual_is_rejected(tmp_path, monkeypatch):
+    messages = visual_rule_messages(tmp_path, monkeypatch, "The lesson has prose but no picture.")
+
+    assert any("need at least one Mermaid diagram" in message for message in messages)
+
+
+def test_chapter_six_index_without_a_visual_is_rejected(tmp_path, monkeypatch):
+    messages = visual_rule_messages(tmp_path, monkeypatch, "The chapter has prose but no concept map.", name="index.md")
+
+    assert any("need at least one Mermaid diagram" in message for message in messages)
+
+
+def test_code_before_the_first_lesson_visual_is_rejected(tmp_path, monkeypatch):
+    body = """This fragment comes too early.
+
+```cpp
+int value{2};
+```
+
+This diagram shows where the value goes.
+
+```mermaid
+flowchart TD
+    value[Value] --> output[Output]
+```"""
+    messages = visual_rule_messages(tmp_path, monkeypatch, body)
+
+    assert any("first visual" in message and "before" in message for message in messages)
+
+
+def test_heading_immediately_before_a_visual_is_rejected(tmp_path, monkeypatch):
+    body = """## The path
+
+```mermaid
+flowchart TD
+    start[Start] --> finish[Finish]
+```"""
+    messages = visual_rule_messages(tmp_path, monkeypatch, body)
+
+    assert any("plain prose sentence immediately before" in message for message in messages)
+
+
+def test_mermaid_init_directive_is_rejected(tmp_path, monkeypatch):
+    body = """This diagram shows one step.
+
+```mermaid
+%%{init: {"flowchart": {"padding": 6}}}%%
+flowchart TD
+    start[Start]
+```"""
+    messages = visual_rule_messages(tmp_path, monkeypatch, body)
+
+    assert any("configuration belongs in theme/mermaid-init.js" in message for message in messages)
+
+
+@pytest.mark.parametrize("entity", ["#43;", "&#42;"])
+def test_html_entity_code_in_mermaid_is_rejected(tmp_path, monkeypatch, entity):
+    body = f"""This diagram shows an operator.
+
+```mermaid
+flowchart TD
+    operator[{entity}]
+```"""
+    messages = visual_rule_messages(tmp_path, monkeypatch, body)
+
+    assert any("HTML entity code" in message and entity in message for message in messages)
 
 
 # ------------------------------------------------------------- templates --
