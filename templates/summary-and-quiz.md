@@ -39,7 +39,8 @@ Say in two to four sentences what this page recaps and how to use the quiz.
 
 <!--
   QUIZ: 5 to 8 questions in rising difficulty. At least half of them are programming tasks with a
-  solution program that is checked like every other example. A question is a level-3 heading,
+  solution program that is checked like every other example, and at least two ask the reader to
+  read or predict a visual. A question is a level-3 heading,
   "Question 1", "Question 2" and so on, followed by the question as normal, visible text. The
   solution goes into a collapsible below it, so the reader tries first. Keep the empty lines and do
   not indent anything.

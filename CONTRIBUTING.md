@@ -90,7 +90,7 @@ Suppose you are adding lesson 0.14, "Example lesson".
 ## Add a chapter
 
 1. Create the folder `docs/chNN-slug/` with a two-digit chapter number.
-2. Copy `templates/chapter-index.md` to `docs/chNN-slug/index.md` and fill it in.
+2. Copy `templates/chapter-index.md` to `docs/chNN-slug/index.md` and fill it in. Open with a concept map that connects the chapter's main ideas, before the lesson list.
 3. Add the chapter to `docs/SUMMARY.md`. The chapter's `index.md` is the chapter's own entry, and its lessons are indented by two spaces under it:
 
     ```markdown
@@ -108,7 +108,7 @@ A chapter can end with a page that recaps its lessons and tests the reader.
 
 1. **Copy the template.** Copy `templates/summary-and-quiz.md` to `docs/chNN-slug/x-summary-and-quiz.md`. The `x-` keeps the page after the numbered lessons. The first heading is the label in `docs/SUMMARY.md`, written like `1.x Chapter 1 summary and quiz`.
 2. **Write the summary.** Under `## Summary`, write one short paragraph or bullet group for each lesson, in lesson order. Each links to its lesson and restates its key terms in plain words. Teach nothing new here.
-3. **Write the quiz.** Under `## Quiz`, write 5 to 8 questions in rising difficulty. Each is a `### Question N` heading, the question as normal visible text, and the solution inside a `<details>` whose summary is `Solution`. At least half of the questions are programming tasks. Their solution programs are named `x-qN-slug` (`examples/ch01/x-q5-theater-seats.cpp`, or a project folder), checked like every other example, and included in the solution together with their Output or Example session block.
+3. **Write the quiz.** Under `## Quiz`, write 5 to 8 questions in rising difficulty. Each is a `### Question N` heading, the question as normal visible text, and the solution inside a `<details>` whose summary is `Solution`. At least half of the questions are programming tasks, and at least two ask the reader to read or predict a visual. Their solution programs are named `x-qN-slug` (`examples/ch01/x-q5-theater-seats.cpp`, or a project folder), checked like every other example, and included in the solution together with their Output or Example session block.
 4. **Add the page** to `docs/SUMMARY.md` as the last entry of the chapter, and to the lesson list in the chapter's `index.md`.
 
 On a quiz page the question stays visible and only the solution is collapsed. The nested question-and-answer pattern under "Callouts" is for the "Check your understanding" questions inside lessons.
@@ -116,7 +116,7 @@ On a quiz page the question stays visible and only the solution is collapsed. Th
 ## Rules for examples
 
 - **Names.** `examples/chNN/NN-slug.cpp`, where `NN` is the number of the lesson that first uses the program. The programs of a chapter's quiz are named `x-qN-slug` instead, after the page `x-summary-and-quiz.md` that uses them. In a lesson, a single-file program is titled with its file name without the number prefix (`title="hello-world.cpp"`), and the files of a project keep their real names (`title="main.cpp"`).
-- **Names in code.** Variables and functions use `camelCase` (`readNumber`, `totalSeats`). Header files end in `.h`, and a header guard is named after its file in `UPPER_SNAKE_CASE` (`ADD_H` for `add.h`). Once the book has explained header guards, every header has one; a lesson that shows headers earlier says why they have none yet. Constants use the same `camelCase` as variables (`seatsPerRow`), with no prefix such as `k` or `c_`. Write the literal suffixes `L`, `LL`, `UL` and `ULL` in capitals, because a lowercase `l` looks like the digit 1, and `u` and `f` in lower case (`5u`, `3.14f`). The book picks one style and says in its lesson about names that other styles exist.
+- **Names in code.** Variables and functions use `camelCase` (`readNumber`, `totalSeats`). Global variables and global constants add the prefix `g_` (`g_visitorCount`); local constants have no prefix such as `k` or `c_`. A namespace that the book defines is one lowercase word (`pricing`, `geometry`). Loop counters are signed `int` values unless the lesson explains a reason otherwise, and descriptive names such as `pass`, `row` and `count` are preferred over `i` and `j` except in the shortest loops. Header files end in `.h`, and a header guard is named after its file in `UPPER_SNAKE_CASE` (`ADD_H` for `add.h`). Once the book has explained header guards, every header has one; a lesson that shows headers earlier says why it has none yet. Lesson 8.15's header is named `Random.h` and uses `RANDOM_H`. Write the literal suffixes `L`, `LL`, `UL` and `ULL` in capitals, because a lowercase `l` looks like the digit 1, and `u` and `f` in lower case (`5u`, `3.14f`). The book picks one style and says in its lesson about names that other styles exist.
 - **Projects (programs with several files).** A program is either one file or a folder. A project is a folder such as `examples/ch02/08-two-files/` that holds the program's `.cpp` files and the `.h` headers they include, with one of the files named `main.cpp`. The checker compiles and links every `.cpp` file of the folder in one command. The folder is flat (no folders inside it), and a `.cpp` file inside it is never a program of its own. Headers are allowed only inside project folders, and they follow the same formatting rules as `.cpp` files.
 - **Files that belong to a program** sit next to it, whether it is a file or a folder, never inside the project folder: `08-two-files.out` is the output of the folder `08-two-files/`. The exact expected standard output goes in `NN-slug.out`.
 - **Programs that read input** have two more files. `NN-slug.in` holds what the reader types, one line for each press of the Enter key. `NN-slug.session` holds what the reader sees in the console: the program's output with the typed lines where they appear on the screen. For a program that prints `Enter a number: ` and then `Twice that is 14` after the reader types 7, the session is `Enter a number: 7` followed by `Twice that is 14` on the next line. The checker proves that removing each line of `.in`, in order, from where it appears in the session leaves exactly the program's output, so a wrong output line, a missing typed line and an input line that the session never shows are all errors. The proof covers the order of the typed lines and that everything else is the program's output. It does not check where a typed line sits, which should be right after the prompt that asks for it, and it cannot tell that the program really read every typed line. Place the lines as the program would show them, keep the input short, and say in the lesson what the reader types. A program has `.out` or `.session`, never both, and `.in` always goes with `.session`. Show a session in a block titled `Example session` (```` ```text title="Example session" ````) instead of `Output`, and write in the prose what the reader types ("Type 7 and press Enter").
@@ -144,7 +144,10 @@ What each chapter adds to the toolbox is listed below. A chapter's examples may 
 - **Chapter 3:** `std::cerr` and debug output that the preprocessor switches on and off. The bugs in its programs are logic errors made from the toolbox so far: a wrong operator, swapped arguments, the wrong variable, whole-number division, a forgotten call, an unused result.
 - **Chapter 4:** `short`, `long`, `long long` and their unsigned forms, `signed char` and `unsigned char`, `float`, `double`, `bool` with `true` and `false`, `char` with character literals and escape sequences, `sizeof`, the fixed-width types of `<cstdint>`, `std::size_t`, scientific notation, the `f` suffix, `std::setprecision`, `std::boolalpha`, logical NOT `!`, the comparison operators, `if`, `else` and `else if`, arithmetic on characters, and `static_cast`.
 - **Chapter 5:** `const`, every literal suffix, the `s` and `sv` suffixes of string literals (with a using-directive inside a function), `0x`, `0b` and octal literals, digit separators, `std::hex`, `std::oct`, `std::dec`, `std::bitset`, `constexpr` variables, `std::string`, `std::getline`, `std::ws` and `std::string_view`.
-- **Not before Chapter 6:** loops, `switch`, `&&` and `||`, the conditional operator, `%`, `++` and `--`, compound assignment, `auto`, references, pointers, arrays, `std::vector`, enumerations, structures, classes, templates, lambdas, `std::format` and `std::print`, exceptions and `constexpr` functions.
+- **Chapter 6:** precedence, associativity and grouping parentheses; unary `+`; `+=`, `-=`, `*=`, `/=` and `%=`; `%`; `std::pow` from `<cmath>`; prefix and postfix `++` and `--`; the comma operator; the conditional operator; all relational operators; `std::abs` from `<cmath>` and `std::max` from `<algorithm>` for approximate comparisons; `&&`, `||` and `!`.
+- **Chapter 7:** nested blocks; user-defined and nested namespaces; namespace aliases; global variables; `static` for internal linkage and `extern`; inline functions and variables; inline `constexpr` variables in headers; static local variables; using-declarations and using-directives; unnamed and inline namespaces.
+- **Chapter 8:** `if` with blocks; `if constexpr`; `switch`, `case`, `default` and `[[fallthrough]]`; `goto` in lesson 8.7 only; `while`, `do while` and `for`; `break` and `continue`; `std::exit`, `std::atexit` and `std::abort`; `std::mt19937`, `std::random_device`, `std::seed_seq` and `std::uniform_int_distribution die{1, 6};` from `<random>`; and `std::chrono::steady_clock` for seeding.
+- **Not through Chapter 8:** arrays, `std::vector`, range-based `for`, references, pointers, enumerations, structures, classes, `auto`, user-defined templates, lambdas, exceptions, `std::format`, `std::print`, and handling a failed `std::cin` read.
 
 A later feature may be named in prose with a forward reference ("You will meet `if` statements in Chapter 4"), but it never appears in a program that readers type or that the checker runs, and the lesson does not teach it in depth. Something that a lesson shows only to say that it is wrong goes into a `.fail` program. When you review a lesson, ask whether a reader who has read only the earlier lessons could follow every line.
 
@@ -160,7 +163,7 @@ A later feature may be named in prose with a forward reference ("You will meet `
 - No raw HTML and no emoji in pages. The only HTML allowed is `<details>`, `<summary>` and `<kbd>`, without attributes.
 - Shell commands go in `bash` (or `powershell`) blocks without a `$` prompt, so the copy button copies a runnable command.
 
-Each lesson has this shape: the heading, an opening paragraph, sections in sentence case, an optional "Check your understanding" collapsible, a `## Summary` with 3 to 6 bullets, and an optional `## Further reading` that links primary sources over https. Do not write previous and next links by hand, because the book provides the arrows. Links to other pages are relative `.md` links (`[Conventions](../conventions.md)`, optionally with `#heading-id`); the linter checks that the page and the heading exist.
+Every lesson starts with its heading and an opening paragraph that states the problem the lesson solves. In Chapter 6 and later, explain the idea with a visual before introducing its syntax or showing any C++ code; use the same names and values in the picture, prose and program. Show path, scope and lifetime pitfalls visually when those relationships are the point. End with 1 to 3 "Check your understanding" questions (at least one asks the reader to use a visual), a `## Summary` with 3 to 6 bullets, and an optional `## Further reading` that links primary sources over https. Do not write previous and next links by hand, because the book provides the arrows. Links to other pages are relative `.md` links (`[Conventions](../conventions.md)`, optionally with `#heading-id`); the linter checks that the page and the heading exist.
 
 ## Callouts
 
@@ -229,13 +232,51 @@ Every tab in a set holds the same kind of information in the same order, with bo
 
 In the browser the groups become tabs that work with the arrow keys, and a reader's choice applies to every group with the same labels, on every page. Without JavaScript, all tabs are shown one under another, each under its label. The linter rejects other labels, mixed sets and unbalanced markers.
 
-## Diagrams
+## Visuals
 
-Use Mermaid in a ```` ```mermaid ```` fence, top to bottom (`flowchart TD`), with short node labels and no custom colors. Put one plain sentence that describes the diagram before it, for screen-reader users. Keep each row to at most two nodes: a wider diagram is scaled down on a phone until its text is too small, and the UI test for the diagram fails when text falls below 12px. Mermaid is bundled in `theme/` and draws in the colors of the current theme.
+A visual earns its place by showing a relationship that prose handles poorly: structure, space, time, paths or quantity. It does not decorate syntax or turn a sentence into boxes. Every Chapter 6 or later lesson and chapter index needs at least one visual; aim for at least two per lesson on average in each chapter. Across a multi-chapter contribution, use at least five catalog kinds. A chapter index opens with a concept map before its lesson list, and a lesson's first visual comes before its first C++ fence or source include.
 
-## Tables
+Choose the form by the idea, using only this catalog:
 
-A table wider than the page scrolls inside its frame, and the frame can be scrolled with the keyboard. Readers on phones should still not have to scroll: keep tables to three columns or fewer with short cells, and split a wide table into two.
+| Kind | Form | Use it for |
+| --- | --- | --- |
+| Path | `flowchart TD` | Decisions, loops, short-circuiting and what happens next |
+| Tree | `flowchart TD` | Expression grouping and precedence |
+| Nested boxes | `flowchart TD` with subgraphs | Blocks, scopes, namespaces, files and translation units |
+| Lifetimes | `sequenceDiagram` with activations | When automatic and static objects exist across calls |
+| Calls | `sequenceDiagram` | Side effects, cleanup and halt order |
+| States | `stateDiagram-v2` | A generator's state or a loop seen as states |
+| Layout | `block-beta` | Memory regions and side-by-side comparisons |
+| Chart | `{{#chart}}` | Growth, distributions, sequences and other quantities |
+| Data table | `{{#table}}` | Program traces, truth tables and checked results |
+| Fact table | Markdown table | Rules and sourced facts, never program output |
+
+The catalog was tested with the bundled Mermaid at a 320-pixel viewport in light and dark themes. The smallest text was 15 to 16px for flowcharts, states and layouts, 12.4px for lifetime sequences, 12.8px for call sequences and 12.1px for the configured chart. Gantt charts stayed at 10px and timelines at 5.9px, so neither is allowed. Mindmaps render, but they do not show direction or containment as precisely as the approved trees and nested boxes, so they are outside the catalog. Do not introduce another Mermaid kind until its phone-width, theme and accessibility behavior has been added to the pilot and tests.
+
+All Mermaid configuration belongs in `theme/mermaid-init.js`, with presets for light and dark themes. A page never contains `%%{init}%%`, custom colors or styles. The preset controls flowchart spacing, sequence sizing, chart dimensions and theme-aware colors; meaning must not depend on color. The UI tests require at least 3:1 contrast for chart marks and at least 12px text after scaling.
+
+Keep one idea in each visual, at most about 12 nodes, at most two nodes per flowchart row, and labels to about four words. An operator-only label uses a backslash escape such as `\*`, or a phrase such as `b * c`; never use an HTML entity code such as `#43;` or `&#42;`. Flowcharts, sequences and state diagrams have `accTitle` and `accDescr` lines that state the picture's point. The bundled `block-beta` grammar does not accept those keywords, so its surrounding prose supplies the accessible explanation.
+
+Put a plain prose sentence immediately before every visual to say what it shows, and a sentence immediately after it to say what to notice. Names and values in the picture match the nearby prose and program. A reader who skips the code should still be able to explain the idea from the picture and its two sentences. At least one "Check your understanding" question in each lesson asks the reader to follow a path, complete a trace, choose a tree or otherwise use a visual.
+
+### Charts and generated data tables
+
+Every number that describes a program comes from a checked companion file, never from a hand-written Markdown table. Use these directives on one complete line:
+
+```markdown
+{{#chart bar ../../examples/ch06/03-values.out x="Input" y="Remainder" caption="Remainders by input"}}
+{{#table ../../examples/ch06/03-values.out header="Input | Remainder"}}
+```
+
+A data file is an `.out`, `.err` or `.example` companion. Add `skip=N` to ignore `N` leading lines. A chart file has one `<label> <number>` row per point and at most 12 rows; use `bar` only when every value is non-negative, because the generated y-axis starts its bars at zero, and use `line` for negative values. Both axis titles and the caption are required. A chart made from `.example` output automatically adds "(one example run)" to its caption, and every chart is followed by an expandable table containing the same values.
+
+A generated table splits each data line on whitespace into exactly as many fields as its `header` has columns. It has 1 to 3 columns and at most 16 rows. A hand-written Markdown table is only for facts backed by a primary source; keep it to three columns with short cells, and split a wider idea into two tables.
+
+Include the program that produced chart or table data on the same page, normally or inside `<details>` with a summary such as "The program behind this chart". Because concept comes first, place the visual before that program in Chapter 6 and later lessons. The linter treats the directive's data file as used and rejects a missing companion or a program not shown on the page. The preprocessor stops the build for invalid fields, too many rows or columns, a non-number in a chart, or negative bar data.
+
+### Visual lint and review
+
+The linter requires the Chapter 6+ visual and concept-first order. Book-wide, it also requires a plain lead-in sentence, forbids page-local Mermaid configuration and numeric entity codes, and checks directive syntax and provenance. A passing automated test is not a visual review: use the screenshot process below and look at every result yourself.
 
 ## Debugger lessons
 
@@ -255,12 +296,13 @@ Lessons about a debugger use the Toolchains tabs (`Visual Studio`, `VS Code`, `C
 - tabs have the right roles, work with the keyboard, remember the choice and stay readable without JavaScript,
 - answers stay hidden until opened, and the copy button copies the program in `examples/`,
 - every page with a question is measured again with every `<details>` opened (nested ones too) at 320, 375 and 1280 pixels, so code, tables and diagrams inside answers are checked like the rest of the page, and axe-core checks the opened answers as well,
-- every Mermaid diagram, found in the built pages, draws in both themes, fits at 320 pixels and keeps its text at 12 pixels or more,
+- every Mermaid diagram, found in the built pages, draws in both themes at 320 and 1280 pixels, keeps its text at 12 pixels or more, contains no placeholder or garbage text, and clips no text outside its SVG,
+- every chart mark has at least 3:1 contrast against its background in both themes,
 - an unknown address shows the book's own 404 page, styled and with a working sidebar.
 
 When a check fails, the test run saves a screenshot of the failing page to `artifacts/screenshots/failures/`, and CI uploads that folder. Optional settings: `UI_WORKERS` sets how many browsers run in parallel (`make test-ui UI_WORKERS=4`, default 2), and `BASE_URL` tests a published book instead of the local build, for example `BASE_URL=https://supernovified.github.io/learn-cpp-for-free/`. While you draft a chapter, `make test-ui UI_ONLY=ch03-debugging` runs only the tests whose id contains that text (page ids start with the chapter folder and the lesson file, so `UI_ONLY=ch03-debugging__04` is lesson 3.4). It is a drafting aid only: `make check` refuses it and CI never sets it, so every gate runs every page.
 
-Automated checks do not see everything, so look at the screenshots of your page (375 and 1280 pixels wide in both color schemes, plus 320 for pages with tabs, tables or diagrams) and check the points below. For a page with questions, look at the screenshots twice: once with the answers closed, and once with every answer opened (`make screenshots SCREENSHOT_ARGS="--open-details --only ch01"` saves the second set next to the first, with `-open` in the file name). Check that:
+Automated checks do not see everything, so look at the screenshots of every new or changed page at 375 and 1280 pixels in both color schemes. Also use 320 for a page with a visual, tab, table or project. For a page with questions, look twice: once with the answers closed, and once with every answer opened (`make screenshots SCREENSHOT_ARGS="--open-details --only ch01"` saves the second set next to the first, with `-open` in the file name). Check that:
 
 1. callouts line up with the text, and the custom kinds look like the built-in ones;
 2. the copy button never covers code, and file names line up with the block edges;
@@ -273,7 +315,13 @@ Automated checks do not see everything, so look at the screenshots of your page 
 9. the dark theme has no white boxes and no dark-on-dark text;
 10. the menu bar never collides at 320 to 414 pixels;
 11. rendered keys do not disturb the line height;
-12. no text is smaller than 12px, and inline code is legible in both themes.
+12. no text is smaller than 12px, and inline code is legible in both themes;
+13. every visual has all of its text, with no garbage characters or missing labels;
+14. labels stay inside the visual at every edge, do not overlap, and arrows do not cross needlessly;
+15. chart bars and lines are visible in both themes, and every bar starts at zero;
+16. a chart's last x-axis label is not cut off, and its plot surface does not clash with the page in a dark theme;
+17. each visual says the same thing as the prose and checked program beside it; and
+18. the idea remains understandable from the visual and its surrounding sentences without reading the code.
 
 ## Content checklist
 
@@ -282,13 +330,16 @@ Before you open a pull request, check that:
 1. the wording is original, with nothing copied or closely paraphrased;
 2. every fact that can change was checked against a primary source today;
 3. the lesson covers what it promises and does not teach later chapters in depth;
-4. every complete program is an included, checked example;
-5. each term is bolded once where it is defined, and used consistently afterwards;
-6. callouts have the right kind and are not stacked or overused;
-7. tabs use the exact label sets;
-8. the length is reasonable and paragraphs have four sentences or fewer;
-9. a summary is present, and further reading uses primary sources over https;
-10. a beginner could follow every instruction without guessing.
+4. the central idea and its first visual appear before syntax and code;
+5. every complete program is an included, checked example, and every output number in a visual comes through a directive;
+6. every visual uses the right kind, matches the prose and program, and passed the visual review above;
+7. each term is bolded once where it is defined, and used consistently afterwards;
+8. callouts have the right kind and are not stacked or overused;
+9. tabs use the exact label sets;
+10. the length is reasonable and paragraphs have four sentences or fewer;
+11. the lesson has 1 to 3 questions, including a visual question, and a 3 to 6 bullet summary;
+12. further reading uses primary sources over https; and
+13. a beginner can follow every instruction and explain the central idea from the visuals without guessing.
 
 ## Commits and pull requests
 

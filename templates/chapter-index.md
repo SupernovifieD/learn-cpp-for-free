@@ -27,6 +27,23 @@
 
 Say in two to four sentences what this chapter covers and why it matters.
 
+<!--
+  CONCEPT MAP: open the chapter with its main ideas and their relationships,
+  before the outcomes and lesson list. Replace every generic label below.
+-->
+
+The concept map shows how the chapter's starting idea leads to its main skill.
+
+```mermaid
+flowchart TD
+    accTitle: The chapter's main ideas
+    accDescr: The starting idea leads through a second idea to the chapter's main skill.
+    start[Starting idea] --> next[Second idea]
+    next --> skill[Main skill]
+```
+
+Notice how each lesson will add one connection to the chapter's central idea.
+
 ## What you will be able to do after this chapter
 
 <!--

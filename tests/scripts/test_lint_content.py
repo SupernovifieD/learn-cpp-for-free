@@ -331,6 +331,28 @@ def test_every_placeholder_phrase_of_the_quiz_template_is_known_to_the_linter():
         assert expected in phrases, f"'{expected}' is not in TEMPLATE_LEFTOVERS, or no longer in the quiz template."
 
 
+@pytest.mark.parametrize(
+    ("template", "name"),
+    [("lesson.md", "01-lesson.md"), ("chapter-index.md", "index.md")],
+)
+def test_chapter_six_templates_satisfy_the_visual_structure_rules(tmp_path, monkeypatch, template, name):
+    monkeypatch.setattr(lint_content, "REPO", tmp_path)
+    monkeypatch.setattr(lint_content, "DOCS", tmp_path / "docs")
+    page = tmp_path / "docs" / "ch06-example" / name
+    page.parent.mkdir(parents=True)
+    page.write_text((TEMPLATES / template).read_text())
+    problems = lint_content.lint_page(page, None, "Book", final=False).problems
+    visual_rule_phrases = (
+        "need at least one Mermaid diagram",
+        "first visual",
+        "plain prose sentence immediately before",
+        "configuration belongs in theme/mermaid-init.js",
+        "HTML entity code",
+    )
+
+    assert not [problem for problem in problems if any(phrase in problem.message for phrase in visual_rule_phrases)]
+
+
 @pytest.mark.parametrize("text", ["This is simply wrong.", "It just works.", "Obviously so.", "an easy fix", "TODO later"])
 def test_the_words_that_the_style_guide_bans_are_forbidden(text):
     assert lint_content.FORBIDDEN_WORDS.search(text), text

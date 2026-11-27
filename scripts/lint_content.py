@@ -80,6 +80,12 @@ TEMPLATE_LEFTOVERS = [
     "First main point.",
     "# 1. Chapter title",
     "Explain the first big idea of the chapter",
+    "The diagram shows how the lesson's starting idea leads to its main result",
+    "Starting idea reaches its result",
+    "Notice the one relationship that the rest of the lesson will explain",
+    "The concept map shows how the chapter's starting idea leads to its main skill",
+    "The chapter's main ideas",
+    "Notice how each lesson will add one connection to the chapter's central idea",
     # templates/summary-and-quiz.md
     "# N.x Chapter N summary and quiz",
     "what this page recaps",

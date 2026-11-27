@@ -32,6 +32,23 @@ Say in two to four sentences what this lesson covers and why it matters.
 Explain one idea per section. Put identifiers, file names and commands in backticks.
 
 <!--
+  FIRST VISUAL: teach the idea before syntax or code. Replace this small path with
+  the right kind from CONTRIBUTING.md's visual catalog, and use the same names and
+  values in the later prose and program. Keep one sentence before and after it.
+-->
+
+The diagram shows how the lesson's starting idea leads to its main result.
+
+```mermaid
+flowchart TD
+    accTitle: Starting idea reaches its result
+    accDescr: The lesson's starting idea leads to its main result.
+    idea[Starting idea] --> result[Main result]
+```
+
+Notice the one relationship that the rest of the lesson will explain.
+
+<!--
   PROGRAMS: never paste a complete program here. Put it in examples/chNN/NN-slug.cpp
   with its output in NN-slug.out, then include both files with the include syntax
   that CONTRIBUTING.md shows in "Add a lesson in 5 steps", step 3. (The include lines
@@ -78,12 +95,9 @@ Explain one idea per section. Put identifiers, file names and commands in backti
 -->
 
 <!--
-  DIAGRAMS: use Mermaid, top to bottom, with short labels, and put one plain
-  sentence that describes the diagram just before it.
--->
-
-<!--
-  CHECK YOUR UNDERSTANDING (optional): a collapsible question with a nested answer.
+  CHECK YOUR UNDERSTANDING: write 1 to 3 questions. At least one asks the reader
+  to use a visual (follow a path, complete a trace or choose a grouping). A
+  collapsible question has a nested answer.
   Keep the empty lines, and do not indent anything:
 
     <details>
