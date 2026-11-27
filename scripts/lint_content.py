@@ -37,7 +37,22 @@ import tomllib
 from dataclasses import dataclass
 from pathlib import Path
 
-from mdbook_cppbook import CALLOUT, CUSTOM_CALLOUTS, FENCE, NATIVE_CALLOUTS, TAB_OPEN, TABS_CLOSE, TABS_OPEN, TITLED_INFO, SyntaxProblem, convert
+from mdbook_cppbook import (
+    CALLOUT,
+    CUSTOM_CALLOUTS,
+    FENCE,
+    NATIVE_CALLOUTS,
+    TAB_OPEN,
+    TABS_CLOSE,
+    TABS_OPEN,
+    TITLED_INFO,
+    VISUAL_DIRECTIVE,
+    SyntaxProblem,
+    checked_data_file,
+    convert,
+    parse_visual_directive,
+    program_files_for_data,
+)
 
 REPO = Path(__file__).resolve().parents[1]
 DOCS = REPO / "docs"
@@ -161,7 +176,7 @@ def lint_page(path: Path, label: str | None, book_title: str, final: bool) -> Pa
             add(text.count("\n", 0, position) + 1, f"text from the lesson or chapter template is still here ('{leftover}'): replace the placeholders and delete the template's comments.")
 
     try:
-        convert(text)
+        convert(text, expand_visuals=False)
     except SyntaxProblem as problem:
         add(problem.line, str(problem))
 
@@ -172,6 +187,7 @@ def lint_page(path: Path, label: str | None, book_title: str, final: bool) -> Pa
     fence_char, fence_len, fence_info, fence_start, fence_body = "", 0, "", 0, []
     in_comment = False
     tab_labels: set[str] = set()
+    data_visuals: list[tuple[int, str, tuple[Path, ...]]] = []
 
     def note_includes(number: int, line: str) -> None:
         for match in INCLUDE.finditer(line):
@@ -226,6 +242,16 @@ def lint_page(path: Path, label: str | None, book_title: str, final: bool) -> Pa
 
         note_includes(number, line)
 
+        if VISUAL_DIRECTIVE.search(line):
+            try:
+                visual = parse_visual_directive(line, number)
+                if visual:
+                    data_file = checked_data_file(visual, path, REPO, number)
+                    included.add(data_file.relative_to(REPO).as_posix())
+                    data_visuals.append((number, type(visual).__name__.removesuffix("Spec").lower(), program_files_for_data(data_file)))
+            except SyntaxProblem as problem:
+                add(problem.line, str(problem))
+
         heading = HEADING.match(line)
         if heading:
             headings.append((number, len(heading.group(1)), heading.group(2).strip()))
@@ -271,6 +297,16 @@ def lint_page(path: Path, label: str | None, book_title: str, final: bool) -> Pa
 
     if in_fence:
         add(fence_start, "a code fence is never closed.")
+
+    for number, kind, program_files in data_visuals:
+        missing = [program for program in program_files if program.relative_to(REPO).as_posix() not in included]
+        if missing:
+            names = ", ".join(program.name for program in missing)
+            add(
+                number,
+                f"the program behind this {kind} must be included on the same page; add an include for {names} "
+                "(the program may be inside <details>).",
+            )
 
     # headings
     h1s = [h for h in headings if h[1] == 1]

@@ -18,6 +18,8 @@ extra-watch-dirs = ["examples", "theme", "scripts"]
 # Labeled code blocks, the extra callout kinds and tabs (see scripts/mdbook_cppbook.py).
 [preprocessor.cppbook]
 command = "python3 scripts/mdbook_cppbook.py"
+# Charts become Mermaid fences, so this preprocessor must run first.
+before = ["mermaid"]
 
 # Turns ```mermaid fences into diagrams, drawn in the browser by theme/mermaid.min.js.
 [preprocessor.mermaid]

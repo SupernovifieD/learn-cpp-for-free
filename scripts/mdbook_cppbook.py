@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""mdBook preprocessor for the three pieces of lesson syntax that mdBook does not have itself.
+"""mdBook preprocessor for the book syntax that mdBook does not have itself.
 
 mdBook runs this script for every build (see [preprocessor.cppbook] in book.toml). It needs only
 Python 3. Everything it writes is plain HTML around ordinary Markdown, so the pages still read
@@ -30,6 +30,15 @@ correctly without JavaScript.
    becomes one labeled <section> per tab. theme/tabs.js turns the group into an accessible set of
    tabs; without JavaScript the sections are simply shown one after another.
 
+4. Charts and data tables whose values come from checked example output.
+
+       {{#chart bar ../examples/ch06/01-values.out x="Pass" y="Value" caption="Values by pass"}}
+       {{#table ../examples/ch06/01-values.out header="Pass | Value"}}
+
+   The chart becomes a Mermaid chart followed by the same data in a table. A table directive
+   becomes an ordinary Markdown table. Both forms stop the build if the named checked companion
+   or its data is invalid.
+
 scripts/lint_content.py imports the patterns below, so the linter and the build agree on the syntax.
 """
 
@@ -38,7 +47,11 @@ from __future__ import annotations
 import html
 import json
 import re
+import shlex
 import sys
+from dataclasses import dataclass
+from decimal import Decimal, InvalidOperation
+from pathlib import Path
 
 FENCE = re.compile(r"^(\s*)(`{3,}|~{3,})\s*(.*)$")
 TITLED_INFO = re.compile(r'^(?P<language>[\w+-]+)\s+title="(?P<title>[^"]*)"\s*$')
@@ -48,6 +61,14 @@ TABS_OPEN = re.compile(r"^\{\{#tabs\}\}\s*$")
 TABS_CLOSE = re.compile(r"^\{\{#endtabs\}\}\s*$")
 TAB_OPEN = re.compile(r"^\{\{#tab\s+(?P<label>[^{}]+?)\s*\}\}\s*$")
 TAB_CLOSE = re.compile(r"^\{\{#endtab\}\}\s*$")
+CHART_DIRECTIVE = re.compile(r"^\{\{#chart\s+(?P<body>.*?)\}\}\s*$")
+TABLE_DIRECTIVE = re.compile(r"^\{\{#table\s+(?P<body>.*?)\}\}\s*$")
+VISUAL_DIRECTIVE = re.compile(r"\{\{#(?:chart|table)\b")
+
+REPO = Path(__file__).resolve().parents[1]
+CHECKED_DATA_SUFFIXES = {".out", ".err", ".example"}
+MAX_CHART_ROWS = 12
+MAX_TABLE_ROWS = 16
 
 # Callouts that mdBook renders on its own.
 NATIVE_CALLOUTS = {"NOTE", "TIP", "WARNING"}
@@ -75,11 +96,253 @@ CUSTOM_CALLOUTS = {
 
 
 class SyntaxProblem(Exception):
-    """A mistake in the tab markers. The build stops and shows the page and line."""
+    """A mistake in custom book syntax. The build stops and shows the page and line."""
 
     def __init__(self, line: int, message: str) -> None:
         super().__init__(message)
         self.line = line
+
+
+@dataclass(frozen=True)
+class ChartSpec:
+    kind: str
+    data_file: str
+    x_title: str
+    y_title: str
+    caption: str
+    skip: int
+
+
+@dataclass(frozen=True)
+class TableSpec:
+    data_file: str
+    headers: tuple[str, ...]
+    skip: int
+
+
+VisualSpec = ChartSpec | TableSpec
+
+
+def _directive_label(name: str) -> str:
+    return f"{{{{#{name}}}}}"
+
+
+def _parts(line: str, number: int, directive: str, pattern: re.Pattern[str]) -> list[str]:
+    match = pattern.fullmatch(line)
+    if not match:
+        raise SyntaxProblem(number, f"the {_directive_label(directive)} directive must occupy one complete line and end with }}}}.")
+    try:
+        return shlex.split(match["body"])
+    except ValueError as problem:
+        raise SyntaxProblem(number, f"cannot parse the {_directive_label(directive)} directive: {problem}.") from problem
+
+
+def _attributes(tokens: list[str], number: int, directive: str, required: set[str]) -> tuple[dict[str, str], int]:
+    values: dict[str, str] = {}
+    skip: int | None = None
+    for token in tokens:
+        name, separator, value = token.partition("=")
+        if not separator:
+            raise SyntaxProblem(
+                number,
+                f"{token!r} in the {_directive_label(directive)} directive needs a name and value, "
+                f'such as {sorted(required)[0]}="...".',
+            )
+        if name not in required | {"skip"}:
+            allowed = ", ".join(sorted(required | {"skip"}))
+            raise SyntaxProblem(number, f"unknown {name!r} option in the {_directive_label(directive)} directive; use {allowed}.")
+        if name in values or (name == "skip" and skip is not None):
+            raise SyntaxProblem(number, f"the {_directive_label(directive)} directive gives {name!r} more than once.")
+        if not value:
+            raise SyntaxProblem(number, f"the {name!r} option in the {_directive_label(directive)} directive cannot be empty.")
+        if name == "skip":
+            if not value.isdecimal():
+                raise SyntaxProblem(number, "skip must be a non-negative whole number, such as skip=1.")
+            skip = int(value)
+        else:
+            values[name] = value
+    missing = required - values.keys()
+    if missing:
+        raise SyntaxProblem(number, f"the {_directive_label(directive)} directive is missing: {', '.join(sorted(missing))}.")
+    return values, skip or 0
+
+
+def parse_visual_directive(line: str, number: int) -> VisualSpec | None:
+    """Parse one chart or table directive, or return None for an ordinary line."""
+    if not VISUAL_DIRECTIVE.search(line):
+        return None
+    if line != line.lstrip():
+        raise SyntaxProblem(number, "chart and table directives must start at the beginning of the line.")
+    if line.startswith("{{#chart"):
+        parts = _parts(line, number, "chart", CHART_DIRECTIVE)
+        if len(parts) < 2:
+            raise SyntaxProblem(number, 'write a chart as {{#chart bar|line <data-file> x="..." y="..." caption="..."}}.')
+        kind, data_file, *option_tokens = parts
+        if kind not in {"bar", "line"}:
+            raise SyntaxProblem(number, f"unknown chart kind {kind!r}; use bar or line.")
+        values, skip = _attributes(option_tokens, number, "chart", {"x", "y", "caption"})
+        return ChartSpec(kind, data_file, values["x"], values["y"], values["caption"], skip)
+    if line.startswith("{{#table"):
+        parts = _parts(line, number, "table", TABLE_DIRECTIVE)
+        if not parts:
+            raise SyntaxProblem(number, 'write a table as {{#table <data-file> header="Column 1 | Column 2"}}.')
+        data_file, *option_tokens = parts
+        values, skip = _attributes(option_tokens, number, "table", {"header"})
+        headers = tuple(part.strip() for part in values["header"].split("|"))
+        if not 1 <= len(headers) <= 3:
+            raise SyntaxProblem(number, "a generated table needs between 1 and 3 header columns, separated with |.")
+        if any(not header for header in headers):
+            raise SyntaxProblem(number, "every generated table column needs a non-empty header between the | separators.")
+        return TableSpec(data_file, headers, skip)
+    raise SyntaxProblem(number, "chart and table directives must occupy one complete line.")
+
+
+def checked_data_file(spec: VisualSpec, source_path: Path, repo_root: Path, number: int) -> Path:
+    """Resolve a directive's data file and prove that the example checker owns it."""
+    target = (source_path.parent / spec.data_file).resolve()
+    if not target.is_file():
+        raise SyntaxProblem(number, f"the data file {spec.data_file!r} does not exist (the path is relative to this page).")
+    if target.suffix not in CHECKED_DATA_SUFFIXES:
+        allowed = ", ".join(sorted(CHECKED_DATA_SUFFIXES))
+        raise SyntaxProblem(number, f"{spec.data_file!r} is not a checked output companion; use a file ending in {allowed}.")
+    examples = (repo_root / "examples").resolve()
+    try:
+        target.relative_to(examples)
+    except ValueError as problem:
+        raise SyntaxProblem(number, f"{spec.data_file!r} is outside examples/ and therefore is not checked program output.") from problem
+    source = target.with_suffix(".cpp")
+    project = target.with_suffix("")
+    valid_project = project.is_dir() and (project / "main.cpp").is_file()
+    if not source.is_file() and not valid_project:
+        raise SyntaxProblem(
+            number,
+            f"{spec.data_file!r} has no checked program; add {source.name} or a project folder named "
+            f"{project.name}/ with main.cpp beside it.",
+        )
+    if target.suffix == ".example" and not target.with_suffix(".match").is_file():
+        raise SyntaxProblem(number, f"{spec.data_file!r} needs {target.with_suffix('.match').name} beside it so varying output is checked.")
+    return target
+
+
+def program_files_for_data(data_file: Path) -> tuple[Path, ...]:
+    """Return the source files that a page must show for this checked companion."""
+    source = data_file.with_suffix(".cpp")
+    if source.is_file():
+        return (source,)
+    project = data_file.with_suffix("")
+    return tuple(sorted(path for path in project.iterdir() if path.suffix in {".cpp", ".h"}))
+
+
+def _data_lines(data_file: Path, skip: int, number: int) -> list[str]:
+    lines = data_file.read_text().splitlines()[skip:]
+    if not lines:
+        raise SyntaxProblem(number, f"{data_file.name} has no data rows after skip={skip}.")
+    return lines
+
+
+def _decimal(token: str, data_file: Path, row: int, number: int) -> Decimal:
+    try:
+        value = Decimal(token)
+    except InvalidOperation as problem:
+        raise SyntaxProblem(number, f"{data_file.name} data row {row} has non-number {token!r}.") from problem
+    if not value.is_finite():
+        raise SyntaxProblem(number, f"{data_file.name} data row {row} has non-finite number {token!r}; charts need finite values.")
+    return value
+
+
+def _markdown_cell(value: str) -> str:
+    return value.replace("\\", "\\\\").replace("|", "\\|")
+
+
+def _markdown_table(headers: tuple[str, ...], rows: list[list[str]], numeric_last: bool = False) -> list[str]:
+    heading = "| " + " | ".join(_markdown_cell(header) for header in headers) + " |"
+    rules = ["---"] * len(headers)
+    if numeric_last:
+        rules[-1] = "---:"
+    divider = "| " + " | ".join(rules) + " |"
+    body = ["| " + " | ".join(_markdown_cell(value) for value in row) + " |" for row in rows]
+    return [heading, divider, *body]
+
+
+def _axis_number(value: Decimal) -> str:
+    result = format(value, "f")
+    if "." in result:
+        result = result.rstrip("0").rstrip(".")
+    return result or "0"
+
+
+def _chart_range(kind: str, values: list[Decimal]) -> tuple[Decimal, Decimal]:
+    if kind == "bar":
+        return Decimal(0), max(max(values), Decimal(1))
+    low, high = min(values), max(values)
+    if low == high:
+        padding = max(abs(low) * Decimal("0.1"), Decimal(1))
+        return low - padding, high + padding
+    return low, high
+
+
+def render_visual_directive(spec: VisualSpec, source_path: Path, repo_root: Path, number: int) -> list[str]:
+    """Turn one parsed directive into Mermaid or Markdown after validating its checked data."""
+    data_file = checked_data_file(spec, source_path, repo_root, number)
+    lines = _data_lines(data_file, spec.skip, number)
+    if isinstance(spec, TableSpec):
+        if len(lines) > MAX_TABLE_ROWS:
+            raise SyntaxProblem(
+                number,
+                f"{data_file.name} has {len(lines)} data rows after skip={spec.skip}; "
+                f"generated tables allow at most {MAX_TABLE_ROWS}.",
+            )
+        rows = [line.split() for line in lines]
+        for row_number, row in enumerate(rows, start=spec.skip + 1):
+            if len(row) != len(spec.headers):
+                raise SyntaxProblem(
+                    number,
+                    f"{data_file.name} data row {row_number} has {len(row)} fields; "
+                    f"its header has {len(spec.headers)} columns.",
+                )
+        return _markdown_table(spec.headers, rows)
+
+    if len(lines) > MAX_CHART_ROWS:
+        raise SyntaxProblem(
+            number,
+            f"{data_file.name} has {len(lines)} data rows after skip={spec.skip}; charts allow at most {MAX_CHART_ROWS}.",
+        )
+    rows: list[list[str]] = []
+    values: list[Decimal] = []
+    for row_number, line in enumerate(lines, start=spec.skip + 1):
+        fields = line.split()
+        if len(fields) != 2:
+            raise SyntaxProblem(
+                number,
+                f"{data_file.name} data row {row_number} has {len(fields)} fields; "
+                "chart rows need exactly a label and a number.",
+            )
+        rows.append(fields)
+        values.append(_decimal(fields[1], data_file, row_number, number))
+    if spec.kind == "bar" and any(value < 0 for value in values):
+        raise SyntaxProblem(number, f"{data_file.name} contains a negative value; use a line chart because bars must start at zero.")
+    caption = spec.caption + (" (one example run)" if data_file.suffix == ".example" else "")
+    low, high = _chart_range(spec.kind, values)
+    labels = json.dumps([row[0] for row in rows], ensure_ascii=False)
+    numbers = "[" + ", ".join(row[1] for row in rows) + "]"
+    return [
+        "```mermaid",
+        "xychart-beta",
+        f"    accTitle: {caption}",
+        f"    accDescr: {caption}. The x-axis is {spec.x_title}; the y-axis is {spec.y_title}.",
+        f"    title {json.dumps(caption, ensure_ascii=False)}",
+        f"    x-axis {json.dumps(spec.x_title, ensure_ascii=False)} {labels}",
+        f"    y-axis {json.dumps(spec.y_title, ensure_ascii=False)} {_axis_number(low)} --> {_axis_number(high)}",
+        f"    {spec.kind} {numbers}",
+        "```",
+        "",
+        "<details>",
+        "<summary>Data for this chart</summary>",
+        "",
+        *_markdown_table((spec.x_title, spec.y_title), rows, numeric_last=True),
+        "",
+        "</details>",
+    ]
 
 
 def listing_open(language: str, title: str) -> list[str]:
@@ -97,7 +360,7 @@ def callout_open(kind: str) -> list[str]:
     ]
 
 
-def convert(text: str) -> str:
+def convert(text: str, source_path: Path | None = None, repo_root: Path = REPO, *, expand_visuals: bool = True) -> str:
     """Rewrite one page of Markdown. Lines inside code fences are never changed."""
     out: list[str] = []
     fence: tuple[str, int] | None = None  # (fence character, length) while inside a code fence
@@ -133,6 +396,16 @@ def convert(text: str) -> str:
                 in_listing = True
             else:
                 out.append(line)
+            continue
+
+        if VISUAL_DIRECTIVE.search(line) and not expand_visuals:
+            out.append(line)
+            continue
+        visual = parse_visual_directive(line, number) if VISUAL_DIRECTIVE.search(line) else None
+        if visual:
+            if source_path is None:
+                raise SyntaxProblem(number, "chart and table directives need the page path so their data file can be resolved.")
+            out += render_visual_directive(visual, source_path, repo_root, number)
             continue
 
         callout = CALLOUT.match(line)
@@ -181,23 +454,27 @@ def convert(text: str) -> str:
     return "\n".join(out)
 
 
-def convert_items(items: list) -> None:
+def convert_items(items: list, source_root: Path, repo_root: Path) -> None:
     for item in items:
         chapter = item.get("Chapter") if isinstance(item, dict) else None
         if not chapter:
             continue
+        source = chapter.get("source_path")
+        source_path = source_root / source if source else None
         try:
-            chapter["content"] = convert(chapter["content"])
+            chapter["content"] = convert(chapter["content"], source_path, repo_root)
         except SyntaxProblem as problem:
             sys.exit(f"docs/{chapter.get('source_path') or chapter['name']}:{problem.line}: {problem}")
-        convert_items(chapter["sub_items"])
+        convert_items(chapter["sub_items"], source_root, repo_root)
 
 
 def main() -> int:
     if len(sys.argv) > 1 and sys.argv[1] == "supports":
         return 0  # every renderer gets the same Markdown
-    _context, book = json.load(sys.stdin)
-    convert_items(book["items"])
+    context, book = json.load(sys.stdin)
+    repo_root = Path(context["root"]).resolve()
+    source_root = repo_root / context["config"]["book"].get("src", "src")
+    convert_items(book["items"], source_root, repo_root)
     json.dump(book, sys.stdout)
     return 0
 

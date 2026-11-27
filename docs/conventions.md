@@ -365,6 +365,24 @@ The neighboring blocks invite a comparison; their colors do not carry the meanin
 
 Charts use labeled axes and bars or lines to show quantities. Every chart is followed by its numbers in a table, so the values remain available without the picture.
 
+This checked program prints the values used by the chart and data table below.
+
+```cpp title="visual-data.cpp"
+{{#include ../examples/ch00/00-visual-data.cpp}}
+```
+
+The chart shows the three printed values as bars that share a zero baseline.
+
+{{#chart bar ../examples/ch00/00-visual-data.out x="Stage" y="Checks" caption="Checks completed at each stage"}}
+
+Notice that the height of each bar can be compared because every bar starts at zero.
+
+A generated data table presents fields from the same checked output in rows and columns.
+
+{{#table ../examples/ch00/00-visual-data.out header="Stage | Checks"}}
+
+The table preserves the exact labels and values that the program printed.
+
 ## Tables
 
 A table that is wider than the page scrolls sideways inside its own frame, and the rest of the page stays still.

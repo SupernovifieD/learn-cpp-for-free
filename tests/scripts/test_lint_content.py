@@ -142,6 +142,81 @@ def test_files_the_operating_system_adds_are_not_examples(examples):
     assert problems_for({"examples/ch01/01-a.cpp"}) == []
 
 
+# ------------------------------------------------ checked-data visuals --
+
+
+def visual_page(tmp_path, monkeypatch, body: str, files: dict[str, str]):
+    monkeypatch.setattr(lint_content, "REPO", tmp_path)
+    monkeypatch.setattr(lint_content, "DOCS", tmp_path / "docs")
+    monkeypatch.setattr(lint_content, "EXAMPLES", tmp_path / "examples")
+    page = tmp_path / "docs" / "ch06" / "page.md"
+    page.parent.mkdir(parents=True)
+    page.write_text("# 6.1 Test\n\n" + body + "\n")
+    for name, content in files.items():
+        path = tmp_path / name
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(content)
+    return lint_content.lint_page(page, "6.1 Test", "Book", final=False)
+
+
+def test_chart_data_counts_as_used_and_its_program_is_on_the_same_page(tmp_path, monkeypatch):
+    body = """```cpp title="values.cpp"
+{{#include ../../examples/ch06/values.cpp}}
+```
+
+{{#chart bar ../../examples/ch06/values.out x="Pass" y="Value" caption="Values"}}"""
+    page = visual_page(
+        tmp_path,
+        monkeypatch,
+        body,
+        {"examples/ch06/values.cpp": "int main() {}\n", "examples/ch06/values.out": "one 1\n"},
+    )
+
+    assert page.problems == []
+    assert "examples/ch06/values.out" in page.included
+    assert "examples/ch06/values.cpp" in page.included
+
+
+def test_data_visual_requires_its_program_on_the_same_page(tmp_path, monkeypatch):
+    page = visual_page(
+        tmp_path,
+        monkeypatch,
+        '{{#table ../../examples/ch06/values.out header="Pass | Value"}}',
+        {"examples/ch06/values.cpp": "int main() {}\n", "examples/ch06/values.out": "one 1\n"},
+    )
+
+    messages = [problem.message for problem in page.problems]
+    assert any("program behind this table must be included on the same page" in message for message in messages)
+
+
+def test_data_visual_requires_every_file_of_a_project_on_the_same_page(tmp_path, monkeypatch):
+    body = """```cpp title="main.cpp"
+{{#include ../../examples/ch06/trace/main.cpp}}
+```
+
+{{#chart line ../../examples/ch06/trace.out x="Pass" y="Value" caption="Trace"}}"""
+    page = visual_page(
+        tmp_path,
+        monkeypatch,
+        body,
+        {
+            "examples/ch06/trace/main.cpp": "int main() {}\n",
+            "examples/ch06/trace/helper.cpp": "void helper() {}\n",
+            "examples/ch06/trace.out": "one 1\n",
+        },
+    )
+
+    messages = [problem.message for problem in page.problems]
+    assert any("helper.cpp" in message and "same page" in message for message in messages)
+
+
+def test_malformed_data_visual_has_an_actionable_lint_error(tmp_path, monkeypatch):
+    page = visual_page(tmp_path, monkeypatch, '{{#chart bar values.out x="Pass"}}', {})
+
+    messages = [problem.message for problem in page.problems]
+    assert any("missing: caption, y" in message for message in messages)
+
+
 # ------------------------------------------------------------- templates --
 
 TEMPLATES = Path(__file__).resolve().parents[2] / "templates"
