@@ -262,19 +262,108 @@ The **best practice** callout.
 
 </details>
 
-## Diagrams
+## Reading the diagrams and charts
 
-The next diagram shows the path from a source file to a program: the compiler turns the source file into an object file, and the linker turns the object file into an executable.
+A **path diagram** follows control or work from one step to the next; boxes are actions, a diamond is a choice, and arrows show what happens next.
 
 ```mermaid
 flowchart TD
-    A[Source file] --> B[Compiler]
-    B --> C[Object file]
-    C --> D[Linker]
-    D --> E[Executable]
+    accTitle: A path through a choice
+    accDescr: A condition leads to either the first path or the other path.
+    start[Read condition] --> choice{Condition true?}
+    choice -->|Yes| first[First path]
+    choice -->|No| other[Other path]
 ```
 
-Diagrams always run from top to bottom so that they fit on a phone. Every diagram has a sentence like the one above it, for readers who use a screen reader.
+Notice that only one arrow leaves the choice for a particular result.
+
+An **expression tree** reads from the bottom upward: each parent combines the values directly beneath it.
+
+```mermaid
+flowchart TD
+    accTitle: Grouping an arithmetic expression
+    accDescr: Multiplication groups b and c before addition combines that result with a.
+    total[a + b * c] --> add[add values]
+    add --> a[a]
+    add --> multiply[b * c]
+    multiply --> b[b]
+    multiply --> c[c]
+```
+
+The branch for `b * c` finishes before its result reaches the addition.
+
+**Nested boxes** show regions inside other regions; a name in an outer box can be visible to an inner box.
+
+```mermaid
+flowchart TD
+    accTitle: A block nested in a function
+    accDescr: The function body contains an outer name and an inner block that uses that name.
+    subgraph functionBody[Function body]
+        outerName[Outer name]
+        subgraph innerBlock[Inner block]
+            useName[Use name]
+        end
+    end
+    outerName --> useName
+```
+
+The arrow stays inside the function body because both the declaration and its use belong there.
+
+A **lifetime diagram** reads downward as time passes; an activation bar begins when an object exists and ends when it is destroyed.
+
+```mermaid
+sequenceDiagram
+    accTitle: A local object during two calls
+    accDescr: A caller creates and destroys one local object, then creates and destroys it again.
+    participant Caller
+    participant Local
+    Caller->>+Local: create
+    Local-->>-Caller: destroy
+    Caller->>+Local: create again
+    Local-->>-Caller: destroy again
+```
+
+The two separate bars show that the local object does not survive from one call to the next.
+
+A **call diagram** also reads downward, but its arrows emphasize which function sends each call and return.
+
+```mermaid
+sequenceDiagram
+    accTitle: One function call and return
+    accDescr: Main calls helper, then helper returns a value to main.
+    participant Main
+    participant Helper
+    Main->>+Helper: call
+    Helper-->>-Main: return value
+```
+
+Follow the solid call arrow down to the dashed return arrow.
+
+A **state diagram** follows an object between named situations; an arrow label says what causes the change.
+
+```mermaid
+stateDiagram-v2
+    accTitle: A worker moving between states
+    accDescr: A worker starts ready, becomes busy after start, and becomes ready after finish.
+    [*] --> Ready
+    Ready --> Busy: start
+    Busy --> Ready: finish
+```
+
+The worker can repeat the Ready-to-Busy cycle without inventing a new state.
+
+A **layout diagram** places related regions side by side when their position is the idea to compare.
+
+```mermaid
+block-beta
+    columns 2
+    autoRegion["Automatic region"]
+    fixedRegion["Static region"]
+```
+
+The neighboring blocks invite a comparison; their colors do not carry the meaning.
+
+Charts use labeled axes and bars or lines to show quantities. Every chart is followed by its numbers in a table, so the values remain available without the picture.
 
 ## Tables
 

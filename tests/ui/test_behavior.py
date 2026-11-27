@@ -227,24 +227,66 @@ DIAGRAM_JS = """(content) => {
       if (!svg) return null;
       const r = svg.getBoundingClientRect();
       const scale = r.width / svg.viewBox.baseVal.width;
-      const broken = svg.textContent.includes('Unsupported markdown');
+      const syntaxError = svg.getAttribute('aria-roledescription') === 'error';
+      const garbage = ['Unsupported markdown', '°°', '¶ß', '�', '&+'].filter(marker => svg.textContent.includes(marker));
       const fonts = [...svg.querySelectorAll('text, span, p, div')].map(e => parseFloat(getComputedStyle(e).fontSize)).filter(n => n > 0);
-      const label = svg.querySelector('.nodeLabel');
-      return { broken, left: Math.round(r.left), right: Math.round(r.right), columnLeft: Math.round(left), columnRight: Math.round(right),
+      const outsideText = [...svg.querySelectorAll('text, foreignObject')].flatMap(e => {
+        const t = e.getBoundingClientRect();
+        if (t.width === 0 && t.height === 0) return [];
+        if (t.left >= r.left - 1 && t.right <= r.right + 1 && t.top >= r.top - 1 && t.bottom <= r.bottom + 1) return [];
+        return [{ text: e.textContent.trim(), left: +t.left.toFixed(1), right: +t.right.toFixed(1),
+                  top: +t.top.toFixed(1), bottom: +t.bottom.toFixed(1) }];
+      });
+      const label = svg.querySelector('.nodeLabel') || svg.querySelector('text tspan') || svg.querySelector('text') ||
+                    svg.querySelector('foreignObject span, foreignObject div');
+      const labelStyle = label ? getComputedStyle(label) : null;
+      const chartBackground = svg.querySelector('.main > rect.background');
+      const plotMarks = [...svg.querySelectorAll('.plot rect, .plot path')];
+      const chart = chartBackground ? {
+        background: getComputedStyle(chartBackground).fill,
+        plotColors: [...new Set(plotMarks.map(e => {
+          const markStyle = getComputedStyle(e);
+          return e.tagName.toLowerCase() === 'rect' ? markStyle.fill : markStyle.stroke;
+        }).filter(color => color !== 'none'))],
+      } : null;
+      return { role: svg.getAttribute('aria-roledescription'), syntaxError, garbage, outsideText,
+               left: Math.round(r.left), right: Math.round(r.right), columnLeft: Math.round(left), columnRight: Math.round(right),
                smallestTextPx: fonts.length ? +(Math.min(...fonts) * scale).toFixed(1) : null,
-               textColor: label ? getComputedStyle(label).color : null };
+               textColor: label ? (label.tagName.toLowerCase() === 'text' ? labelStyle.fill : labelStyle.color) : null,
+               chart };
     }),
   };
 }"""
 
 
+def _rgb(color: str) -> tuple[float, float, float]:
+    return tuple(float(part) for part in color[color.index("(") + 1 : color.index(")")].split(",")[:3])
+
+
 def _brightness(color: str) -> float:
-    red, green, blue = (float(part) for part in color[color.index("(") + 1 : color.index(")")].split(",")[:3])
+    red, green, blue = _rgb(color)
     return 0.299 * red + 0.587 * green + 0.114 * blue
 
 
+def _contrast_ratio(first: str, second: str) -> float:
+    def luminance(color: str) -> float:
+        channels = []
+        for value in _rgb(color):
+            channel = value / 255
+            channels.append(channel / 12.92 if channel <= 0.04045 else ((channel + 0.055) / 1.055) ** 2.4)
+        return 0.2126 * channels[0] + 0.7152 * channels[1] + 0.0722 * channels[2]
+
+    light, dark = sorted((luminance(first), luminance(second)), reverse=True)
+    return (light + 0.05) / (dark + 0.05)
+
+
 # Every page whose built HTML has a diagram is checked, so a diagram in a later lesson is tested the day it is added.
-DIAGRAM_CASES = [pytest.param(path, 320, scheme, id=f"{page_id(path)}-320-{scheme}") for scheme in SCHEMES for path in DIAGRAM_PAGES]
+DIAGRAM_CASES = [
+    pytest.param(path, width, scheme, id=f"{page_id(path)}-{width}-{scheme}")
+    for width in [320, 1280]
+    for scheme in SCHEMES
+    for path in DIAGRAM_PAGES
+]
 
 
 def test_u10_the_pages_with_diagrams_are_found_in_the_built_book():
@@ -253,18 +295,19 @@ def test_u10_the_pages_with_diagrams_are_found_in_the_built_book():
 
 
 @pytest.mark.parametrize("path, width, scheme", DIAGRAM_CASES)
-def test_u10_every_diagram_renders_and_fits_at_320(tabs, path, width, scheme):
-    """U10: each diagram draws an <svg> in both color schemes, fits at 320px and keeps its text readable."""
+def test_u10_every_diagram_renders_and_fits(tabs, path, width, scheme):
+    """U10: each diagram draws cleanly, fits at phone and desktop widths, and keeps its text and chart marks legible."""
     tab = tabs(width, scheme)
     tab.visit(path)  # also fails with a clear message if the diagram never renders
     found = tab.page.evaluate(DIAGRAM_JS, CONTENT)
     assert found["hosts"] >= 1, f"{path} has no diagram."
     assert found["drawn"] == found["hosts"], f"{found['hosts'] - found['drawn']} diagram(s) did not render an <svg>."
-    assert found["pageFits"], "The diagram makes the page scroll sideways at 320px."
+    assert found["pageFits"], f"The diagram makes the page scroll sideways at {width}px."
     for diagram in found["diagrams"]:
-        assert not diagram["broken"], (
-            "A node label was read as Markdown and replaced by 'Unsupported markdown'. "
-            "Do not start a label with a number and a dot (1.), a dash or a star; write it as plain words."
+        assert not diagram["syntaxError"], "Mermaid rendered a syntax-error picture instead of the diagram."
+        assert not diagram["garbage"], (
+            f"Mermaid rendered placeholder or garbage text {diagram['garbage']}. "
+            "Use plain words or a backslash escape in labels; do not use an HTML entity code."
         )
         assert diagram["left"] >= diagram["columnLeft"] - 1 and diagram["right"] <= diagram["columnRight"] + 1, (
             f"The diagram spans {diagram['left']}-{diagram['right']}px but the text column is {diagram['columnLeft']}-{diagram['columnRight']}px."
@@ -273,10 +316,22 @@ def test_u10_every_diagram_renders_and_fits_at_320(tabs, path, width, scheme):
             f"The diagram is scaled down so far that its text is {diagram['smallestTextPx']}px; the minimum is 12px. "
             "Use fewer nodes per row or shorter labels."
         )
-        assert diagram["textColor"] is not None, "The diagram has no node labels, so its colors cannot be checked. Write it as `flowchart TD`."
+        assert not diagram["outsideText"], f"Diagram text lies outside its SVG box at {width}px: {diagram['outsideText']}"
+        assert diagram["textColor"] is not None, "The diagram has no visible label whose theme color can be checked."
         # Mermaid's dark theme has light text and its default theme dark text.
         bright = _brightness(diagram["textColor"]) > 128
-        assert bright == (scheme == "dark"), f"In the {scheme} scheme the diagram's text is {diagram['textColor']}: it was drawn for the other scheme."
+        assert bright == (scheme == "dark"), (
+            f"In the {scheme} scheme the {diagram['role']} diagram's text is {diagram['textColor']}: "
+            "it was drawn for the other scheme."
+        )
+        if diagram["chart"]:
+            assert diagram["chart"]["plotColors"], "The chart has no visible bars or lines."
+            for color in diagram["chart"]["plotColors"]:
+                contrast = _contrast_ratio(color, diagram["chart"]["background"])
+                assert contrast >= 3, (
+                    f"The chart mark {color} has only {contrast:.2f}:1 contrast against "
+                    f"{diagram['chart']['background']}; the minimum is 3:1."
+                )
 
 
 def test_u10_a_diagram_is_redrawn_when_the_theme_changes(private_tab):
