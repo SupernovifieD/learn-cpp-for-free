@@ -85,3 +85,6 @@
 - [6. Operators](ch06-operators/index.md)
   - [6.1 Operator precedence and associativity](ch06-operators/01-operator-precedence-and-associativity.md)
   - [6.2 Arithmetic operators](ch06-operators/02-arithmetic-operators.md)
+  - [6.3 Remainder and Exponentiation](ch06-operators/03-remainder-and-exponentiation.md)
+  - [6.4 Increment/decrement operators, and side effects](ch06-operators/04-increment-decrement-operators-and-side-effects.md)
+  - [6.5 The comma operator](ch06-operators/05-the-comma-operator.md)

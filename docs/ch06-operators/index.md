@@ -30,3 +30,6 @@ Notice that grouping comes first: every later result depends on which operands b
 
 - [6.1 Operator precedence and associativity](01-operator-precedence-and-associativity.md): how an expression becomes a tree, and why grouping is not evaluation order.
 - [6.2 Arithmetic operators](02-arithmetic-operators.md): unary signs, arithmetic, compound assignment, and the two kinds of division.
+- [6.3 Remainder and Exponentiation](03-remainder-and-exponentiation.md): integer cycles, negative remainders, powers, and why `^` is not exponentiation.
+- [6.4 Increment/decrement operators, and side effects](04-increment-decrement-operators-and-side-effects.md): when a changed value is stored and which value an expression receives.
+- [6.5 The comma operator](05-the-comma-operator.md): a sequenced pair of expressions, its result, and the precedence trap.
