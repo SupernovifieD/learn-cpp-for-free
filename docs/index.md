@@ -19,6 +19,7 @@
 - [3. Debugging C++ Programs](ch03-debugging/index.md): the kinds of bugs, how to find them, and how to use a debugger.
 - [4. Fundamental Data Types](ch04-fundamental-data-types/index.md): integers, floating point numbers, booleans and characters, `if` statements and type conversion.
 - [5. Constants and Strings](ch05-constants-and-strings/index.md): named constants, literals, numeral systems, and the types for text.
+- [6. Operators](ch06-operators/index.md): expression grouping, arithmetic, side effects, comparisons, and logical conditions.
 
 ## About
 

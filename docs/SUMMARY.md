@@ -82,3 +82,6 @@
   - [5.8 Introduction to std::string_view](ch05-constants-and-strings/08-introduction-to-std-string-view.md)
   - [5.9 std::string_view (part 2)](ch05-constants-and-strings/09-std-string-view-part-2.md)
   - [5.x Chapter 5 summary and quiz](ch05-constants-and-strings/x-summary-and-quiz.md)
+- [6. Operators](ch06-operators/index.md)
+  - [6.1 Operator precedence and associativity](ch06-operators/01-operator-precedence-and-associativity.md)
+  - [6.2 Arithmetic operators](ch06-operators/02-arithmetic-operators.md)

@@ -1,0 +1,6 @@
+a + b * c: 14
+a + (b * c): 14
+(a + b) * c: 20
+first - second - third: 12
+first - (second - third): 16
+x and y: 0 0

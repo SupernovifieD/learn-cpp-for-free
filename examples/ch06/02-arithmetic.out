@@ -1,0 +1,10 @@
+Unary plus: 12
+Unary minus: -12
+Sum: 15
+Difference: 9
+Product: 36
+Quotient: 4
+After += 5: 15
+After *= 2: 30
+After -= 6: 24
+After /= 4: 6
