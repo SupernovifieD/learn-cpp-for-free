@@ -8,11 +8,11 @@ The concept map shows how the chapter moves from the structure of an expression 
 flowchart TD
     accTitle: The main ideas of Chapter 6
     accDescr: Grouping gives an expression structure. Operators then calculate values, may change state, compare results, and combine conditions.
-    expression[Expression] --> grouping[Grouping rules]
-    grouping --> calculate[Calculate values]
-    calculate --> effects[Change state]
-    calculate --> compare[Compare results]
-    compare --> conditions[Combine conditions]
+    expression[Expression] --> grouping[Grouping]
+    grouping --> calculate[Values]
+    calculate --> effects[Effects]
+    calculate --> compare[Comparisons]
+    compare --> conditions[Conditions]
 ```
 
 Notice that grouping comes first: every later result depends on which operands belong to which operator.
